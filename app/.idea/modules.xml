@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/EGG_EM.iml" filepath="$PROJECT_DIR$/.idea/modules/EGG_EM.iml" group="EGG_EM" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="EGG_EM/app" />
+    </modules>
+  </component>
+</project>
