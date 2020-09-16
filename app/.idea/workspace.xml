@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="9ae8bfe7-6348-4690-9aba-f3c7fc15e5ef" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -7,6 +12,7 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="3c38b8a3" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -18,6 +24,15 @@
         <projects_view />
       </state>
     </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="layoutResourceFile" />
+        <option value="resourceFile" />
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="ProjectId" id="1hajv3ztmdns5itNNULylrMx0Tl" />
   <component name="ProjectViewState">
@@ -36,7 +51,7 @@
         <option name="Android.Gradle.BeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App">
+    <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
       <module name="app" />
       <option name="DEPLOY" value="true" />
       <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
@@ -100,5 +115,55 @@
       <updated>1600256327184</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="574" y="113" key="#com.intellij.ide.util.MemberChooser" timestamp="1600270930374">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="574" y="113" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824@0.0.1536.824" timestamp="1600270930374" />
+    <state x="349" y="167" key="AndroidCreateResourceFileDialog" timestamp="1600270465261">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="349" y="167" key="AndroidCreateResourceFileDialog/0.0.1536.824@0.0.1536.824" timestamp="1600270465261" />
+    <state x="628" y="243" key="AndroidCreateXmlResourceDialog" timestamp="1600268743657">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="628" y="243" key="AndroidCreateXmlResourceDialog/0.0.1536.824@0.0.1536.824" timestamp="1600268743657" />
+    <state width="1340" height="242" key="GridCell.Tab.0.bottom" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state width="1340" height="242" key="GridCell.Tab.0.center" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state width="1340" height="242" key="GridCell.Tab.0.left" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state width="1340" height="242" key="GridCell.Tab.0.right" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state width="1340" height="242" key="GridCell.Tab.1.bottom" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state width="1340" height="242" key="GridCell.Tab.1.center" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state width="1340" height="242" key="GridCell.Tab.1.left" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state width="1340" height="242" key="GridCell.Tab.1.right" timestamp="1600266451611">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1340" height="242" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1600266451611" />
+    <state x="168" y="120" width="1200" height="584" key="com.android.tools.idea.avdmanager.AvdListDialog" timestamp="1600266259186">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="168" y="120" width="1200" height="584" key="com.android.tools.idea.avdmanager.AvdListDialog/0.0.1536.824@0.0.1536.824" timestamp="1600266259186" />
   </component>
 </project>
