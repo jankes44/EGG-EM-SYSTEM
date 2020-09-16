@@ -1,0 +1,90 @@
+{
+  "homepage": ".",
+  "name": "egg",
+  "version": "1.8.0",
+  "description": "",
+  "private": false,
+  "main": "dist/index.js",
+  "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/lab": "^4.0.0-alpha.56",
+    "@react-google-maps/api": "^1.9.12",
+    "@react-pdf/renderer": "^1.6.10",
+    "axios": "^0.19.2",
+    "bootstrap": "^4.5.2",
+    "classnames": "2.2.6",
+    "date-fns": "^2.15.0",
+    "history": "4.9.0",
+    "jwt-decode": "^2.2.0",
+    "material-table": "^1.68.1",
+    "moment": "^2.27.0",
+    "prop-types": "15.7.2",
+    "react": "16.9.0",
+    "react-bootstrap-table-next": "^4.0.3",
+    "react-bootstrap-table2-editor": "^1.4.0",
+    "react-bootstrap-table2-filter": "^1.3.3",
+    "react-bootstrap-table2-overlay": "^2.0.0",
+    "react-bootstrap-table2-paginator": "^2.1.2",
+    "react-bootstrap-table2-toolkit": "^2.1.3",
+    "react-csv": "^2.0.3",
+    "react-datepicker": "^2.16.0",
+    "react-dom": "16.9.0",
+    "react-draggable": "^4.4.3",
+    "react-google-maps": "9.4.5",
+    "react-router": "^5.2.0",
+    "react-router-dom": "5.0.1",
+    "react-scripts": "3.1.0",
+    "react-select": "^3.1.0",
+    "react-simple-animate": "^3.3.10",
+    "reactjs-popup": "^1.5.0",
+    "typeface-roboto": "0.0.75",
+    "underscore": "^1.10.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start",
+    "lint:check": "eslint . --ext=js,jsx;  exit 0",
+    "lint:fix": "eslint . --ext=js,jsx --fix;  exit 0",
+    "build-package-css": "cp src/assets/css/material-dashboard-react.css dist/material-dashboard-react.css",
+    "build-package": "npm run build-package-css && babel src --out-dir dist",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creativetimofficial/material-dashboard-react.git"
+  },
+  "keywords": [],
+  "author": "Creative Tim <hello@creative-tim.com> (https://www.creative-tim.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/creativetimofficial/material-dashboard-react/issues"
+  },
+  "optionalDependencies": {
+    "@types/googlemaps": "3.37.3",
+    "@types/markerclustererplus": "2.1.33",
+    "ajv": "6.10.2",
+    "typescript": "3.5.3"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "6.0.0",
+    "eslint-plugin-prettier": "3.1.0",
+    "gh-pages": "^2.2.0",
+    "gulp": "4.0.2",
+    "gulp-append-prepend": "1.0.8",
+    "prettier": "^1.19.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": []
+  },
+  "proxy": "http://localhost:5000"
+}

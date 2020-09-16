@@ -1,0 +1,137 @@
+.popup {
+  padding: 13%;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1029;
+}
+
+.popupInner {
+  font-size: 1em;
+  padding: 25px;
+  position: absolute;
+  display: inline-block;
+  margin: auto;
+  margin-left: 0vw;
+  top: 10vh;
+  left: 0vw;
+  height: 90vh;
+  width: 70vw;
+  background: rgba(255, 255, 255, 0.911);
+  overflow-y: auto;
+}
+
+.popupInner2 {
+  font-size: 1.5em;
+  padding: 25px;
+  position: absolute;
+  display: inline-block;
+  margin: auto;
+  margin-left: 0vw;
+  top: 10vh;
+  left: 0vw;
+  height: 90vh;
+  width: 60vw;
+  background: rgba(255, 255, 255, 0.911);
+  overflow-y: auto;
+}
+
+.buttonContainer {
+  position: fixed;
+  top: 10vh;
+  right: 41vw;
+}
+
+.buttonContainer2 {
+  position: fixed;
+  top: 10vh;
+  right: 33vw;
+}
+
+/** maxHeight: "80%", width: "40%", top: "15%", left: "30%" */
+
+@media (max-width: 860px) {
+  .popupInner2 {
+    width: 100vw;
+    left: 0vw;
+  }
+  .popupInner {
+    width: 100vw;
+    left: 0vw;
+  }
+  .buttonContainer {
+    position: fixed;
+    bottom: 21vh;
+    right: 4vw;
+  }
+  .buttonContainer2 {
+    position: fixed;
+    bottom: 21vh;
+    right: 4vw;
+  }
+}
+
+.buttonStyle {
+  top: 15px;
+  width: 8vw;
+  float: right;
+}
+
+h5 {
+  font-weight: light;
+}
+
+.infoContainer {
+  border-radius: 2px;
+  padding: 15px;
+  margin-top: 50px;
+  background: whitesmoke;
+  color: whitesmoke;
+}
+
+.datagrid table {
+  border-collapse: collapse;
+  text-align: left;
+  width: 60vw;
+}
+.datagrid {
+  font: normal 0.8em/150% Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+.datagrid table td,
+.datagrid table th {
+  padding: 15px 10px;
+  width: 100vw;
+}
+.datagrid table th {
+  background: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0.05, #ffffff),
+    color-stop(1, #f0f0f0)
+  );
+  background: -moz-linear-gradient(center top, #ffffff 5%, #f0f0f0 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFF', endColorstr='#F0F0F0');
+  color: rgba(25, 29, 31, 0.959);
+  font-size: 1.7em;
+  font-weight: 300;
+}
+.datagrid table th:first-child {
+  border: none;
+}
+.datagrid table tbody td {
+  color: #252525;
+  font-size: 1.5em;
+  border-top: 1px solid #e1eef4;
+  font-weight: lighter;
+}
+.datagrid table tbody tr:last-child td {
+  border-bottom: none;
+}
