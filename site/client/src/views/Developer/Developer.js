@@ -19,11 +19,11 @@ export default function Developer() {
           <DeveloperComp />
         </GridItem>
       </GridContainer>
-      <GridContainer justify="center">
+      {/* <GridContainer justify="center">
         <GridItem xs={12}>
           <Maps />
         </GridItem>
-      </GridContainer>
+      </GridContainer> */}
     </div>
   );
 }

@@ -830,7 +830,7 @@ class TrialTest extends Component {
           "Content-Type": "application/json;charset=UTF-8",
           Authorization: "Bearer " + localStorage.usertoken,
         },
-        url: global.BASE_URL + "/trialmqtt/dev/relay/on",
+        url: global.BASE_URL + "/trialmqtt/dev/relay/off",
         data: {
           devices: this.state.deviceManual,
           topic: this.state.deviceManual[0].mqtt_topic,

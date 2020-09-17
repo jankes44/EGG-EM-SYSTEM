@@ -884,6 +884,69 @@ router.post("/dev/relay/on", auth, (req, res) => {
   });
 });
 
+router.post("/dev/relay/off", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      var deviceData = req.body.devices;
+      let counter = 0;
+      const length = deviceData.length;
+      var messages = [];
+
+      loop = () => {
+        if (counter < length) {
+          const deviceId = deviceData[counter].node_id;
+          var topic = deviceData[counter].mqtt_topic_out;
+          console.log(deviceData[counter].node_id);
+
+          publishRelayOn = () => {
+            device.publish(
+              topic,
+              `${deviceId}10018202000096`,
+              { qos: 1 },
+              (err) => {
+                if (err) {
+                  var errTimeout = setTimeout(() => {
+                    console.log(err, "retrying in 10s");
+                    setTimeout(loop, 1000);
+                  }, 10000);
+                } else {
+                  console.log("published");
+                  var msgTimeout = setTimeout(() => {
+                    console.log("No response, retrying...");
+                    setTimeout(loop, 1000);
+                  }, 6000);
+                  device.handleMessage = (packet, callback) => {
+                    clearInterval(msgTimeout);
+                    clearInterval(errTimeout);
+                    var message = packet.payload.toString("utf8");
+                    var arrayContainsMessage = messages.includes(message);
+                    var msg_node_id = message.slice("13", "17");
+                    if (!arrayContainsMessage) {
+                      messages.push(message);
+                      console.log(message, msg_node_id);
+                      counter++;
+                      setTimeout(loop, 500);
+                      callback(err, packet);
+                    }
+                  };
+                }
+              }
+            );
+          };
+          publishRelayOn();
+        } else {
+          console.log("done", counter, length);
+          counter = 0;
+          res.send("Done");
+        }
+      };
+      loop();
+    }
+  });
+});
+
 router.post("/dev/relay/state", auth, (req, res) => {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
@@ -1162,6 +1225,30 @@ router.post("/dev/gateway/state", auth, (req, res) => {
 
       console.log(topic);
       device.publish(topic, `XrebX`, { qos: 1 }, (err) => {
+        device.handleMessage = (packet, callback) => {
+          var message = packet.payload.toString("utf8");
+          if (received === 0) {
+            received = 1;
+            console.log(message);
+            res.send(message);
+            callback();
+          } else callback();
+        };
+      });
+    }
+  });
+});
+
+router.post("/dev/manual/cmd", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      var topic = req.body.topic;
+      var received = 0;
+
+      console.log(topic);
+      device.publish(topic, req.body.command, { qos: 1 }, (err) => {
         device.handleMessage = (packet, callback) => {
           var message = packet.payload.toString("utf8");
           if (received === 0) {
