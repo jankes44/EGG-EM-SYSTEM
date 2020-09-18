@@ -1224,7 +1224,7 @@ router.post("/dev/gateway/state", auth, (req, res) => {
       var received = 0;
 
       console.log(topic);
-      device.publish(topic, `XrebX`, { qos: 1 }, (err) => {
+      device.publish(topic, `XchkX`, { qos: 1 }, (err) => {
         device.handleMessage = (packet, callback) => {
           var message = packet.payload.toString("utf8");
           if (received === 0) {
@@ -1235,6 +1235,154 @@ router.post("/dev/gateway/state", auth, (req, res) => {
           } else callback();
         };
       });
+    }
+  });
+});
+
+router.post("/dev/ldr", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      var deviceData = req.body.devices;
+      let counter = 0;
+      const length = deviceData.length;
+      var messages = [];
+
+      loop = () => {
+        if (counter < length) {
+          const deviceId = deviceData[counter].light_node_id;
+          var topic = deviceData[counter].mqtt_topic_out;
+          console.log(deviceData[counter].light_node_id);
+
+          publishGetState = () => {
+            device.publish(
+              topic,
+              `${deviceId}10038205000096`, //cmd to read ldr sensor
+              { qos: 1 },
+              (err) => {
+                if (err) {
+                  setTimeout(() => {
+                    publishGetState();
+                    console.log("retrying in 5s");
+                  }, 5000);
+                } else {
+                  console.log("published on:", topic);
+                  var msgTimeout = setTimeout(() => {
+                    console.log("No response");
+                    counter++;
+                    loop();
+                  }, 6000);
+                  device.handleMessage = (packet, callback) => {
+                    clearInterval(msgTimeout);
+                    const message = packet.payload.toString("utf8");
+                    const msgSliced = parseInt(
+                      `0x${message.slice(21, 25)}`
+                    ).toFixed(4);
+                    let arrayContainsMessage = messages.includes(message);
+                    const msg_node_id = message.slice("13", "17");
+                    var el = messages.find((a) => a.includes(msg_node_id));
+
+                    if (!el) {
+                      insertMsg(message);
+                      messages.push(`${message} ldr: ${msgSliced}`);
+                      console.log(message, msg_node_id, msgSliced);
+                      counter++;
+                      setTimeout(loop, 1500);
+                      callback(packet);
+                    } else {
+                      callback();
+                    }
+                  };
+                }
+              }
+            );
+          };
+          publishGetState();
+        } else {
+          console.log("done", counter, length);
+          counter = 0;
+          res.send(messages);
+        }
+      };
+      loop();
+    }
+  });
+});
+
+router.post("/dev/voltage", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      var deviceData = req.body.devices;
+      let counter = 0;
+      const length = deviceData.length;
+      var messages = [];
+
+      loop = () => {
+        if (counter < length) {
+          const deviceId = deviceData[counter].volt_reading_node_id;
+          var topic = deviceData[counter].mqtt_topic_out;
+          console.log(deviceData[counter].volt_reading_node_id);
+
+          publishGetState = () => {
+            device.publish(
+              topic,
+              `${deviceId}10038205000096`,
+              { qos: 1 },
+              (err) => {
+                if (err) {
+                  setTimeout(() => {
+                    publishGetState();
+                    console.log("retrying in 5s");
+                  }, 5000);
+                } else {
+                  console.log("published on:", topic);
+                  var msgTimeout = setTimeout(() => {
+                    console.log("No response");
+                    counter++;
+                    loop();
+                  }, 6000);
+                  device.handleMessage = (packet, callback) => {
+                    clearInterval(msgTimeout);
+                    const message = packet.payload.toString("utf8");
+                    const msgSliced = parseInt(`0x${message.slice(21, 25)}`);
+                    let arrayContainsMessage = messages.includes(message);
+                    const msg_node_id = message.slice("13", "17");
+                    let voltage = msgSliced / 1241.212121 / 0.3;
+                    var el = messages.find((a) => a.includes(msg_node_id));
+
+                    if (!el) {
+                      insertMsg(message);
+                      messages.push(
+                        `${message} voltage: ${voltage.toFixed(4)}v`
+                      );
+                      console.log(
+                        message,
+                        msg_node_id,
+                        voltage.toFixed(4),
+                        msgSliced
+                      );
+                      counter++;
+                      setTimeout(loop, 1500);
+                      callback(packet);
+                    } else {
+                      callback();
+                    }
+                  };
+                }
+              }
+            );
+          };
+          publishGetState();
+        } else {
+          console.log("done", counter, length);
+          counter = 0;
+          res.send(messages);
+        }
+      };
+      loop();
     }
   });
 });

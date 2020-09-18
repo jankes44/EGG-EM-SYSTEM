@@ -18,7 +18,7 @@ export default class ManualCommand extends Component {
       url: global.BASE_URL + "/trialmqtt/dev/manual/cmd",
       data: {
         command: this.state.command,
-        topic: "LIVESPCOM",
+        topic: global.SEND_TOPIC,
       },
       timeout: 0,
     })

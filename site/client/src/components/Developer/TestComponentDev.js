@@ -147,6 +147,16 @@ class TrialTest extends Component {
         text: "BMesh Address",
         sort: true,
       },
+      {
+        dataField: "light_node_id",
+        text: "Light BMesh Address",
+        sort: true,
+      },
+      {
+        dataField: "volt_reading_node_id",
+        text: "Volt BMesh Address",
+        sort: true,
+      },
     ],
     devicesFiltered: [],
     selectedDevices: [],
@@ -1023,6 +1033,27 @@ class TrialTest extends Component {
         .catch((error) => {
           console.log(error);
         });
+    } else {
+      axios({
+        //Axios POST request
+        method: "post",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+        url: global.BASE_URL + "/trialmqtt/dev/gateway/state",
+        data: {
+          topic: global.SEND_TOPIC,
+        },
+        timeout: 0,
+      })
+        .then((res) => {
+          console.log(res);
+          this.setState({ responses: [...this.state.responses, res.data] });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }
   };
 
@@ -1131,6 +1162,122 @@ class TrialTest extends Component {
           timeout: 0,
         })
           .then((res) => {
+            console.log(res);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    }
+  };
+
+  getLdrReading = () => {
+    if (this.state.textInput) {
+      axios({
+        //Axios POST request
+        method: "post",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+        url: global.BASE_URL + "/trialmqtt/dev/ldr",
+        data: {
+          devices: this.state.deviceManual,
+          topic: this.state.deviceManual[0].mqtt_topic,
+        },
+        timeout: 0,
+      })
+        .then((res) => {
+          if (res.data.length === 0) {
+            this.setState({
+              responses: [
+                ...this.state.responses,
+                `No response from ${this.state.deviceManual[0].light_node_id}`,
+              ],
+            });
+          }
+          this.setState({ responses: [...this.state.responses, res.data] });
+          console.log(res);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else {
+      if (this.state.selectedDevices.length > 0) {
+        axios({
+          //Axios POST request
+          method: "post",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            Authorization: "Bearer " + localStorage.usertoken,
+          },
+          url: global.BASE_URL + "/trialmqtt/dev/ldr",
+          data: {
+            devices: this.state.selectedDevices,
+            topic: this.state.selectedDevices[0].mqtt_topic,
+          },
+          timeout: 0,
+        })
+          .then((res) => {
+            this.setState({ responses: [...this.state.responses, res.data] });
+            console.log(res);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    }
+  };
+
+  getBatVoltage = () => {
+    if (this.state.textInput) {
+      axios({
+        //Axios POST request
+        method: "post",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+        url: global.BASE_URL + "/trialmqtt/dev/voltage",
+        data: {
+          devices: this.state.deviceManual,
+          topic: this.state.deviceManual[0].mqtt_topic,
+        },
+        timeout: 0,
+      })
+        .then((res) => {
+          if (res.data.length === 0) {
+            this.setState({
+              responses: [
+                ...this.state.responses,
+                `No response from ${this.state.deviceManual[0].volt_reading_node_id}`,
+              ],
+            });
+          }
+          this.setState({ responses: [...this.state.responses, res.data] });
+          console.log(res);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else {
+      if (this.state.selectedDevices.length > 0) {
+        axios({
+          //Axios POST request
+          method: "post",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            Authorization: "Bearer " + localStorage.usertoken,
+          },
+          url: global.BASE_URL + "/trialmqtt/dev/voltage",
+          data: {
+            devices: this.state.selectedDevices,
+            topic: this.state.selectedDevices[0].mqtt_topic,
+          },
+          timeout: 0,
+        })
+          .then((res) => {
+            this.setState({ responses: [...this.state.responses, res.data] });
             console.log(res);
           })
           .catch((error) => {
@@ -1435,6 +1582,8 @@ class TrialTest extends Component {
             <button onClick={this.devGetGW}>CheckGW</button>
             <button onClick={this.setLightOff}>SetLightOff</button>
             <button onClick={this.setLightOn}>SetLightOn</button>
+            <button onClick={this.getBatVoltage}>GetBatVoltage</button>
+            <button onClick={this.getLdrReading}>GetLdrReading</button>
             <div style={{ marginLeft: "10px" }}>
               <TextField
                 id="standard-basic"
@@ -1442,7 +1591,7 @@ class TrialTest extends Component {
                 onChange={(e) => {
                   let nodeAddress = e.target.value;
                   let device = {
-                    mqtt_topic_out: "LIVESPCOM",
+                    mqtt_topic_out: global.SEND_TOPIC,
                     node_id: nodeAddress,
                     light_node_id: nodeAddress,
                   };
