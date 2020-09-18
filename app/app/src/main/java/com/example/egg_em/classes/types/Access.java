@@ -1,5 +1,12 @@
 package com.example.egg_em.classes.types;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum Access {
     DEVELOPER(99),
     USER(1),
@@ -14,6 +21,13 @@ public enum Access {
 
     public int getValue() {
         return value;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static Optional<Access> valueOf(int v) {
+        return Arrays.stream(values())
+                .filter(a -> a.value == v)
+                .findFirst();
     }
 
 }

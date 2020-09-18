@@ -1,18 +1,17 @@
 package com.example.egg_em.activities;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Pair;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.egg_em.R;
-import com.example.egg_em.classes.LoggedUser;
-import com.example.egg_em.classes.Security;
+import com.example.egg_em.classes.singletons.LoggedUser;
 import com.example.egg_em.classes.Utilities;
 import com.example.egg_em.operations.UserOperation;
 import com.example.egg_em.operations.params.UserParams;
@@ -21,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ExecutionException;
 
+@RequiresApi(api = Build.VERSION_CODES.N)
 public class LoginActivity extends AppCompatActivity {
 
     @Override
@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
 //                LOGIN OK
                 //TODO create landing page after successful login
                 LoggedUser.getInstance(login.second);
-                risIntent = new Intent(this, LoginActivity.class);
+                risIntent = new Intent(this, MainLoggedActivity.class);
                 Utilities.createToast("Login Successful", this);
             }
             break;
