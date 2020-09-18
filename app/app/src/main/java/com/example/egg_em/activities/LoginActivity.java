@@ -13,6 +13,7 @@ import android.widget.EditText;
 import com.example.egg_em.R;
 import com.example.egg_em.classes.singletons.LoggedUser;
 import com.example.egg_em.classes.Utilities;
+import com.example.egg_em.classes.types.RequestType;
 import com.example.egg_em.operations.UserOperation;
 import com.example.egg_em.operations.params.UserParams;
 
@@ -55,7 +56,7 @@ public class LoginActivity extends AppCompatActivity {
         Pair<Integer, String> login;
         UserParams params;
         try{
-            params = new UserParams(email, password, this, "login");
+            params = new UserParams(email, password, this, RequestType.LOGIN);
             login = new UserOperation().execute(params).get();
         } catch (InterruptedException | ExecutionException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
             Utilities.createToast("Login Error", this);

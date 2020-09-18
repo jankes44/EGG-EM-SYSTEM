@@ -19,24 +19,26 @@ public class LoggedUser {
     private String lastName;
     private Access access;
     private String email;
+    private String token;
 
     public static LoggedUser getInstance(String jwt) {
         if (mInstance == null) {
             if (jwt == null){
                 return null;
             }
-            mInstance = LoggedUser.fromMap(new JWT(jwt).getClaims());
+            mInstance = LoggedUser.fromMap(new JWT(jwt).getClaims(), jwt);
         }
         return mInstance;
     }
 
-    private static LoggedUser fromMap(Map<String, Claim> claims) {
+    private static LoggedUser fromMap(Map<String, Claim> claims, String jwt) {
         LoggedUser user = new LoggedUser();
         user.id = claims.get("id").asInt();
         user.firstName = claims.get("first_name").asString();
         user.lastName = claims.get("last_name").asString();
         user.access = Access.valueOf(claims.get("access").asInt()).orElse(null);
         user.email = claims.get("email").asString();
+        user.token = jwt;
 
         return user;
     }
@@ -59,5 +61,9 @@ public class LoggedUser {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getToken() {
+        return token;
     }
 }

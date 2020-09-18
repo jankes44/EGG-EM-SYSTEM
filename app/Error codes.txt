@@ -1,0 +1,4 @@
+461 --> JSON Exception
+462 --> Protocol Exception
+463 --> IO Exception
+464 --> Malformed URL Exception

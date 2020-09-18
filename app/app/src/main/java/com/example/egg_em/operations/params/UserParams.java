@@ -2,16 +2,18 @@ package com.example.egg_em.operations.params;
 
 import android.content.Context;
 
+import com.example.egg_em.classes.types.RequestType;
+
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
 public class UserParams {
     String email;
     String password;
-    String requestType;
+    RequestType requestType;
     Context context;
 
-    public UserParams(String email, String password, Context context, String requestType) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public UserParams(String email, String password, Context context, RequestType requestType) throws UnsupportedEncodingException, NoSuchAlgorithmException {
         this.email = email;
 //        this.password = Security.SHA1(password);
         this.password = password;
@@ -27,7 +29,7 @@ public class UserParams {
         return password;
     }
 
-    public String getRequestType() {
+    public RequestType getRequestType() {
         return requestType;
     }
 

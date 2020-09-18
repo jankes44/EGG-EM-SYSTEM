@@ -12,6 +12,7 @@
     <!-- DASHBOARD -->
     <string name="welcome_message">Welcome %s </string>
     <string name="explanation_message">This is your emergency lighting dashboard. Below you can see test history. Navigate using the sidebar to manage your site, configure your tests and generate reports.</string>
+    <string name="last_test">Last Test</string>
 
     <!-- USER PROFILE -->
     <string name="profile">Profile</string>
@@ -22,5 +23,6 @@
 
     <!-- PLACEHOLDERS FOR FORMAT -->
     <string name="string_placeholder">%s</string>
+
 
 </resources>

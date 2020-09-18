@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.auth0.android.jwt.JWT;
 import com.example.egg_em.R;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -22,10 +22,11 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class Utilities {
 
-    public static Pair<Integer, String> postRequest(URL url, JSONObject params) {
+    public static Pair<Integer, String> postRequest(URL url, JSONObject params, List<Pair<String, String>> headers) {
         try {
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setDoOutput(true);
@@ -34,6 +35,9 @@ public class Utilities {
             urlConnection.setConnectTimeout(10000);
             urlConnection.setReadTimeout(10000);
             urlConnection.setRequestProperty("Content-Type", "application/json");
+            for (Pair<String, String> header : headers) {
+                urlConnection.setRequestProperty(header.first, header.second);
+            }
 
             urlConnection.connect();
 
@@ -58,11 +62,64 @@ public class Utilities {
 
         } catch (ProtocolException e) {
             e.printStackTrace();
-            return new Pair<>(901, "ERROR");
+            return new Pair<>(462, "ERROR");
         } catch (IOException e) {
             e.printStackTrace();
-            return new Pair<>(902, "ERROR");
+            return new Pair<>(463, "ERROR");
         }
+    }
+
+    public static Pair<Integer, String> getRequest(URL url, List<Pair<String, String>> headers){
+        try {
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+//            urlConnection.setDoOutput(true);
+            urlConnection.setRequestMethod("GET");
+            urlConnection.setUseCaches(false);
+            urlConnection.setConnectTimeout(10000);
+            urlConnection.setReadTimeout(10000);
+            for (Pair<String, String> header : headers) {
+                urlConnection.setRequestProperty(header.first, header.second);
+            }
+
+            urlConnection.connect();
+
+            int httpResult = urlConnection.getResponseCode();
+            Log.d("RESPONSE CODE", Integer.toString(httpResult));
+
+            StringBuilder sb = new StringBuilder();
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    urlConnection.getInputStream(), StandardCharsets.UTF_8));
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            br.close();
+
+            Log.d("RESPONSE", sb.toString());
+            return new Pair<>(httpResult, sb.toString());
+
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+            return new Pair<>(462, "ERROR");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Pair<>(463, "ERROR");
+        }
+    }
+
+    public static Pair<Integer, JSONObject> getRequestForJson(URL url, List<Pair<String, String>> headers){
+        headers.add(new Pair<>("Content-Type", "application/json;charset=UTF-8"));
+        Pair<Integer, String> result = getRequest(url, headers);
+
+        if (result.first.equals(HttpURLConnection.HTTP_OK)){
+            try {
+                return new Pair<>(result.first, new JSONObject(result.second));
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return new Pair<>(461, new JSONObject());
+            }
+        }
+        return new Pair<>(result.first, new JSONObject());
     }
 
     public static void createToast(String message, Activity a) {

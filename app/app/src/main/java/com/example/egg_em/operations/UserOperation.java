@@ -6,6 +6,7 @@ import android.util.Pair;
 
 import com.example.egg_em.classes.Security;
 import com.example.egg_em.classes.Utilities;
+import com.example.egg_em.classes.types.RequestType;
 import com.example.egg_em.operations.params.UserParams;
 
 import org.json.JSONException;
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 
 // TODO explore deprecated Async Task constructor
 public class UserOperation extends AsyncTask<UserParams, Integer, Pair<Integer, String>> {
@@ -32,24 +34,24 @@ public class UserOperation extends AsyncTask<UserParams, Integer, Pair<Integer, 
 
         //request url creation
         String route = null;
-        String requestType = params[0].getRequestType();
+        RequestType requestType = params[0].getRequestType();
         switch (requestType) {
-            case "login":
+            case LOGIN:
                 route = "login/";
                 break;
-            case "register":
+            case REGISTER:
                 route = "register/";
         }
 
-        String complete_url = DOMAIN + route;
-        Log.d("URL", "complete_url: "+complete_url);
+        String completeUrl = DOMAIN + route;
+        Log.d("URL", "complete_url: "+completeUrl);
 
         URL url;
         try {
-            url = new URL(complete_url);
+            url = new URL(completeUrl);
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            return new Pair<>(903, ERROR);
+            return new Pair<>(464, ERROR);
 
         }
 
@@ -59,10 +61,10 @@ public class UserOperation extends AsyncTask<UserParams, Integer, Pair<Integer, 
             jsonParams.put("password", params[0].getPassword());
             Log.d("JSON", "Json Params: "+jsonParams);
 
-            return Utilities.postRequest(url, jsonParams);
+            return Utilities.postRequest(url, jsonParams, Collections.emptyList());
             } catch (JSONException e) {
                 e.printStackTrace();
-                return new Pair<>(903, ERROR);
+                return new Pair<>(461, ERROR);
             }
     }
 }
