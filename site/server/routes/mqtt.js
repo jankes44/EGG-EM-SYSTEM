@@ -1249,9 +1249,13 @@ router.post("/dev/manual/cmd", auth, (req, res) => {
 
       console.log(topic);
       device.publish(topic, req.body.command, { qos: 1 }, (err) => {
+        var msgTimeout = setTimeout(() => {
+          res.send({ message: `NO RES: ${req.body.command}` });
+        }, 6000);
         device.handleMessage = (packet, callback) => {
           var message = packet.payload.toString("utf8");
           if (received === 0) {
+            clearTimeout(msgTimeout);
             received = 1;
             console.log(message);
             res.send(message);

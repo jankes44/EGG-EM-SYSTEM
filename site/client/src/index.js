@@ -22,6 +22,7 @@ const hist = createBrowserHistory({
   basename: "#",
 });
 //http://34.252.71.170:5000
+//http://63.32.97.125:5000
 global.BASE_URL = "http://localhost:5000";
 global.intervalCheck = false;
 
