@@ -8,7 +8,7 @@
     </style>
 
     <!-- SIGN IN PAGE -->
-    <style name="sign_in_text">
+    <style name="big_text">
         <item name="android:textSize"> 50sp </item>
         <item name="android:textStyle"> bold </item>
     </style>

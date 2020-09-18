@@ -18,7 +18,7 @@ public class LoggedUser {
     private String firstName;
     private String lastName;
     private Access access;
-
+    private String email;
 
     public static LoggedUser getInstance(String jwt) {
         if (mInstance == null) {
@@ -36,6 +36,7 @@ public class LoggedUser {
         user.firstName = claims.get("first_name").asString();
         user.lastName = claims.get("last_name").asString();
         user.access = Access.valueOf(claims.get("access").asInt()).orElse(null);
+        user.email = claims.get("email").asString();
 
         return user;
     }
@@ -54,5 +55,9 @@ public class LoggedUser {
 
     public Access getAccess() {
         return access;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }

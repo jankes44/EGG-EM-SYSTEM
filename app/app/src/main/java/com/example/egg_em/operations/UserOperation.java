@@ -4,7 +4,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
-import com.auth0.android.jwt.JWT;
 import com.example.egg_em.classes.Security;
 import com.example.egg_em.classes.Utilities;
 import com.example.egg_em.operations.params.UserParams;
@@ -12,8 +11,6 @@ import com.example.egg_em.operations.params.UserParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -56,7 +53,6 @@ public class UserOperation extends AsyncTask<UserParams, Integer, Pair<Integer, 
 
         }
 
-//        Log.d("SHA1", "Sha1 password: "+params[0].getPassword());
         try {
             JSONObject jsonParams = new JSONObject();
             jsonParams.put("email", params[0].getEmail());

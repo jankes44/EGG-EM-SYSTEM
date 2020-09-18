@@ -14,7 +14,7 @@
         android:textAlignment="center"
         android:gravity="center"
         android:layout_gravity="center"
-        style="@style/sign_in_text">
+        style="@style/big_text">
     </TextView>
 
     <com.google.android.material.textfield.TextInputLayout

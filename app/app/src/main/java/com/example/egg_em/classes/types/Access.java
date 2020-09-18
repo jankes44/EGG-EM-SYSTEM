@@ -4,6 +4,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -28,6 +29,11 @@ public enum Access {
         return Arrays.stream(values())
                 .filter(a -> a.value == v)
                 .findFirst();
+    }
+
+    public String asString(){
+        String str = this.toString();
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 
 }
