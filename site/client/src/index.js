@@ -22,7 +22,7 @@ const hist = createBrowserHistory({
   basename: "#",
 });
 
-global.BASE_URL = "http://34.252.71.170:5000";
+global.BASE_URL = "http://63.32.97.125:5000";
 global.intervalCheck = false;
 
 const checkAuth = () => {

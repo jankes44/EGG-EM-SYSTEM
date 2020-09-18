@@ -3,7 +3,10 @@ package com.example.egg_em.classes;
 import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,27 +49,14 @@ public class Security {
 
     public static boolean isNetworkAvailable(Context c) {
         ConnectivityManager connectivityManager = (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
-
-//    public static String format(GregorianCalendar calendar){
-//        SimpleDateFormat fmt = new SimpleDateFormat("dd-MMM-yyyy");
-//        fmt.setCalendar(calendar);
-//        String dateFormatted = fmt.format(calendar.getTime());
-//        return dateFormatted;
-//    }
-
-    public static void createToast(String message, Activity a) {
-        LayoutInflater inflater = a.getLayoutInflater();
-        View layout = inflater.inflate(R.layout.custom_toast, (ViewGroup) a.findViewById(R.id.custom_toast_container));
-
-        TextView text = (TextView) layout.findViewById(R.id.text);
-        text.setText(message);
-
-        Toast toast = new Toast(a.getApplicationContext());
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.setView(layout);
-        toast.show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Network nw = connectivityManager.getActiveNetwork();
+            if (nw == null) return false;
+            NetworkCapabilities actNw = connectivityManager.getNetworkCapabilities(nw);
+            return actNw != null && (actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH));
+        } else {
+            NetworkInfo nwInfo = connectivityManager.getActiveNetworkInfo();
+            return nwInfo != null && nwInfo.isConnected();
+        }
     }
 }
