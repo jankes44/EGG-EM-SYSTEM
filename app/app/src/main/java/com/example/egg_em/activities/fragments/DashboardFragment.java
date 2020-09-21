@@ -1,7 +1,9 @@
 package com.example.egg_em.activities.fragments;
 
+import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,21 +19,19 @@ import com.example.egg_em.R;
 import com.example.egg_em.classes.Utilities;
 import com.example.egg_em.classes.singletons.LoggedUser;
 import com.example.egg_em.classes.types.RequestType;
+import com.example.egg_em.operations.RefreshTests;
 import com.example.egg_em.operations.TestOperation;
 import com.example.egg_em.operations.params.TestParams;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class DashboardFragment extends Fragment {
+
+    Handler handler = new Handler();
 
     @Nullable
     @Override
@@ -66,12 +66,26 @@ public class DashboardFragment extends Fragment {
                 String cleanDate = sb.toString();
 
                 lastTestText.setText(String.format("%s - %s", lastTestJSON.get("building"), cleanDate));
+                ;
+                //Last test table periodically
+                handler.post(new RefreshTests(this.getActivity(), (Table)));
+
+
+
+
             }
         } catch (ExecutionException | InterruptedException | JSONException e) {
-            Utilities.createToast("Error loading last test", this.getActivity());
+            Utilities.createToast("Error loading last tests", this.getActivity());
             return null;
         }
 
         return inflate;
     }
+
+    private final Runnable refreshTests = new Runnable() {
+        @Override
+        public void run() {
+
+        }
+    };
 }

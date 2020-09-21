@@ -21,7 +21,7 @@ import java.util.Locale;
 
 public class TestOperation extends AsyncTask<TestParams, Integer, Pair<Integer, JSONObject>> {
 
-    final static String DOMAIN = "http://63.32.97.125:5000/api/tests/";
+    final static String DOMAIN = "http://63.32.97.125:5000/api/";
 
     @Override
     protected Pair<Integer, JSONObject> doInBackground(TestParams... params) {
@@ -34,8 +34,10 @@ public class TestOperation extends AsyncTask<TestParams, Integer, Pair<Integer, 
         RequestType requestType = params[0].getRequestType();
         switch (requestType) {
             case LAST_TEST:
-                route = String.format(Locale.ENGLISH, "lasttest/%d", params[0].getId());
+                route = String.format(Locale.ENGLISH, "tests/lasttest/%d", params[0].getId());
                 break;
+            case TRIAL_TESTS:
+                route = String.format(Locale.ENGLISH, "trialtests/usr/%d", params[0].getId());
         }
 
         String completeUrl = DOMAIN + route;
