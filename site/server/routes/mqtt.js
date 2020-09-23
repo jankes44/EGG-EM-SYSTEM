@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const con = require("../database/db2");
 var mqtt = require("mqtt");
 var schedule = require("node-schedule");
+const { on } = require("../database/db2");
 
 // const sendTopic = "irjghjhitj45645654";
 // const sendTopic2 = "LIVESPCOM";
@@ -459,7 +460,7 @@ beforeTest = (requestBody, res, userParam) => {
     {
       lights: requestBody.devices.length,
       result: "In Progress",
-      set: "Trial Manual",
+      set: "Manual",
     },
     (err, result) => {
       requestBody.devices.forEach((el) => {
@@ -1276,17 +1277,19 @@ router.post("/dev/ldr", auth, (req, res) => {
                   device.handleMessage = (packet, callback) => {
                     clearInterval(msgTimeout);
                     const message = packet.payload.toString("utf8");
-                    const msgSliced = parseInt(
+                    const ldrReading = parseInt(
                       `0x${message.slice(21, 25)}`
                     ).toFixed(4);
                     let arrayContainsMessage = messages.includes(message);
                     const msg_node_id = message.slice("13", "17");
                     var el = messages.find((a) => a.includes(msg_node_id));
+                    let onOff =
+                      ldrReading > 2000 ? "EM Lamp ON" : "EM Lamp OFF";
 
                     if (!el) {
                       insertMsg(message);
-                      messages.push(`${message} ldr: ${msgSliced}`);
-                      console.log(message, msg_node_id, msgSliced);
+                      messages.push(`${message} ldr: ${ldrReading} ${onOff}`);
+                      console.log(message, msg_node_id, ldrReading);
                       counter++;
                       setTimeout(loop, 1500);
                       callback(packet);

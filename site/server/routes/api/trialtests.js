@@ -141,6 +141,41 @@ router.get("/", auth, (req, res) =>
         buildings ON buildings.id = levels.buildings_id
       GROUP BY trial_tests_has_lights.trial_tests_id, trial_tests_has_lights.lights_id
       `,
+          (err, rows) => {
+            res.setHeader(
+              "Content-Type",
+              "application/json",
+              "Access-Control-Allow-Headers",
+              "Origin, X-Requested-With, Content-Type, Accept"
+            );
+            return res.send(rows);
+          }
+        );
+      }
+    })
+  ),
+  //get devices responses
+  router.get("/lightsresponses/:id", auth, (req, res) =>
+    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+      if (err) {
+        res.sendStatus(403);
+      } else {
+        con.query(
+          `SELECT 
+          trial_tests_has_lights.*, lights.id, lights.node_id, lights.device_id, lights.type, lgt_groups.group_name, levels.level, buildings.building as building
+      FROM
+          trial_tests_has_lights
+      LEFT OUTER JOIN 
+        lights ON lights.id = trial_tests_has_lights.lights_id
+      LEFT OUTER JOIN
+        lgt_groups ON lgt_groups.id = lights.lgt_groups_id
+      LEFT OUTER JOIN
+        levels ON levels.id = lgt_groups.levels_id
+      LEFT OUTER JOIN
+        buildings ON buildings.id = levels.buildings_id
+      WHERE trial_tests_has_lights.trial_tests_id = ?
+      GROUP BY trial_tests_has_lights.trial_tests_id, trial_tests_has_lights.lights_id
+      `,
           [req.params.id],
           (err, rows) => {
             res.setHeader(
@@ -202,6 +237,62 @@ router.get("/", auth, (req, res) =>
       GROUP BY trial_tests.id
       `,
           [req.params.id],
+          (err, rows) => {
+            if (err) throw err;
+            res.send(rows);
+          }
+        );
+      }
+    })
+  ),
+  router.get("/usr/:id/:limit", auth, (req, res) =>
+    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+      if (err) {
+        res.sendStatus(403);
+      } else {
+        con.query(
+          `SELECT 
+          trial_tests.id,
+          trial_tests.lights,
+          trial_tests.result,
+          trial_tests.set,
+          trial_tests.created_at,
+          FLOOR(SUM(errors.error != 'OK') / trial_tests.lights) AS errors,
+          FLOOR(SUM(errors.error = 'OK') / trial_tests.lights) AS responseok,
+          GROUP_CONCAT(DISTINCT lgt_groups.group_name
+              SEPARATOR ', ') AS group_name,
+          GROUP_CONCAT(DISTINCT levels.level
+              SEPARATOR ', ') AS level,
+          GROUP_CONCAT(DISTINCT buildings.building
+              SEPARATOR ', ') AS building,
+          sites.name as site,
+          users.id as users_id
+      FROM
+          trial_tests
+              LEFT OUTER JOIN
+          trial_tests_has_lights ON trial_tests_has_lights.trial_tests_id = trial_tests.id
+              LEFT OUTER JOIN
+          lights ON lights.id = trial_tests_has_lights.lights_id
+              LEFT OUTER JOIN
+          lgt_groups ON lgt_groups.id = lights.lgt_groups_id
+              LEFT OUTER JOIN
+          errors ON errors.test_id = trial_tests.id
+              LEFT OUTER JOIN
+          levels ON levels.id = lgt_groups.levels_id
+          LEFT OUTER JOIN
+        buildings ON buildings.id = levels.buildings_id
+          LEFT OUTER JOIN
+        sites ON sites.id = buildings.sites_id
+          LEFT OUTER JOIN
+        users_has_sites ON users_has_sites.sites_id = sites.id
+          LEFT OUTER JOIN
+        users ON users.id = users_has_sites.users_id
+          WHERE users.id = ?
+      GROUP BY trial_tests.id
+      ORDER BY trial_tests.id DESC
+      LIMIT ?
+      `,
+          [req.params.id, parseInt(req.params.limit)],
           (err, rows) => {
             if (err) throw err;
             res.send(rows);

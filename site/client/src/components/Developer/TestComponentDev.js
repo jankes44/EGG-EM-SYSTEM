@@ -871,7 +871,7 @@ class TrialTest extends Component {
             "Content-Type": "application/json;charset=UTF-8",
             Authorization: "Bearer " + localStorage.usertoken,
           },
-          url: global.BASE_URL + "/trialmqtt/dev/relay/on",
+          url: global.BASE_URL + "/trialmqtt/dev/relay/off",
           data: {
             devices: this.state.selectedDevices,
             topic: this.state.selectedDevices[0].mqtt_topic,
@@ -1578,6 +1578,7 @@ class TrialTest extends Component {
             />
             <button onClick={this.devGetOnOff}>GetOnOff</button>
             <button onClick={this.devGetLedState}>GetLedState</button>
+            <button onClick={this.devSetRelayOff}>SetRelayOff</button>
             <button onClick={this.devSetRelayOn}>SetRelayOn</button>
             <button onClick={this.devGetGW}>CheckGW</button>
             <button onClick={this.setLightOff}>SetLightOff</button>
