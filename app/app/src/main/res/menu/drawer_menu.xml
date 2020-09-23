@@ -10,5 +10,7 @@
             android:title="@string/txt_dashboard" />
         <item android:id="@+id/userProfileFragment"
             android:title="@string/user_profile" />
+        <item android:id="@+id/testHistoryFragment"
+            android:title="@string/test_history" />
     </group>
 </menu>

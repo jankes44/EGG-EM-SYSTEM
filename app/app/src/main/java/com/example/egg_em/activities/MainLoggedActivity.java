@@ -35,6 +35,7 @@ public class MainLoggedActivity extends AppCompatActivity {
         Set<Integer> topLevelDestinations = new HashSet<>();
         topLevelDestinations.add(R.id.dashboardFragment);
         topLevelDestinations.add(R.id.userProfileFragment);
+        topLevelDestinations.add(R.id.testHistoryFragment);
 
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration
                 .Builder(topLevelDestinations)

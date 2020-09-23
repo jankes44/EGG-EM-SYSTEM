@@ -8,6 +8,7 @@
     <!-- DRAWER AND TOOLBAR -->
     <string name="txt_dashboard">Dashboard</string>
     <string name="user_profile">User Profile</string>
+    <string name="test_history">Test History</string>
 
     <!-- DASHBOARD -->
     <string name="welcome_message">Welcome %s </string>
@@ -23,6 +24,7 @@
 
     <!-- PLACEHOLDERS FOR FORMAT -->
     <string name="string_placeholder">%s</string>
+
 
 
 </resources>

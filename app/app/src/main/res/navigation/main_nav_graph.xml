@@ -17,5 +17,11 @@
         android:label="@string/profile"
         tools:layout="@layout/user_profile_fragment" />
 
+    <fragment
+        android:id="@+id/testHistoryFragment"
+        android:name="com.example.egg_em.activities.fragments.TestHistoryFragment"
+        android:label="@string/test_history"
+        tools:layout="@layout/test_history_fragment" />
+
 
 </navigation>

@@ -22,4 +22,9 @@
         <item name="android:textColor"> @color/white </item>
     </style>
 
+    <style name="table_header">
+        <item name="android:textSize"> 35sp </item>
+        <item name="android:textStyle"> italic </item>
+    </style>
+
 </resources>

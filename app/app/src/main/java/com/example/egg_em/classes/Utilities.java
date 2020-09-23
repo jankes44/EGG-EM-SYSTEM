@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.example.egg_em.R;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -120,6 +121,37 @@ public class Utilities {
             }
         }
         return new Pair<>(result.first, new JSONObject());
+    }
+
+    public static Pair<Integer, JSONArray> getRequestForJsonArray(URL url, List<Pair<String, String>> headers){
+        headers.add(new Pair<>("Content-Type", "application/json;charset=UTF-8"));
+        Pair<Integer, String> result = getRequest(url, headers);
+
+        if (result.first.equals(HttpURLConnection.HTTP_OK)){
+            try {
+                return new Pair<>(result.first, new JSONArray(result.second));
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return new Pair<>(461, new JSONArray());
+            }
+        }
+        return new Pair<>(result.first, new JSONArray());
+    }
+
+    public static Pair<Integer, String> getRequestForString(URL url, List<Pair<String, String>> headers){
+
+        Log.d("DEBUG", "5");
+
+        headers.add(new Pair<>("Content-Type", "application/json;charset=UTF-8"));
+        Pair<Integer, String> result = getRequest(url, headers);
+
+        if (result.first.equals(HttpURLConnection.HTTP_OK)){
+
+            Log.d("DEBUG", "6");
+
+            return new Pair<>(result.first, result.second);
+        }
+        return new Pair<>(result.first, "");
     }
 
     public static void createToast(String message, Activity a) {
