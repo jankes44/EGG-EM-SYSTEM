@@ -1,6 +1,5 @@
 package com.example.egg_em.operations;
 
-import android.bluetooth.le.ScanFilter;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -11,12 +10,11 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 
-import com.example.egg_em.classes.Security;
+import com.example.egg_em.R;
 import com.example.egg_em.classes.Utilities;
 import com.example.egg_em.classes.singletons.LoggedUser;
-import com.example.egg_em.classes.types.RequestType;
-import com.example.egg_em.operations.params.TestParams;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,22 +22,20 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.AsynchronousChannelGroup;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 
 public class GenerateTableOperation extends AsyncTask<Context, Integer, List<TableRow>> {
 
     private static String URL = "http://63.32.97.125:5000/api/trialtests/usr/%d/%d";
+    private static int PADDING = 20;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -98,11 +94,16 @@ public class GenerateTableOperation extends AsyncTask<Context, Integer, List<Tab
                     TextView tv = new TextView(context);
                     tv.setText(v);
                     tv.setGravity(Gravity.CENTER_HORIZONTAL);
+                    tv.setPadding(PADDING,0,PADDING,0);
+                    tv.setBackground(ContextCompat.getDrawable(context, R.drawable.cell));
                     return tv;
                 }).forEach(row::addView);
 
         TextView timeView = new TextView(context);
         timeView.setText(extractTime(o.optString("created_at")));
+        timeView.setBackground(ContextCompat.getDrawable(context, R.drawable.cell));
+        timeView.setGravity(Gravity.CENTER_HORIZONTAL);
+        timeView.setPadding(PADDING,0,PADDING,0);
         row.addView(timeView);
 
         return row;

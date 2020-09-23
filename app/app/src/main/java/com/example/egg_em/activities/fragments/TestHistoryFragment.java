@@ -14,6 +14,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.egg_em.R;
@@ -25,6 +26,8 @@ import java.util.concurrent.ExecutionException;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class TestHistoryFragment extends Fragment {
+
+    private static int PADDING = 20;
 
     TableLayout testsTable;
     String[] headers = new String[]{"ID", "Site", "Building", "Levels", "Devices", "Result", "Set", "Start Time"};
@@ -71,9 +74,11 @@ public class TestHistoryFragment extends Fragment {
         TableRow tableHeader = new TableRow(getContext());
         for (String header : headers) {
             TextView t = new TextView(getContext());
+            t.setPadding(PADDING,0,PADDING,0);;
             t.setText(header);
             t.setGravity(Gravity.CENTER_HORIZONTAL);
             t.setTextAppearance(R.style.table_header);
+            t.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.cell));
             tableHeader.addView(t);
         }
         return tableHeader;
