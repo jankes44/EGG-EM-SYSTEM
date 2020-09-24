@@ -1291,7 +1291,7 @@ router.post("/dev/ldr", auth, (req, res) => {
                       messages.push(`${message} ldr: ${ldrReading} ${onOff}`);
                       console.log(message, msg_node_id, ldrReading);
                       counter++;
-                      setTimeout(loop, 1500);
+                      setTimeout(loop, 1000);
                       callback(packet);
                     } else {
                       callback();

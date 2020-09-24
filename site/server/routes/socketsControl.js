@@ -2,15 +2,21 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
 const jwt = require("jsonwebtoken");
+const onChange = require("on-change");
+const _ = require("lodash");
 const PORT_SOCKET = 5010;
 var server = require("socket.io").listen(PORT_SOCKET);
+
+let socketMessages = [];
+
+let watchedObject = [];
 
 server.on("connection", (socket) => {
   console.log("connected:", socket.id);
   socket.on("serverEvent", (data) => {
-    console.log(data.clientName, data.message);
+    watchedObject.push(data);
+    // console.log(data.clientName, data.message);
   });
-  server.sockets.emit("SP_SOCKET", `SERVER: ${socket.id} Joined`);
 });
 
 router.post("/test", auth, (req, res) => {
@@ -20,9 +26,30 @@ router.post("/test", auth, (req, res) => {
     } else {
       const socketId = req.body.socket;
       const { command } = req.body;
+      let received = false;
+      if (!received) {
+        let packet = {
+          sentBy: "SERVER",
+          socket: socketId,
+          command: command,
+          type: "MANUAL",
+        };
+        server.emit(socketId, packet);
 
-      server.sockets.emit(socketId, `SERVER: ${command}`);
-      res.json("done");
+        watchedObject = onChange(socketMessages, function (path, value) {
+          console.log(
+            _.findLast(value, (el) => {
+              return el.clientName === socketId;
+            })
+          );
+          let lastMessage = _.findLast(value, (el) => {
+            return el.clientName === socketId;
+          });
+          received = true;
+          res.json(lastMessage);
+        });
+      }
+      //   res.json("done");
     }
   });
 });

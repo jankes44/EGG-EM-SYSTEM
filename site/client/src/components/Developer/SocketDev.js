@@ -5,6 +5,7 @@ export default class SocketDev extends Component {
   state = {
     command: "",
     socket: "TEST_SOCKET",
+    messages: [],
   };
 
   onChange = (e) => {
@@ -45,6 +46,7 @@ export default class SocketDev extends Component {
     })
       .then((res) => {
         console.log(res);
+        this.setState({ messages: [...this.state.messages, res.data] });
       })
       .catch((error) => {
         console.log(error);
@@ -82,6 +84,13 @@ export default class SocketDev extends Component {
           SP_SOCKET
         </label>
         <h5>{this.state.socket}</h5>
+        <ul>
+          {this.state.messages.map((el, index) => (
+            <li key={index}>
+              {el.clientName} - {el.message}
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }
