@@ -66,7 +66,6 @@ public class LoginActivity extends AppCompatActivity {
         switch (login.first){
             case 200: {
 //                LOGIN OK
-                //TODO create landing page after successful login
                 LoggedUser.getInstance(login.second);
                 risIntent = new Intent(this, MainLoggedActivity.class);
                 Utilities.createToast("Login Successful", this);

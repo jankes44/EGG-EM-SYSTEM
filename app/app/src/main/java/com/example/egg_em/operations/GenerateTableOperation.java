@@ -6,14 +6,17 @@ import android.os.Build;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import com.example.egg_em.R;
 import com.example.egg_em.classes.Utilities;
+import com.example.egg_em.classes.listeners.TestRowListener;
 import com.example.egg_em.classes.singletons.LoggedUser;
 
 import org.json.JSONArray;
@@ -24,7 +27,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -35,7 +37,12 @@ import java.util.stream.IntStream;
 public class GenerateTableOperation extends AsyncTask<Context, Integer, List<TableRow>> {
 
     private static String URL = "http://63.32.97.125:5000/api/trialtests/usr/%d/%d";
-    private static int PADDING = 20;
+    private View fragment;
+
+    public GenerateTableOperation(View fragment) {
+        Log.d("CHECK NULL", "TABLE_OPERATION_CONSTRUCTOR: " + (fragment == null));
+        this.fragment = fragment;
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
@@ -51,60 +58,41 @@ public class GenerateTableOperation extends AsyncTask<Context, Integer, List<Tab
             return null;
         }
 
-        String cleanToken = user.getToken()
-                .replace("\"", "")
-                .replace("\n", "");
-        List<Pair<String, String>> headers = new LinkedList<>();
-        headers.add(new Pair<>("Authorization", "Bearer " + cleanToken));
-
-        try {
-            Pair<Integer, String> requestResult = Utilities.getRequestForString(url, headers);
-            if (requestResult.first.equals(200)){
-                JSONArray rows = new JSONArray(requestResult.second);
-                return IntStream.range(0, rows.length()).parallel()
-                        .mapToObj(index -> getJsonObjectByIndex(rows, index))
-                        .map(o -> o != null ? parseRow(o, params[0]) : null)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-            }
-        } catch (JSONException e) {
-            Log.d("ERROR", e.toString());
+        Pair<Integer, JSONArray> result = Utilities.getRequestForJsonArray(url, user.createAuthHeader());
+        if (result.first.equals(200)){
+            Log.d("CHECK", "1");
+            JSONArray rows = result.second;
+            return IntStream.range(0, rows.length()).parallel()
+                    .mapToObj(index -> Utilities.getJsonObjectByIndex(rows, index))
+                    .map(o -> o != null ? parseRow(o, params[0]) : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
 
         return Collections.emptyList();
     }
 
-    private JSONObject getJsonObjectByIndex(JSONArray rows, int index){
-        try {
-            JSONObject jsonObject = rows.getJSONObject(index);
-            Log.i("JSON", jsonObject.toString());
-            return jsonObject;
-        } catch (JSONException e) {
-            Log.d("JSON", e.toString());
-            return null;
-        }
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.N)
     private TableRow parseRow(JSONObject o, Context context){
-        TableRow row = new TableRow(context);
+        TableRow row = (TableRow) View.inflate(context, R.layout.clickable_table_row, null);
+
+        Log.d("CHECK", "2");
+
         Arrays.stream(new String[]{"id", "site", "building", "level", "lights", "result", "set"})
                 .map(o::optString)
                 .map(v -> {
-                    TextView tv = new TextView(context);
+                    TextView tv = (TextView) View.inflate(context, R.layout.cell, null);
+                    Log.d("CHECK", "3" + (tv == null));
                     tv.setText(v);
-                    tv.setGravity(Gravity.CENTER_HORIZONTAL);
-                    tv.setPadding(PADDING,0,PADDING,0);
-                    tv.setBackground(ContextCompat.getDrawable(context, R.drawable.cell));
                     return tv;
                 }).forEach(row::addView);
 
-        TextView timeView = new TextView(context);
+        TextView timeView = (TextView) View.inflate(context, R.layout.cell, null);
         timeView.setText(extractTime(o.optString("created_at")));
-        timeView.setBackground(ContextCompat.getDrawable(context, R.drawable.cell));
-        timeView.setGravity(Gravity.CENTER_HORIZONTAL);
-        timeView.setPadding(PADDING,0,PADDING,0);
         row.addView(timeView);
+
+        // add row onclicklistener to open popup
+        row.setOnClickListener(new TestRowListener(o.optInt("id"), fragment));
 
         return row;
     }

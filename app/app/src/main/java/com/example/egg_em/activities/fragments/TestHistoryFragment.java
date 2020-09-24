@@ -27,13 +27,13 @@ import java.util.concurrent.ExecutionException;
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class TestHistoryFragment extends Fragment {
 
-    private static int PADDING = 20;
 
     TableLayout testsTable;
     String[] headers = new String[]{"ID", "Site", "Building", "Levels", "Devices", "Result", "Set", "Start Time"};
 
     Timer timer = new Timer();
     Activity activity;
+    View inflate_;
 
     private final TimerTask refreshTable = new TimerTask() {
         @Override
@@ -42,7 +42,7 @@ public class TestHistoryFragment extends Fragment {
                 testsTable.removeAllViews();
                 testsTable.addView(createHeader());
                 try {
-                    new GenerateTableOperation().execute(getContext()).get().forEach(r -> testsTable.addView(r));
+                    new GenerateTableOperation(inflate_).execute(getContext()).get().forEach(r -> testsTable.addView(r));
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -57,9 +57,10 @@ public class TestHistoryFragment extends Fragment {
 
         testsTable = inflate.findViewById(R.id.test_table);
         testsTable.addView(createHeader());
+        inflate_ = inflate;
 
         try {
-            (new GenerateTableOperation().execute(getContext()).get()).forEach(r -> testsTable.addView(r));
+            (new GenerateTableOperation(inflate).execute(getContext()).get()).forEach(r -> testsTable.addView(r));
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -73,12 +74,8 @@ public class TestHistoryFragment extends Fragment {
     private TableRow createHeader(){
         TableRow tableHeader = new TableRow(getContext());
         for (String header : headers) {
-            TextView t = new TextView(getContext());
-            t.setPadding(PADDING,0,PADDING,0);;
+            TextView t = (TextView) View.inflate(getContext(), R.layout.header_cell, null);
             t.setText(header);
-            t.setGravity(Gravity.CENTER_HORIZONTAL);
-            t.setTextAppearance(R.style.table_header);
-            t.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.cell));
             tableHeader.addView(t);
         }
         return tableHeader;

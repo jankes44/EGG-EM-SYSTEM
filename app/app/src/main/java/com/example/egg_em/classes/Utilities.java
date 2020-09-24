@@ -73,7 +73,6 @@ public class Utilities {
     public static Pair<Integer, String> getRequest(URL url, List<Pair<String, String>> headers){
         try {
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-//            urlConnection.setDoOutput(true);
             urlConnection.setRequestMethod("GET");
             urlConnection.setUseCaches(false);
             urlConnection.setConnectTimeout(10000);
@@ -156,14 +155,25 @@ public class Utilities {
 
     public static void createToast(String message, Activity a) {
         LayoutInflater inflater = a.getLayoutInflater();
-        View layout = inflater.inflate(R.layout.custom_toast, (ViewGroup) a.findViewById(R.id.custom_toast_container));
+        View layout = inflater.inflate(R.layout.custom_toast, a.findViewById(R.id.custom_toast_container));
 
-        TextView text = (TextView) layout.findViewById(R.id.text);
+        TextView text = layout.findViewById(R.id.text);
         text.setText(message);
 
         Toast toast = new Toast(a.getApplicationContext());
         toast.setDuration(Toast.LENGTH_SHORT);
         toast.setView(layout);
         toast.show();
+    }
+
+    public static JSONObject getJsonObjectByIndex(JSONArray rows, int index){
+        try {
+            JSONObject jsonObject = rows.getJSONObject(index);
+            Log.i("JSON", jsonObject.toString());
+            return jsonObject;
+        } catch (JSONException e) {
+            Log.d("JSON", e.toString());
+            return null;
+        }
     }
 }

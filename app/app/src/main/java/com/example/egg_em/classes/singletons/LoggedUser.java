@@ -1,6 +1,7 @@
 package com.example.egg_em.classes.singletons;
 
 import android.os.Build;
+import android.util.Pair;
 
 import androidx.annotation.RequiresApi;
 
@@ -8,6 +9,8 @@ import com.auth0.android.jwt.Claim;
 import com.auth0.android.jwt.JWT;
 import com.example.egg_em.classes.types.Access;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
@@ -65,5 +68,15 @@ public class LoggedUser {
 
     public String getToken() {
         return token;
+    }
+
+    public String getCleanToken(){
+        return token.replace("\"", "").replace("\n", "");
+    }
+
+    public List<Pair<String, String>> createAuthHeader(){
+        List<Pair<String, String>> headers = new LinkedList<>();
+        headers.add(new Pair<>("Authorization", "Bearer " + getCleanToken()));
+        return headers;
     }
 }
