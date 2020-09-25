@@ -8,9 +8,12 @@
         <item
             android:id="@+id/dashboardFragment"
             android:title="@string/txt_dashboard" />
-        <item android:id="@+id/userProfileFragment"
-            android:title="@string/user_profile" />
+        <item android:id="@+id/siteManagementFragment"
+            android:title="@string/site_management" />
         <item android:id="@+id/testHistoryFragment"
             android:title="@string/test_history" />
+        <item android:id="@+id/userProfileFragment"
+            android:title="@string/user_profile" />
+
     </group>
 </menu>
