@@ -38,8 +38,7 @@
     "react-select": "^3.1.0",
     "react-simple-animate": "^3.3.10",
     "reactjs-popup": "^1.5.0",
-    "typeface-roboto": "0.0.75",
-    "underscore": "^1.10.2"
+    "typeface-roboto": "0.0.75"
   },
   "scripts": {
     "start": "react-scripts start",
