@@ -85,11 +85,26 @@ export default class SocketDev extends Component {
         </label>
         <h5>{this.state.socket}</h5>
         <ul>
-          {this.state.messages.map((el, index) => (
-            <li key={index}>
-              {el.clientName} - {el.message}
-            </li>
-          ))}
+          {this.state.messages.map((el, index) => {
+            if (el.message.devices) {
+              return (
+                <li key={index}>
+                  {el.clientName} - ID: {el.message.test_id}
+                  {" DEVICES: "}
+                  {el.message.devices.map((c, i) => (
+                    <p key={i}>
+                      {c.blabla} {c.omnom}
+                    </p>
+                  ))}
+                </li>
+              );
+            } else
+              return (
+                <li key={index}>
+                  {el.clientName} - {el.message}
+                </li>
+              );
+          })}
         </ul>
       </div>
     );
