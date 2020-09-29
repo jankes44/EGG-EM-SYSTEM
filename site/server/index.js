@@ -47,6 +47,7 @@ app.use("/api/buildings", require("./routes/api/buildings"));
 app.use("/api/sites", require("./routes/api/sites"));
 app.use("/api/trialtests", require("./routes/api/trialtests"));
 app.use("/api/rolesusers", require("./routes/api/roles_users"));
+app.use("/api/generatepdf", require("./routes/api/PdfGenerate"));
 app.use("/sockets", require("./routes/socketsControl"));
 
 app.listen(PORT, () => console.log("Server started on port", PORT, Date()));
