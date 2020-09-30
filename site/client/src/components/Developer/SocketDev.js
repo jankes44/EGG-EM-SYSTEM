@@ -62,6 +62,28 @@ export default class SocketDev extends Component {
   render() {
     return (
       <div>
+        <button
+          onClick={() => {
+            axios({
+              //Axios POST request
+              method: "get",
+              headers: {
+                "Content-Type": "application/json;charset=UTF-8",
+                Authorization: "Bearer " + localStorage.usertoken,
+              },
+              url: global.BASE_URL + "/api/generatepdf/generateReport",
+              timeout: 0,
+            })
+              .then((res) => {
+                console.log(res);
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          }}
+        >
+          pdf
+        </button>
         <input type="text" onChange={this.onChange} />
         <button onClick={this.send}>send</button>
         <h5>{this.state.command}</h5>
