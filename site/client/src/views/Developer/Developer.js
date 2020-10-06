@@ -5,7 +5,7 @@ import GridContainer from "components/Grid/GridContainer.js";
 import GridItem from "components/Grid/GridItem.js";
 import React from "react";
 import DeveloperComp from "components/Developer/Developer";
-import Maps from "components/Maps/Maps";
+// import Maps from "components/Maps/Maps";
 
 export default function Developer() {
   // const classes = useStyles();

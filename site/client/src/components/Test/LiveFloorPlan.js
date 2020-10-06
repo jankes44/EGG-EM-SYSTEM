@@ -48,7 +48,7 @@ export default function LiveFloorPlan(props) {
         console.log(err);
       })
       .then((response) => {
-        setFloorplanURL(URL.createObjectURL(response.data));
+        if (response) setFloorplanURL(URL.createObjectURL(response.data));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

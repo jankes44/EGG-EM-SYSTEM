@@ -59,6 +59,53 @@ router.get("/:uid", auth, (req, res) =>
     }
   })
 ),
+  router.get("/level/:level_id", auth, (req, res) =>
+    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+      if (err) {
+        res.sendStatus(403);
+      } else {
+        con.query(
+          `SELECT 
+        lights.*, 
+        lgt_groups.group_name,
+        levels.id as levels_id,
+        levels.level,
+        buildings.building,
+        buildings.id as buildings_id,
+        sites.mqtt_topic_out,
+        sites.mqtt_topic_in,
+        sites.id as sites_id,
+        sites.name as sites_name
+      FROM
+        lights
+          LEFT OUTER JOIN
+        lgt_groups ON lights.lgt_groups_id = lgt_groups.id
+          LEFT OUTER JOIN
+        levels ON levels.id = lgt_groups.levels_id
+          LEFT OUTER JOIN
+        buildings ON buildings.id = levels.buildings_id
+          LEFT OUTER JOIN
+        sites ON sites.id = buildings.sites_id
+          LEFT OUTER JOIN
+        users_has_sites ON users_has_sites.sites_id = sites.id
+          LEFT OUTER JOIN
+        users ON users.id = users_has_sites.users_id
+      WHERE levels.id = ?`,
+          [req.params.level_id],
+          (err, rows) => {
+            if (err) throw err;
+            if (rows.length) {
+              res.json(rows);
+            } else
+              con.query(
+                "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1",
+                (err, rows) => res.json(rows)
+              );
+          }
+        );
+      }
+    })
+  ),
   router.get("/group/:lgt_groups_id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {

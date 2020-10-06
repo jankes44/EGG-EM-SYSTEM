@@ -47,14 +47,27 @@ router.get("/", auth, (req, res) =>
   })
 ),
   //get group by param: id
-  router.get("/:id", auth, (req, res) =>
+  router.get("/building/:building_id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {
         res.sendStatus(403);
       } else {
         con.query(
-          "SELECT * FROM levels WHERE id = ?",
-          [req.params.id],
+          `select
+          levels.*,
+            GROUP_CONCAT(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name,
+            count(lights.id) as lights_count, 
+            GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
+            MIN(lgt_groups.id) as group_id
+        from
+          levels
+            LEFT OUTER JOIN 
+            lgt_groups on lgt_groups.levels_id = levels.id
+            LEFT OUTER JOIN
+            lights on lights.lgt_groups_id = lgt_groups.id
+          WHERE levels.buildings_id = ?
+        GROUP BY levels.id`,
+          [req.params.building_id],
           (err, rows) => res.json(rows)
         );
       }

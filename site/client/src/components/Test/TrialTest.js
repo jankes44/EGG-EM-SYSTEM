@@ -350,8 +350,8 @@ class TrialTest extends Component {
               label: "Battery Fault",
             },
             {
-              value: "No response from Bluetooth Module",
-              label: "No response from Bluetooth Module",
+              value: "No connection to Mesh",
+              label: "No connection to Mesh",
             },
           ],
         },

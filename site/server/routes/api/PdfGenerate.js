@@ -38,7 +38,7 @@ let students = [
   },
 ];
 
-router.get("/generateReport", auth, (req, res) => {
+router.get("/generateReport/:test_id", auth, (req, res) => {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
       res.sendStatus(403);
@@ -72,12 +72,39 @@ router.get("/generateReport", auth, (req, res) => {
             trial_tests_has_lights.trial_tests_id = ?
         GROUP BY trial_tests_has_lights.trial_tests_id , trial_tests_has_lights.lights_id
         `,
-        [138],
+        [req.params.test_id],
         (err, rows) => {
           let data = rows;
+          let lampFault = 0;
+          let battFault = 0;
+          let noConnection = 0;
+          let noFault = 0;
+          console.log(data);
+          data.forEach((el) => {
+            switch (el.device_response) {
+              case "Device OK":
+                noFault++;
+                break;
+              case "Lamp Fault":
+                lampFault++;
+                break;
+              case "Battery Fault":
+                battFault++;
+                break;
+              case "No response from BT module" || "No connection to Mesh":
+                noConnection++;
+                break;
+            }
+          });
+          let responsesData = {
+            lampFault: lampFault,
+            battFault: battFault,
+            noConnection: noConnection,
+            noFault: noFault,
+          };
           ejs.renderFile(
             path.join(__dirname, "../../pdfTemplates/PdfTemplateSimple.ejs"),
-            { data: data },
+            { data: data, resData: responsesData },
             (err, data) => {
               if (err) {
                 res.send(err);
@@ -92,15 +119,17 @@ router.get("/generateReport", auth, (req, res) => {
                     height: "20mm",
                   },
                 };
-                pdf
-                  .create(data, options)
-                  .toFile("report.pdf", function (err, data) {
-                    if (err) {
-                      res.send(err);
-                    } else {
-                      res.send("File created successfully");
-                    }
-                  });
+                pdf.create(data, options).toStream(function (err, stream) {
+                  if (err) {
+                    res.send(err);
+                  } else {
+                    res.writeHead(200, {
+                      "Content-Type": "application/force-download",
+                      "Content-disposition": "attachment; filename=file.pdf",
+                    });
+                    stream.pipe(res);
+                  }
+                });
               }
             }
           );

@@ -808,12 +808,12 @@ router.post("/setchecked", auth, (req, res) => {
       var devices = req.body.devices;
       var setValue = req.body.value;
       var usersDevices = findUsersTest(req.body.user).devices;
-      console.log("setchecked", setValue);
+      // console.log("setchecked", setValue);
       devices.forEach((el) => {
         usersDevices.find((findEl, index) => {
           if (el.id === findEl.id) {
             findEl.userInput = setValue;
-            console.log(el.id, findEl.id, index);
+            // console.log(el.id, findEl.id, index);
           }
         });
       });
