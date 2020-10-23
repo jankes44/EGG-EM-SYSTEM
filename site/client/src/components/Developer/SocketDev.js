@@ -59,29 +59,10 @@ export default class SocketDev extends Component {
     });
   };
 
-  downloadReport() {
-    axios({
-      url: global.BASE_URL + "/api/generatepdf/generateReport",
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "Bearer " + localStorage.usertoken,
-      },
-      method: "GET",
-      responseType: "blob", // important
-    }).then((response) => {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "file.pdf");
-      document.body.appendChild(link);
-      link.click();
-    });
-  }
-
   render() {
     return (
       <div>
-        <button onClick={this.downloadReport}>pdf</button>
+        <h4>Socket.io Development</h4>
         <input type="text" onChange={this.onChange} />
         <button onClick={this.send}>send</button>
         <h5>{this.state.command}</h5>

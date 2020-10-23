@@ -335,7 +335,7 @@ class TrialTest extends Component {
             return <span style={{ textAlign: "center" }}>Power back on</span>;
           }
           if (row.powercut === 3) {
-            return <span>Bluetooth module not responding</span>;
+            return <span>No connection to Mesh</span>;
           }
         },
       },

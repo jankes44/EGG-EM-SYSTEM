@@ -19,7 +19,7 @@ var devicesLive = [];
 const noResponseTimeout = 15000;
 // var usersTest;
 
-// var event = schedule.scheduleJob("*/10 * * * *", function () {
+// var event = schedule.scheduleJob("*/1 * * * *", function () {
 //   checkSiteState = () => {
 //     if (testInProgress) {
 //       const time = 30000;
@@ -173,6 +173,7 @@ const pubHandle = (cmd, deviceId, counter, messages, topic, user) => {
   return new Promise((resolve, reject) => {
     const usersDevices = findUsersTest(user).devices;
     usersDevices[counter].clicked = 1;
+    let received = false;
     device.publish(
       //Publish command to user defined topic
       topic,
@@ -204,8 +205,10 @@ const pubHandle = (cmd, deviceId, counter, messages, topic, user) => {
                 [usersDevices[counter].id]
               );
               usersDevices[counter].powercut = 1; //state 1 = power has been cut
-              durationCounterStart(counter, topic, user);
-
+              if (!received) {
+                received = true;
+                durationCounterStart(counter, topic, user);
+              }
               resolve("power down");
               callback(packet);
             }
@@ -1226,9 +1229,14 @@ router.post("/dev/gateway/state", auth, (req, res) => {
 
       console.log(topic);
       device.publish(topic, `XchkX`, { qos: 1 }, (err) => {
+        let timeout = setTimeout(() => {
+          received = 1;
+          res.send(`${topic}: NO RES`);
+        }, 8000);
         device.handleMessage = (packet, callback) => {
           var message = packet.payload.toString("utf8");
           if (received === 0) {
+            clearTimeout(timeout);
             received = 1;
             console.log(message);
             res.send(message);

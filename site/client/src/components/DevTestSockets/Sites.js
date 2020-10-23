@@ -6,6 +6,13 @@ import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
 import PropTypes from "prop-types";
 import Building from "components/DevTestSockets/Building";
+import axios from "axios";
+import Devices from "components/DevTestSockets/SelectDevices";
+import TestContainer from "components/DevTestSockets/TestContainer";
+import Fab from "@material-ui/core/Fab";
+import Icon from "@material-ui/core/Icon";
+import GridItem from "components/Grid/GridItem";
+import GridContainer from "components/Grid/GridContainer";
 
 const useStyles = makeStyles({
   paperRoot: {
@@ -56,14 +63,79 @@ export default function CenteredTabs(props) {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
   const [clickedSite, setClickedSite] = React.useState();
+  //eslint-disable-next-line
+  const [socket, setSocket] = React.useState();
+  const [tabsDisabled, setTabsDisabled] = React.useState(false);
+  const [liveDevices, setLiveDevices] = React.useState([]);
+  const [stage, setStage] = React.useState(1);
+  const [clickedBuilding, setClickedBldng] = React.useState();
+  const [gwState, setGwState] = React.useState("Wait...");
+
+  const checkStatus = (socketName) => {
+    console.log("checkStatus of", socketName);
+    axios({
+      //Axios POST request
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      url: global.BASE_URL + "/sockets/status",
+      data: {
+        socket: socketName,
+      },
+      timeout: 0,
+    })
+      .then((res) => {
+        console.log(res);
+        let gwStatus = res.data.message.gwStatus;
+        let siteCheck = props.sites.find((el) => el.sites_id === clickedSite);
+
+        if (gwStatus.includes("NO RESPONSE"))
+          gwStatus = `${gwStatus} - Please contact the administrator`;
+        console.log(clickedSite);
+        if (siteCheck.socket_name === socketName) setGwState(gwStatus);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   React.useEffect(() => {
-    if (props.sites.length) setClickedSite(props.sites[0].sites_id);
+    if (props.sites.length > 0) {
+      const socket = props.sites[0].socket_name;
+      setClickedSite(props.sites[0].sites_id);
+      setSocket(socket);
+      checkStatus(socket);
+    }
+    // eslint-disable-next-line
   }, [props.sites]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
     setClickedSite(props.sites[newValue].sites_id);
+    console.log(props.sites);
+    setSocket(props.sites[newValue].socket_name);
+    checkStatus(props.sites[newValue].socket_name);
+    setGwState("Wait...");
+    setStage(1);
+  };
+
+  const toggleTabs = () => {
+    setTabsDisabled(!tabsDisabled);
+  };
+
+  const initiateTest = (devices) => {
+    setStage(3);
+    console.log(devices);
+    setLiveDevices(devices);
+    toggleTabs();
+  };
+
+  const setClickedBuilding = (id) => {
+    setClickedBldng(id);
+    setStage(2);
+    console.log(id);
   };
 
   return (
@@ -78,26 +150,63 @@ export default function CenteredTabs(props) {
         scrollButtons="auto"
       >
         {props.sites.map((el, index) => (
-          <Tab key={index} label={el.name} {...a11yProps(index)} />
+          <Tab
+            key={index}
+            disabled={tabsDisabled}
+            label={el.name}
+            {...a11yProps(index)}
+          />
         ))}
       </Tabs>
-      {props.sites.map((el, index) => (
-        <TabPanel key={index} value={value} index={index}>
-          <Building clickedSite={clickedSite} />
-        </TabPanel>
-      ))}
-      {/* <TabPanel value={value} index={0}>
-        Item One
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        Item Two
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        Item Three
-      </TabPanel>
-      <TabPanel value={value} index={3}>
-        Item Four
-      </TabPanel> */}
+      {props.sites.length
+        ? props.sites.map((el, index) => (
+            <TabPanel key={index} value={value} index={index}>
+              {stage === 1 ? (
+                <div>
+                  <GridContainer>
+                    <GridItem xs={2}>
+                      <Fab color="primary" disabled={true}>
+                        <Icon>arrow_back</Icon>
+                      </Fab>
+                    </GridItem>
+                    <GridItem xs={10} style={{ textAlign: "right" }}>
+                      Gateway status: {gwState}
+                    </GridItem>
+                  </GridContainer>
+                  <GridContainer justify="center">
+                    <GridItem xs={12}>
+                      <Building
+                        clickedSite={clickedSite}
+                        toggleTabs={toggleTabs}
+                        initiateTest={initiateTest}
+                        setClickedBuilding={setClickedBuilding}
+                      />
+                    </GridItem>
+                  </GridContainer>
+                </div>
+              ) : null}
+              {stage === 2 ? (
+                <div>
+                  <Fab color="primary" onClick={() => setStage(stage - 1)}>
+                    <Icon>arrow_back</Icon>
+                  </Fab>
+                  <Devices
+                    clickedBuilding={clickedBuilding}
+                    initiate={initiateTest}
+                  />
+                </div>
+              ) : null}
+              {stage === 3 ? (
+                <div>
+                  <Fab color="primary" disabled={true}>
+                    <Icon>arrow_back</Icon>
+                  </Fab>
+                  <TestContainer devices={liveDevices} />
+                </div>
+              ) : null}
+            </TabPanel>
+          ))
+        : null}
     </Paper>
   );
 }

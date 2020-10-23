@@ -117,9 +117,9 @@ class GroupsTable extends Component {
     };
 
     const selectOptions = {
-      Successful: "Successful",
-      Failed: "Failed",
-      "In Progress": "In Progress",
+      Successful: "Finished",
+      Failed: "In Progress",
+      Cancelled: "Cancelled",
     };
 
     const columns = [
