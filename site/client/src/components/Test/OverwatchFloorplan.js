@@ -11,6 +11,20 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     width: "100%",
   },
+  "@keyframes blinker": {
+    "0%": { opacity: "0.2" },
+    "20%": { opacity: "0.7" },
+    "50%": { opacity: "1" },
+    "80%": { opacity: "0.7" },
+    "100%": { opacity: "0.2" },
+  },
+  blink: {
+    color: "#3F51B5",
+    animationName: "$blinker",
+    animationDuration: "2s",
+    animationTimingFunction: "linear",
+    animationIterationCount: "infinite",
+  },
 }));
 
 export default function LiveFloorPlan(props) {
@@ -63,6 +77,16 @@ export default function LiveFloorPlan(props) {
       <Typography variant="h4" gutterBottom>
         {props.liveDevices[0].level} level
       </Typography>
+      <Icon
+        className={classes.blink}
+        style={{
+          fontSize: "4em",
+          position: "absolute",
+          cursor: "pointer",
+        }}
+      >
+        location_on
+      </Icon>
       <div style={{ overflowX: "scroll", width: "100%" }}>
         <div
           // src={this.state.objectURL}
@@ -78,11 +102,31 @@ export default function LiveFloorPlan(props) {
         >
           {props.liveDevices.length > 0 && !floorplanNotFound ? (
             props.liveDevices.map((el) => {
-              var color;
+              let color;
 
-              if (el.status === "OK") {
-                color = "primary";
-              } else color = "secondary";
+              switch (el.status) {
+                case "OK":
+                  color = "#4fa328";
+                  break;
+                case "No connection to driver":
+                  color = "orange";
+                  break;
+                case "Battery powered/under test":
+                  color = "blue";
+                  setInterval(() => {
+                    color = "grey";
+                  }, 1000);
+                  setInterval(() => {
+                    color = "blue";
+                  }, 2000);
+                  break;
+                case "No connection to bt module":
+                  color = "#F50158";
+                  break;
+                default:
+                  color = "grey";
+                  break;
+              }
 
               return (
                 <Draggable
@@ -100,20 +144,38 @@ export default function LiveFloorPlan(props) {
                       position: "relative",
                     }}
                   >
-                    <Icon
-                      color={color}
-                      style={{
-                        fontSize: "4em",
-                        position: "absolute",
-                        cursor: "pointer",
-                      }}
-                      onMouseEnter={(e) => handleClick(e, el.id)}
-                      onMouseLeave={handleClose}
-                      onTouchStart={(e) => handleClick(e, el.id)}
-                      onTouchEnd={handleClose}
-                    >
-                      location_on
-                    </Icon>
+                    {el.status === "Battery powered/under test" ? (
+                      <Icon
+                        className={classes.blink}
+                        style={{
+                          fontSize: "4em",
+                          position: "absolute",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => handleClick(e, el.id)}
+                        onMouseLeave={handleClose}
+                        onTouchStart={(e) => handleClick(e, el.id)}
+                        onTouchEnd={handleClose}
+                      >
+                        location_on
+                      </Icon>
+                    ) : (
+                      <Icon
+                        style={{
+                          fontSize: "4em",
+                          position: "absolute",
+                          cursor: "pointer",
+                          color: color,
+                        }}
+                        onMouseEnter={(e) => handleClick(e, el.id)}
+                        onMouseLeave={handleClose}
+                        onTouchStart={(e) => handleClick(e, el.id)}
+                        onTouchEnd={handleClose}
+                      >
+                        location_on
+                      </Icon>
+                    )}
+
                     <Popover
                       id={id}
                       open={openedPopoverId === el.id}

@@ -13,6 +13,7 @@ import UserProfile from "views/UserProfile/UserProfile";
 import TrialTest from "views/TrialTest/TrialTest";
 import Developer from "views/Developer/Developer";
 import AdminPage from "views/Admin/AdminPage";
+import SocketDevTest from "views/SocketDevTest/SocketDevTest";
 
 const dashboardRoutes = [
   {
@@ -69,6 +70,14 @@ const dashboardRoutes = [
     component: AdminPage,
     layout: "/admin",
     access: 3,
+  },
+  {
+    path: "/socket-dev-test",
+    name: "Socket Test",
+    icon: "developer_mode",
+    component: SocketDevTest,
+    layout: "/admin",
+    access: 99,
   },
   {
     path: "/developer",

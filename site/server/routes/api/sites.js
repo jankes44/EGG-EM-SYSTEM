@@ -27,6 +27,7 @@ router.get("/", auth, (req, res) =>
           `SELECT 
           sites.id AS sites_id,
           sites.name,
+          sites.socket_name,
           users.id,
           users.email,
           GROUP_CONCAT(buildings.id

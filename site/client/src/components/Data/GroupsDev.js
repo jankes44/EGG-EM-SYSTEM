@@ -83,6 +83,15 @@ const styles = {
       cursor: "pointer",
     },
   },
+  gwStatus: {
+    transition: "0.3s",
+    "&:hover": {
+      transition: "0.3s",
+      color: "black",
+      textDecoration: "none",
+      cursor: "pointer",
+    },
+  },
   tableFadeIn: {
     opacity: "0",
     margin: "15px",
@@ -153,6 +162,7 @@ class groups extends Component {
     modalstyle: {},
     newBuildingName: "",
     newLevelCount: 1,
+    gwState: "Wait...",
     levelColumns: [
       {
         dataField: "id",
@@ -365,6 +375,7 @@ class groups extends Component {
               siteName: response.data[0].name,
             },
             () => {
+              this.checkStatus(this.state.sites[0].socket_name);
               this.callBuildings();
             }
           );
@@ -512,8 +523,45 @@ class groups extends Component {
     });
   };
 
+  checkStatus = (socketName) => {
+    console.log("checkStatus of", socketName);
+    this.setState({ gwState: "Wait..." });
+    axios({
+      //Axios POST request
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      url: global.BASE_URL + "/sockets/status",
+      data: {
+        socket: socketName,
+      },
+      timeout: 0,
+    })
+      .then((res) => {
+        console.log(res);
+        let gwStatus = res.data.message.gwStatus;
+        let siteCheck = this.state.sites.find(
+          (el) => el.sites_id === this.state.clickedSite
+        );
+
+        console.log(siteCheck);
+        if (gwStatus.includes("NO RESPONSE"))
+          gwStatus = `${gwStatus} - Please contact the administrator`;
+        if (siteCheck.socket_name === socketName)
+          this.setState({ gwState: gwStatus });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   handleChangeSite = (event, site) => {
     if (this.state.sites.find((x) => x.sites_id === site)) {
+      this.checkStatus(
+        this.state.sites.find((x) => x.sites_id === site).socket_name
+      );
       this.setState({
         siteName: this.state.sites.find((x) => x.sites_id === site).name,
         isClickedBuilding: false,
@@ -994,8 +1042,8 @@ class groups extends Component {
               </h4>
             </CardHeader>
             <CardBody>
-              <GridContainer justify="center">
-                <GridItem xs={12}>
+              <GridContainer>
+                <GridItem xs={8}>
                   <div style={crumbleContainer}>
                     <p
                       className={classes.crumbleNavigation}
@@ -1045,6 +1093,12 @@ class groups extends Component {
                         : null}
                     </p>
                   </div>
+                </GridItem>
+                <GridItem
+                  xs={4}
+                  style={{ textAlign: "right", marginTop: "15px" }}
+                >
+                  Site connection status: {this.state.gwState}
                 </GridItem>
                 {/* BUILDINGS */}
                 {!this.state.isClickedBuilding

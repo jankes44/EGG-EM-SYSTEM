@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-iot-device-sdk": "^2.2.3",
+    "aws-iot-device-sdk": "^2.2.6",
     "bcrypt": "^4.0.0",
     "body-parser": "^1.19.0",
     "cluster": "^0.7.7",
@@ -21,6 +21,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.1.7-alpha.3",
     "express-handlebars": "^3.1.0",
+    "html-pdf": "^2.2.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.20.10",
     "lodash": "^4.17.20",
@@ -38,6 +39,6 @@
     "uuid": "^7.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.2"
+    "nodemon": "^2.0.5"
   }
 }

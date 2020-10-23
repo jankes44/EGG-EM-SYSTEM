@@ -6,6 +6,8 @@ var socket = io.connect("http://localhost:5010/", {
 });
 var clientName = "SP_SOCKET";
 
+var testInProgress = false;
+
 socket.on("connect", function () {
   console.log("connected to localhost:5010");
   //   socket.emit("serverEvent", `${clientName}: Hello from ${clientName}`);
@@ -17,14 +19,6 @@ socket.on("connect", function () {
           break;
         case "TEST_DUR":
           startTest();
-          break;
-        case "do you think so?":
-          let packet2 = {
-            clientName: clientName,
-            message: "yes.",
-            timestamp: new Date(),
-          };
-          socket.emit("serverEvent", packet2);
           break;
         case "TEST_DEV":
           testFunc();
@@ -38,6 +32,8 @@ socket.on("connect", function () {
           socket.emit("serverEvent", packet);
           console.log(DurationTest.Init());
           break;
+        case "STATUS":
+          checkStatus();
       }
     if (packet.type === "MANUAL") {
       testFunc(packet.command);
@@ -52,6 +48,42 @@ socket.on("connect", function () {
     console.log("disconnected");
   });
 });
+
+function checkStatus() {
+  device.publish(topicSend, "XchkX", (err) => {
+    console.log("check status");
+    let timeout = setTimeout(() => {
+      let packet = {
+        clientName: clientName,
+        message: {
+          testInProgress: testInProgress,
+          gwStatus: "NO RESPONSE - GATEWAY",
+        },
+        timestamp: new Date(),
+      };
+      socket.emit("serverEvent", packet);
+      console.log("timeout");
+    }, 5000);
+    device.handleMessage = (message, callback) => {
+      clearTimeout(timeout);
+      var msg = message.payload.toString("utf8");
+      console.log(msg);
+
+      let gwStatus = "OK";
+      if (msg.includes("STATE_OK")) {
+        gwStatus = "OK";
+      } else gwStatus = "FAULT";
+      let packet = {
+        clientName: clientName,
+        message: { testInProgress: testInProgress, gwStatus: gwStatus },
+        timestamp: new Date(),
+      };
+      console.log("checkStatus");
+      socket.emit("serverEvent", packet);
+      callback();
+    };
+  });
+}
 
 function getVoltage(node) {
   device.publish(topicSend, `${node}10038205000096`, { qos: 1 }, (err) => {

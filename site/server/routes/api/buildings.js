@@ -15,14 +15,14 @@ router.get("/", auth, (req, res) =>
   })
 ),
   //get group by param: id
-  router.get("/:id", auth, (req, res) =>
+  router.get("/:sites_id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {
         res.sendStatus(403);
       } else {
         con.query(
-          "SELECT * FROM buildings WHERE id = ?",
-          [req.params.id],
+          "SELECT * FROM buildings WHERE sites_id = ?",
+          [req.params.sites_id],
           (err, rows) => res.json(rows)
         );
       }

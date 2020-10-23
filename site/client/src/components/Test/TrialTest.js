@@ -321,7 +321,7 @@ class TrialTest extends Component {
             return <span style={{ textAlign: "center" }}>Power back on</span>;
           }
           if (row.powercut === 3) {
-            return <span>Bluetooth module not responding</span>;
+            return <span>No connection to Mesh</span>;
           }
         },
       },
@@ -350,8 +350,8 @@ class TrialTest extends Component {
               label: "Battery Fault",
             },
             {
-              value: "No response from Bluetooth Module",
-              label: "No response from Bluetooth Module",
+              value: "No connection to Mesh",
+              label: "No connection to Mesh",
             },
           ],
         },

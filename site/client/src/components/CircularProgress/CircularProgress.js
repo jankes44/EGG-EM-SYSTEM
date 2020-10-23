@@ -10,7 +10,7 @@ export default function CircularProgressWithLabel(props) {
   var sec = props.duration.seconds();
   return (
     <Box position="relative" display="inline-flex">
-      <CircularProgress variant="static" size={50} {...props} />
+      <CircularProgress variant="static" size={60} {...props} />
       <Box
         top={0}
         left={0}

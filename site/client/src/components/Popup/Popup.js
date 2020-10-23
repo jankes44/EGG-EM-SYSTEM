@@ -4,10 +4,11 @@ import Icon from "@material-ui/core/Icon";
 import { IconButton } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { CSVLink } from "react-csv";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { PdfDocument } from "./PdfTest";
+// import { PDFDownloadLink } from "@react-pdf/renderer";
+// import { PdfDocument } from "./PdfTest";
 import moment from "moment";
 import Fade from "@material-ui/core/Fade";
+import axios from "axios";
 
 class Popup extends React.Component {
   state = {
@@ -21,15 +22,58 @@ class Popup extends React.Component {
     this.setState({ documentGenerated: true });
   };
 
+  downloadReport = () => {
+    const tests = this.props.testsFiltered[0];
+    axios({
+      url: global.BASE_URL + "/api/generatepdf/generateReport/" + tests.id,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      method: "GET",
+      responseType: "blob", // important
+    }).then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `test${moment(tests.created_at).format("YYYY-MM-DD-kmmss")}.pdf`
+      );
+      document.body.appendChild(link);
+      link.click();
+    });
+  };
+
+  downloadOfficialReport = () => {
+    const tests = this.props.testsFiltered[0];
+    axios({
+      url:
+        global.BASE_URL + "/api/generatepdf/generateOfficialReport/" + tests.id,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      method: "GET",
+      responseType: "blob", // important
+    }).then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `test${moment(tests.created_at).format("YYYY-MM-DD-kmmss")}.pdf`
+      );
+      document.body.appendChild(link);
+      link.click();
+    });
+  };
+
   render() {
     const csvReportArray = this.props.errorsCsv;
     const tests = this.props.testsFiltered[0];
     const errors = this.props.errorsFiltered;
     if (tests && errors) {
-      var filename = `report${moment(tests.created_at).format(
-        "YYYY-MM-DD-kmmss"
-      )}.pdf`;
-
       return (
         <Fade in={this.props.showPopup}>
           <div
@@ -143,29 +187,18 @@ class Popup extends React.Component {
                     Download CSV
                   </CSVLink>
 
-                  {!this.state.documentGenerated ? (
-                    <button
-                      className="btn btn-outline-primary"
-                      onClick={this.generatePDF}
-                    >
-                      Generate PDF
-                    </button>
-                  ) : (
-                    <PDFDownloadLink
-                      target=""
-                      document={
-                        <PdfDocument errorsData={errors} testsData={tests} />
-                      }
-                      fileName={filename}
-                      className="btn btn-success"
-                    >
-                      {({ blob, url, loading, error }) => {
-                        return loading
-                          ? "Loading document..."
-                          : "Document Ready!";
-                      }}
-                    </PDFDownloadLink>
-                  )}
+                  <button
+                    onClick={this.downloadReport}
+                    className="btn btn-success"
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={this.downloadOfficialReport}
+                    className="btn btn-primary"
+                  >
+                    Official Report
+                  </button>
                 </div>
 
                 <div className="buttonContainer2">

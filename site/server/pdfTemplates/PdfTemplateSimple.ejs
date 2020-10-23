@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+        table {
+            border-collapse: collapse;
+            width: 90%;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        </style>
+    </head>
+    <body>
+        <div style="width: 85%; margin: 0 7.5%; text-align: center; font-family: Calibri;">
+            <div style="text-align: center; padding-left: 50px;">
+                <img src="https://c.yell.com/t_bigRect,f_auto/c1b51c34-275f-456f-aa6f-2fc78908a3f4_image_png.png" />
+                <h3>Emergency Lighting Report</h5>
+                    <table style="margin-bottom: 20px;">
+                        <th>Tested Devices</th>
+                        <th>Lamp Fault</th>
+                        <th>Battery Fault</th>
+                        <th>No connection to Mesh</th>
+                        <th>OK - No fault</th>
+                        <tr>
+                            <td><%= data.length %></td>
+                            <td><%= resData.lampFault %></td>
+                            <td><%= resData.battFault %></td>
+                            <td><%= resData.noConnection %></td>
+                            <td><%= resData.noFault %></td>
+                    <!-- <% if (data.length > 0) { %>
+                        <% data.forEach(el => {%>
+                           <tr><td><%=  %></td><td><%= el.type %></td><td><%= el.node_id %></td><td><%=el.device_response %></td></tr>
+                        <%  });%>
+                    <% }%> -->
+                    </table>
+                <table>
+                    <th>Device ID</th>
+                    <th style="width: 40px;">Type</th>
+                    <th>Location</th>
+                    <th>Bluetooth Mesh Address</th>
+                    <th>Result</th>
+                <% if (data.length > 0) { %>
+                    <% data.forEach(el => {%>
+                       <tr><td><%= el.device_id %></td><td style="width: 40px;"><%= el.type %></td><td><%=el.building %> - level: <%=el.level %></td><td><%= el.node_id %></td><td><%=el.device_response %></td></tr>
+                    <%  });%>
+                <% }%>
+                </table>
+             </div>
+        </div>
+    </body>
+</html>
