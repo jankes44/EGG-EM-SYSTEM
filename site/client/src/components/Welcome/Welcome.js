@@ -47,9 +47,9 @@ export default function Welcome(props) {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/dev/gateway/state",
+      url: global.BASE_URL + "/mqtt/dev/gateway/state",
       data: {
-        topic: "LIVESPCOM",
+        topic: global.SEND_TOPIC,
       },
       timeout: 0,
     })

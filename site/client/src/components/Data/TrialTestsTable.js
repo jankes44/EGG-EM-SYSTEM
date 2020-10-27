@@ -220,19 +220,19 @@ class GroupsTable extends Component {
         },
       },
       {
-        dataField: "set",
-        text: "Set",
+        dataField: "type",
+        text: "Type",
         sort: true,
         filter: textFilter(),
         headerFormatter: this.locationFormatter,
         headerStyle: (colum, colIndex) => {
           return { width: "90px" };
         },
-        style: {
-          whiteSpace: "nowrap",
-          textOverflow: "ellipsis",
-          overflow: "hidden",
-        },
+        // style: {
+        //   whiteSpace: "nowrap",
+        //   textOverflow: "ellipsis",
+        //   overflow: "hidden",
+        // },
       },
       {
         dataField: "created_at",

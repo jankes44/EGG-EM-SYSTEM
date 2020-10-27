@@ -15,7 +15,7 @@ export default class ManualCommand extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/dev/manual/cmd",
+      url: global.BASE_URL + "/mqtt/dev/manual/cmd",
       data: {
         command: this.state.command,
         topic: global.SEND_TOPIC,

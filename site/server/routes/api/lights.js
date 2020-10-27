@@ -377,6 +377,7 @@ router.post("/edit/:id", auth, function (req, res) {
     if (err) {
       res.sendStatus(403);
     } else {
+      console.log(req.body);
       if (req.body[0] === "group_name") {
         con.query(
           "UPDATE lights SET ??=? WHERE id=?",

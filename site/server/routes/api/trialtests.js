@@ -11,7 +11,7 @@ router.get("/", auth, (req, res) =>
       res.sendStatus(403);
     } else {
       con.query(
-        "SELECT tests.id, tests.lights, tests.result, tests.set, tests.created_at, FLOOR(SUM(errors.error != 'OK')/tests.lights) as errors, FLOOR(SUM(errors.error = 'OK')/tests.lights) as responseok, GROUP_CONCAT(DISTINCT tests_has_lights.lights_id SEPARATOR ', ') AS tests_lights, GROUP_CONCAT(DISTINCT lights.device_id SEPARATOR ', ') as device_id, GROUP_CONCAT(DISTINCT lights.lgt_groups_id SEPARATOR ', ') as group_id, group_concat(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name, group_concat(DISTINCT levels.level separator ', ') as level FROM tests LEFT OUTER JOIN tests_has_lights ON tests_has_lights.tests_id = tests.id LEFT OUTER JOIN lights ON lights.id = tests_has_lights.lights_id LEFT OUTER JOIN lgt_groups ON lgt_groups.id = lights.lgt_groups_id LEFT OUTER JOIN errors ON errors.test_id = tests.id LEFT OUTER JOIN levels on levels.id = lgt_groups.levels_id GROUP BY tests.id",
+        "SELECT tests.id, tests.lights, tests.result, tests.set, tests.type, tests.created_at, FLOOR(SUM(errors.error != 'OK')/tests.lights) as errors, FLOOR(SUM(errors.error = 'OK')/tests.lights) as responseok, GROUP_CONCAT(DISTINCT tests_has_lights.lights_id SEPARATOR ', ') AS tests_lights, GROUP_CONCAT(DISTINCT lights.device_id SEPARATOR ', ') as device_id, GROUP_CONCAT(DISTINCT lights.lgt_groups_id SEPARATOR ', ') as group_id, group_concat(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name, group_concat(DISTINCT levels.level separator ', ') as level FROM tests LEFT OUTER JOIN tests_has_lights ON tests_has_lights.tests_id = tests.id LEFT OUTER JOIN lights ON lights.id = tests_has_lights.lights_id LEFT OUTER JOIN lgt_groups ON lgt_groups.id = lights.lgt_groups_id LEFT OUTER JOIN errors ON errors.test_id = tests.id LEFT OUTER JOIN levels on levels.id = lgt_groups.levels_id GROUP BY tests.id",
         (err, rows) => res.json(rows)
       );
     }
@@ -201,6 +201,7 @@ router.get("/", auth, (req, res) =>
           trial_tests.id,
           trial_tests.lights,
           trial_tests.result,
+          trial_tests.type,
           trial_tests.set,
           trial_tests.created_at,
           FLOOR(SUM(errors.error != 'OK') / trial_tests.lights) AS errors,

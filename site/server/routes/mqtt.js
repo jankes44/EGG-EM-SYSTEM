@@ -9,7 +9,7 @@ var schedule = require("node-schedule");
 const { on } = require("../database/db2");
 
 // const sendTopic = "irjghjhitj45645654";
-// const sendTopic2 = "LIVESPCOM";
+const sendTopic2 = "DEVCOMSP";
 let testInProgress = false;
 const testTime = 10800000;
 const cutInterval = 5000;
@@ -250,14 +250,27 @@ async function insertMsg(msg) {
   });
 }
 
-async function checkDeviceState(counter, topic, deviceId, user) {
+updateDeviceState = (status, id) => {
+  console.log("update device state:", status, id);
+  con.query(
+    `UPDATE lights SET status = ? WHERE id = ?`,
+    [status, id],
+    (err, res) => {
+      if (err) throw err;
+    }
+  );
+};
+
+async function checkDeviceState(counter, topic, deviceId, user, type) {
   let promise = new Promise((resolve, reject) => {
     var usersDevices = findUsersTest(user).devices;
     var messages = [];
+    let received = false;
+    const command = type === "led" ? "10038205000096" : "10018201000096";
     device.publish(
       //publish cut power command
       topic,
-      `${deviceId}10038205000096`,
+      `${deviceId}${command}`,
       { qos: 1 },
       () => {
         busy = true;
@@ -266,9 +279,9 @@ async function checkDeviceState(counter, topic, deviceId, user) {
         var msgTimeout = setTimeout(() => {
           //if no response from device in X seconds, continue the loop
           usersDevices[counter].powercut = 3; //state 3 = no response
-          con.query(
-            "UPDATE lights SET status = 'No connection to bt module' WHERE id = ?",
-            [usersDevices[counter].id]
+          updateDeviceState(
+            "Weak connection to Mesh",
+            usersDevices[counter].id
           );
           busy = false;
           resolve("No response");
@@ -279,15 +292,24 @@ async function checkDeviceState(counter, topic, deviceId, user) {
           console.log(msg, msgCut, counter);
           switch (msgCut) {
             case "0CCD":
-              usersDevices[counter].userInput = "OK";
+              updateDeviceState("OK", usersDevices[counter].id);
+              // usersDevices[counter].userInput = "OK";
               console.log(usersDevices[counter].userInput);
               break;
             case "6666":
-              usersDevices[counter].userInput = "Battery disconnected";
+              updateDeviceState(
+                "Battery disconnected",
+                usersDevices[counter].id
+              );
+              // usersDevices[counter].userInput = "Battery disconnected";
               console.log(usersDevices[counter].userInput);
               break;
             case "7FFF":
-              usersDevices[counter].userInput = "Powered from battery";
+              updateDeviceState(
+                "Battery powered/under test",
+                usersDevices[counter].id
+              );
+              usersDevices[counter].userInput = "Battery powered/under test";
               console.log(usersDevices[counter].userInput);
               break;
           }
@@ -296,10 +318,74 @@ async function checkDeviceState(counter, topic, deviceId, user) {
         device.handleMessage = (packet, callback) => {
           clearInterval(msgTimeout); //if  got the message cancel the timeout on
           var message = packet.payload.toString("utf8");
-          if (!messages.includes(message)) {
+          if (!messages.includes(message) && !received) {
+            received = true;
             messages.push(message);
             setTimeout(() => {
               insertMsg(message);
+              checkMsgState(message);
+              console.log(messages);
+              busy = false;
+              resolve(message);
+              callback(packet);
+            }, 500);
+          } else callback(packet);
+        };
+      }
+    );
+  });
+
+  let result = await promise; // wait until the promise resolves (*)
+  return result;
+}
+
+async function checkDeviceConnectivity(topic, deviceData, type) {
+  let promise = new Promise((resolve, reject) => {
+    var messages = [];
+    let received = false;
+    const command = type === "led" ? "10038205000096" : "10018201000096";
+    device.publish(
+      //publish cut power command
+      topic,
+      `${deviceData.node_id}${command}`,
+      () => {
+        busy = true;
+        console.log("state check: " + deviceData.id);
+
+        var msgTimeout = setTimeout(() => {
+          updateDeviceState("Weak connection to Mesh", deviceData.id);
+          busy = false;
+          resolve("No response");
+        }, noResponseTimeout);
+
+        checkMsgState = (msg) => {
+          const msgCut = msg.slice(21, 25).toUpperCase();
+          console.log(msg, msgCut);
+          switch (msgCut) {
+            case "0CCD":
+              updateDeviceState("OK", deviceData.id);
+              // usersDevices[counter].userInput = "OK";
+              break;
+            case "6666":
+              updateDeviceState("Battery disconnected", deviceData.id);
+              // usersDevices[counter].userInput = "Battery disconnected";
+              break;
+            case "7FFF":
+              updateDeviceState("Battery powered/under test", deviceData.id);
+              // usersDevices[counter].userInput = "Battery powered/under test";
+              break;
+          }
+        };
+
+        device.handleMessage = (packet, callback) => {
+          clearInterval(msgTimeout); //if  got the message cancel the timeout on
+          var message = packet.payload.toString("utf8");
+          if (!messages.includes(message) && !received) {
+            received = true;
+            messages.push(message);
+            setTimeout(() => {
+              insertMsg(message);
+              checkMsgState(message);
               console.log(messages);
               busy = false;
               resolve(message);
@@ -327,50 +413,52 @@ durationCounterStart = (counter, topic, user) => {
         var timeout = setTimeout(() => {
           if (testInProgress) {
             var deviceId = usersDevices[counter].node_id;
-            checkDeviceState(counter, topic, deviceId, user).then((msg) => {
-              device.publish(
-                topic,
-                `${deviceId}10018202000196`,
-                { qos: 1 },
-                (err) => {
-                  console.log(`${deviceId}: MAIN ON`);
-                  var msgTimeout = setTimeout(() => {
-                    console.log(`${deviceId}: NO RES`);
-                    usersDevices[counter].powercut = 3;
-                    con.query(
-                      "UPDATE lights SET status = 'No connection to bt module' WHERE id = ?",
-                      [usersDevices[counter].id]
-                    );
-                    counter++;
-                    busy = false;
-                    setTimeout(loop, 1000);
-                    return counter;
-                  }, noResponseTimeout);
-                  device.handleMessage = (packet, callback) => {
-                    clearInterval(msgTimeout);
-                    var message = packet.payload.toString("utf8");
-                    var arrayContainsMessage = messages.includes(message);
-                    var msg_node_id = message.slice("13", "17");
-                    if (!arrayContainsMessage) {
-                      if (!message.includes("hello")) {
-                        messages.push(message);
-                        console.log(message, msg_node_id, "test");
-                        usersDevices[counter].powercut = 2; //POWERCUT 2 = FINISHED
-                        con.query(
-                          "UPDATE lights SET status = 'OK' WHERE id = ?",
-                          [usersDevices[counter].id]
-                        );
-                        busy = false;
+            checkDeviceState(counter, topic, deviceId, user, "led").then(
+              (msg) => {
+                device.publish(
+                  topic,
+                  `${deviceId}10018202000196`,
+                  { qos: 1 },
+                  (err) => {
+                    console.log(`${deviceId}: MAIN ON`);
+                    var msgTimeout = setTimeout(() => {
+                      console.log(`${deviceId}: NO RES`);
+                      usersDevices[counter].powercut = 3;
+                      con.query(
+                        "UPDATE lights SET status = 'Weak connection to Mesh' WHERE id = ?",
+                        [usersDevices[counter].id]
+                      );
+                      counter++;
+                      busy = false;
+                      setTimeout(loop, 1000);
+                      return counter;
+                    }, noResponseTimeout);
+                    device.handleMessage = (packet, callback) => {
+                      clearInterval(msgTimeout);
+                      var message = packet.payload.toString("utf8");
+                      var arrayContainsMessage = messages.includes(message);
+                      var msg_node_id = message.slice("13", "17");
+                      if (!arrayContainsMessage) {
+                        if (!message.includes("hello")) {
+                          messages.push(message);
+                          console.log(message, msg_node_id, "test");
+                          usersDevices[counter].powercut = 2; //POWERCUT 2 = FINISHED
+                          con.query(
+                            "UPDATE lights SET status = 'OK' WHERE id = ?",
+                            [usersDevices[counter].id]
+                          );
+                          busy = false;
+                          callback(packet);
+                        } else callback(packet);
+                      } else {
+                        console.log(message, arrayContainsMessage);
                         callback(packet);
-                      } else callback(packet);
-                    } else {
-                      console.log(message, arrayContainsMessage);
-                      callback(packet);
-                    }
-                  };
-                }
-              );
-            });
+                      }
+                    };
+                  }
+                );
+              }
+            );
           } else clearTimeout(timeout);
         }, relayBackOn);
         clearInterval(interval);
@@ -464,6 +552,7 @@ beforeTest = (requestBody, res, userParam) => {
       lights: requestBody.devices.length,
       result: "In Progress",
       set: "Manual",
+      type: "Annual",
     },
     (err, result) => {
       requestBody.devices.forEach((el) => {
@@ -515,6 +604,20 @@ findUsersTest = (id) => {
   } else return "";
 };
 
+router.post("/dev/checkconnectivity", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      checkDeviceConnectivity(req.body.topic, req.body.device, "led").then(
+        (result) => {
+          res.status(200).send(result);
+        }
+      );
+    }
+  });
+});
+
 //Abort test call
 router.post("/aborttest/:testid", auth, (req, res) => {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
@@ -539,45 +642,48 @@ router.post("/aborttest/:testid", auth, (req, res) => {
           const topic = usersDevices[counter].mqtt_topic_out;
           let msgReceived = false;
 
-          checkDeviceState(counter, topic, deviceId, user).then((msg) => {
-            setTimeout(() => {
-              device.publish(
-                topic,
-                `${deviceId}10018202000196`,
-                { qos: 1 },
-                (err) => {
-                  console.log("published");
-                  var msgTimeout = setTimeout(() => {
-                    console.log("No response");
-                    usersDevices[counter].powercut = 3;
-                    counter++;
-                    setTimeout(loop, 1000);
-                    return counter;
-                  }, noResponseTimeout);
-                  device.handleMessage = (packet, callback) => {
-                    clearInterval(msgTimeout);
-                    var message = packet.payload.toString("utf8");
-                    var arrayContainsMessage = messages.includes(message);
-                    var msg_node_id = message.slice("13", "17");
-                    if (!arrayContainsMessage && !msgReceived) {
-                      if (!message.includes("hello")) {
-                        messages.push(message);
-                        console.log(message, msg_node_id, counter);
-                        msgReceived = true;
-                        usersDevices[counter].powercut = 2;
-                        counter++;
-                        setTimeout(loop, 1000);
+          checkDeviceState(counter, topic, deviceId, user, "led").then(
+            (msg) => {
+              setTimeout(() => {
+                device.publish(
+                  topic,
+                  `${deviceId}10018202000196`,
+                  { qos: 1 },
+                  (err) => {
+                    console.log("published");
+                    var msgTimeout = setTimeout(() => {
+                      console.log("No response");
+                      usersDevices[counter].powercut = 3;
+                      counter++;
+                      setTimeout(loop, 1000);
+                      return counter;
+                    }, noResponseTimeout);
+                    device.handleMessage = (packet, callback) => {
+                      clearInterval(msgTimeout);
+                      var message = packet.payload.toString("utf8");
+                      var arrayContainsMessage = messages.includes(message);
+                      var msg_node_id = message.slice("13", "17");
+                      if (!arrayContainsMessage && !msgReceived) {
+                        if (!message.includes("hello")) {
+                          messages.push(message);
+                          console.log(message, msg_node_id, counter);
+                          msgReceived = true;
+                          usersDevices[counter].powercut = 2;
+                          counter++;
+                          setTimeout(loop, 1000);
+                          callback(packet);
+                        }
+                      } else {
+                        console.log(message, arrayContainsMessage, msgReceived);
                         callback(packet);
                       }
-                    } else {
-                      console.log(message, arrayContainsMessage, msgReceived);
-                      callback(packet);
-                    }
-                  };
-                }
-              );
-            });
-          }, 1000);
+                    };
+                  }
+                );
+              });
+            },
+            1000
+          );
         } else {
           console.log("done", counter, length);
           counter = 0;
@@ -636,7 +742,7 @@ router.post("/savetest/:testid", auth, (req, res) => {
           var topic = usersDevices[counter].mqtt_topic_out;
           var msgReceived = false;
 
-          checkDeviceState(counter, topic, deviceId, user).then(() => {
+          checkDeviceState(counter, topic, deviceId, user, "led").then(() => {
             setTimeout(() => {
               device.publish(
                 topic,
@@ -821,6 +927,152 @@ router.post("/setchecked", auth, (req, res) => {
         });
       });
       res.status(200).send("All good");
+    }
+  });
+});
+
+router.post("/app/relay/on", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      let received = false;
+      let nodeID = req.body.node_id;
+      let messages = [];
+
+      device.publish(
+        sendTopic2,
+        `${nodeID}10018202000196`,
+        { qos: 1 },
+        (err) => {
+          if (err) {
+            var errTimeout = setTimeout(() => {
+              console.log(err, "retrying in 10s");
+            }, 10000);
+          } else {
+            var msgTimeout = setTimeout(() => {
+              console.log("NO RES:", nodeID);
+              res.status(400).send(`NO RES: ${nodeID}`);
+            }, 6000);
+            device.handleMessage = (packet, callback) => {
+              clearInterval(msgTimeout);
+              clearInterval(errTimeout);
+              const rawResponse = message.slice(13, 25);
+              const destinationNode = rawResponse.slice(0, 4);
+              const paramData = rawResponse.slice(8, 12);
+              if (!arrayContainsMessage && !received) {
+                received = true;
+                messages.push(message);
+                console.log(message);
+                res.status(200).send(`${destinationNode}: SET ON`);
+                callback(packet);
+              } else callback(packet);
+            };
+          }
+        }
+      );
+    }
+  });
+});
+
+router.post("/app/relay/off", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      let received = false;
+      let nodeID = req.body.node_id;
+      let messages = [];
+
+      device.publish(
+        sendTopic2,
+        `${nodeID}10018202000096`,
+        { qos: 1 },
+        (err) => {
+          if (err) {
+            var errTimeout = setTimeout(() => {
+              console.log(err, "retrying in 10s");
+            }, 10000);
+          } else {
+            var msgTimeout = setTimeout(() => {
+              console.log("NO RES:", nodeID);
+              res.status(400).send(`NO RES: ${nodeID}`);
+            }, 6000);
+            device.handleMessage = (packet, callback) => {
+              clearInterval(msgTimeout);
+              clearInterval(errTimeout);
+              const message = packet.payload.toString("utf8");
+              const arrayContainsMessage = messages.includes(message);
+              const rawResponse = message.slice(13, 25);
+              const destinationNode = rawResponse.slice(0, 4);
+              const paramData = rawResponse.slice(8, 12);
+              if (!arrayContainsMessage && !received) {
+                received = true;
+                messages.push(message);
+                console.log(message, msg_node_id);
+                res.status(200).send(`${destinationNode}: SET OFF`);
+                callback(packet);
+              } else callback(packet);
+            };
+          }
+        }
+      );
+    }
+  });
+});
+
+router.post("/app/relay/state", auth, (req, res) => {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      let received = false;
+      let nodeID = req.body.node_id;
+      let messages = [];
+
+      device.publish(
+        sendTopic2,
+        `${nodeID}10018201000096`,
+        { qos: 1 },
+        (err) => {
+          if (err) {
+            var errTimeout = setTimeout(() => {
+              console.log(err, "retrying in 10s");
+            }, 10000);
+          } else {
+            var msgTimeout = setTimeout(() => {
+              console.log("NO RES:", nodeID);
+              res.status(400).send(`NO RES: ${nodeID}`);
+            }, 6000);
+            device.handleMessage = (packet, callback) => {
+              clearInterval(msgTimeout);
+              clearInterval(errTimeout);
+              const message = packet.payload.toString("utf8");
+              const arrayContainsMessage = messages.includes(message);
+              const rawResponse = message.slice(13, 25);
+              const destinationNode = rawResponse.slice(0, 4);
+              const paramData = rawResponse.slice(8, 12);
+
+              if (!arrayContainsMessage && !received) {
+                switch (paramData) {
+                  case "0000":
+                    res.status(200).send(`${destinationNode}: OFF`);
+                    break;
+                  case "0001":
+                    res.status(200).send(`${destinationNode}: ON`);
+                    break;
+                  default:
+                    res.status(200).send(`${destinationNode}: UNKNOWN_RES`);
+                }
+                received = true;
+                messages.push(message);
+                console.log(message);
+                callback(packet);
+              } else callback(packet);
+            };
+          }
+        }
+      );
     }
   });
 });
@@ -1418,8 +1670,8 @@ router.post("/dev/manual/cmd", auth, (req, res) => {
             received = 1;
             console.log(message);
             res.send(message);
-            callback();
-          } else callback();
+            callback(packet);
+          } else callback(packet);
         };
       });
     }

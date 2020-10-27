@@ -73,7 +73,14 @@ class Popup extends React.Component {
     const csvReportArray = this.props.errorsCsv;
     const tests = this.props.testsFiltered[0];
     const errors = this.props.errorsFiltered;
+
     if (tests && errors) {
+      let successColor = "green";
+      let successful = 0;
+      errors.forEach((el) => {
+        if (el.result === "Device OK") successful++;
+      });
+      if (successful !== tests.lights) successColor = "salmon";
       return (
         <Fade in={this.props.showPopup}>
           <div
@@ -97,7 +104,7 @@ class Popup extends React.Component {
                           <th>Tested Lights</th>
                           <th>Status</th>
                           {/* <th>Warnings</th> */}
-                          <th>Set</th>
+                          <th>Type</th>
                           <th>Test Time</th>
                         </tr>
                         <tr>
@@ -106,10 +113,12 @@ class Popup extends React.Component {
                             <Link to={"admin/groups"} />
                           </td>
                           <td>{tests.site}</td>
-                          <td>{tests.lights}</td>
+                          <td style={{ color: successColor }}>
+                            {successful}/{tests.lights}
+                          </td>
                           <td>{tests.result}</td>
                           {/* <td>{tests.errors}</td> */}
-                          <td>{tests.set}</td>
+                          <td>{tests.type}</td>
                           <td>
                             {moment(tests.created_at).format("k:mm DD.MM.YYYY")}
                           </td>
@@ -128,11 +137,13 @@ class Popup extends React.Component {
                           {/* <th>Retest</th> */}
                         </tr>
                         {errors.map((item, index) => {
+                          let color = "";
                           if (item.result) {
                             item.error = item.result;
                           }
+                          if (item.result !== "Device OK") color = "salmon";
                           return (
-                            <tr key={index}>
+                            <tr key={index} style={{ backgroundColor: color }}>
                               <td
                                 style={{
                                   fontWeight: "lighter",
