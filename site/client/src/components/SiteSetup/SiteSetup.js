@@ -12,7 +12,6 @@ import NewBuilding from "components/SiteSetup/NewBuilding";
 import Devices from "components/SiteSetup/Devices";
 import NewLevel from "components/SiteSetup/NewLevel";
 import cellEditFactory from "react-bootstrap-table2-editor";
-import LevelsTable from "components/SiteSetup/LevelsTable";
 // import "./workAround/index.css";
 
 function NoDataIndication() {
