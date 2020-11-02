@@ -37,7 +37,8 @@ export default function Overwatch(props) {
             .then((response) => {
               console.log(response.data);
               setLights([]);
-              props.setClickedGroup(response.data[0].id);
+              if (response.data.length)
+                props.setClickedGroup(response.data[0].id);
               setResponse(true);
             });
         }
