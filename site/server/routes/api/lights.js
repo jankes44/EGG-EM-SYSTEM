@@ -43,22 +43,100 @@ router.get("/:uid", auth, (req, res) =>
         users_has_sites ON users_has_sites.sites_id = sites.id
           LEFT OUTER JOIN
         users ON users.id = users_has_sites.users_id
-      WHERE users.id = ?`,
+      WHERE users.id = ? AND lights.is_assigned = 1`,
         [req.params.uid],
         (err, rows) => {
           if (err) throw err;
           if (rows.length) {
             res.json(rows);
-          } else
-            con.query(
-              "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1",
-              (err, rows) => res.json(rows)
-            );
+          } else res.json([]);
         }
       );
     }
   })
 ),
+  router.get("/nodevices/:level", auth, (req, res) =>
+    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+      if (err) {
+        res.sendStatus(403);
+      } else {
+        con.query(
+          `SELECT 
+          lgt_groups.*,
+          levels.id as levels_id,
+          levels.level,
+          buildings.building,
+          buildings.id as buildings_id,
+          sites.mqtt_topic_out,
+          sites.mqtt_topic_in,
+          sites.id as sites_id,
+          sites.name as sites_name
+        FROM
+          lgt_groups
+            LEFT OUTER JOIN
+          levels ON levels.id = lgt_groups.levels_id
+            LEFT OUTER JOIN
+          buildings ON buildings.id = levels.buildings_id
+            LEFT OUTER JOIN
+          sites ON sites.id = buildings.sites_id
+            LEFT OUTER JOIN
+          users_has_sites ON users_has_sites.sites_id = sites.id
+            LEFT OUTER JOIN
+          users ON users.id = users_has_sites.users_id
+        WHERE levels.id = ?
+    GROUP BY lgt_groups.id, levels.id`,
+          [req.params.level],
+          (err, rows) => {
+            if (err) throw err;
+            res.json(rows);
+          }
+        );
+      }
+    })
+  ),
+  router.get("/unassigned/:uid", auth, (req, res) =>
+    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+      if (err) {
+        res.sendStatus(403);
+      } else {
+        con.query(
+          `SELECT 
+        lights.*, 
+        lgt_groups.group_name,
+        levels.id as levels_id,
+        levels.level,
+        buildings.building,
+        buildings.id as buildings_id,
+        sites.mqtt_topic_out,
+        sites.mqtt_topic_in,
+        sites.id as sites_id,
+        sites.name as sites_name
+      FROM
+        lights
+          LEFT OUTER JOIN
+        lgt_groups ON lights.lgt_groups_id = lgt_groups.id
+          LEFT OUTER JOIN
+        levels ON levels.id = lgt_groups.levels_id
+          LEFT OUTER JOIN
+        buildings ON buildings.id = levels.buildings_id
+          LEFT OUTER JOIN
+        sites ON sites.id = buildings.sites_id
+          LEFT OUTER JOIN
+        users_has_sites ON users_has_sites.sites_id = sites.id
+          LEFT OUTER JOIN
+        users ON users.id = users_has_sites.users_id
+      WHERE users.id = ? AND lights.is_assigned = 0`,
+          [req.params.uid, req.params.assigned],
+          (err, rows) => {
+            if (err) throw err;
+            if (rows.length) {
+              res.json(rows);
+            } else res.json([]);
+          }
+        );
+      }
+    })
+  ),
   //gets all lights
   router.get("/building/:buildings_id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
@@ -144,17 +222,14 @@ router.get("/:uid", auth, (req, res) =>
         users_has_sites ON users_has_sites.sites_id = sites.id
           LEFT OUTER JOIN
         users ON users.id = users_has_sites.users_id
-      WHERE levels.id = ?`,
+      WHERE levels.id = ? AND lights.is_assigned = 1
+	GROUP BY lights.id, levels.id`,
           [req.params.level_id],
           (err, rows) => {
             if (err) throw err;
             if (rows.length) {
               res.json(rows);
-            } else
-              con.query(
-                "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1",
-                (err, rows) => res.json(rows)
-              );
+            } else res.json([]);
           }
         );
       }
@@ -171,7 +246,7 @@ router.get("/:uid", auth, (req, res) =>
            lights 
             LEFT OUTER JOIN 
            lgt_groups ON lights.lgt_groups_id = lgt_groups.id 
-           WHERE lights.lgt_groups_id = ?`,
+           WHERE lights.lgt_groups_id = ? AND lights.is_assigned = 0`,
           [req.params.lgt_groups_id],
           (err, rows) => res.json(rows)
         );
@@ -389,8 +464,8 @@ router.post("/edit/:id", auth, function (req, res) {
         );
       } else {
         con.query(
-          "UPDATE lights SET ??=? WHERE id=?",
-          [req.body[0], req.body[1], req.params.id],
+          "UPDATE lights SET lgt_groups_id = ?, is_assigned=1 WHERE id=?",
+          [req.body.lgt_groups_id, req.params.id],
           function (error, results, fields) {
             if (error) throw error;
             res.end(JSON.stringify(results));

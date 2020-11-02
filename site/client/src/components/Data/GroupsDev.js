@@ -178,7 +178,7 @@ class groups extends Component {
           return { width: "180px" };
         },
         formatter: (cell) => {
-          return cell + " level";
+          return "Level " + cell;
         },
       },
       {

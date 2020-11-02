@@ -32,7 +32,7 @@ class Login extends Component {
 
     login(user).then((res) => {
       if (res) {
-        this.props.history.push("/admin/dashboard");
+        this.props.history.push("/admin/live-em-status");
       } else {
         this.setState({ message: loginVar, play: true });
       }

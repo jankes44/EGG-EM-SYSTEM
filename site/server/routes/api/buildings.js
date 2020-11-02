@@ -21,7 +21,26 @@ router.get("/", auth, (req, res) =>
         res.sendStatus(403);
       } else {
         con.query(
-          "SELECT * FROM buildings WHERE sites_id = ?",
+          `SELECT
+          s.id as sites_id,
+            buildings.building,
+            buildings.id as buildings_id,
+            levels.id AS levels_id,
+            levels.level,
+            sum(case when lights.is_assigned = 1 then 1 else 0 end) as devices
+        FROM
+          sites as s
+            LEFT OUTER JOIN
+          buildings ON s.id = buildings.sites_id
+                LEFT OUTER JOIN
+            levels ON levels.buildings_id = buildings.id
+                LEFT OUTER JOIN
+            lgt_groups ON lgt_groups.levels_id = levels.id
+                LEFT OUTER JOIN
+            lights ON lights.lgt_groups_id = lgt_groups.id
+        WHERE s.id = ?
+        GROUP BY buildings.id, levels.id
+        `,
           [req.params.sites_id],
           (err, rows) => res.json(rows)
         );

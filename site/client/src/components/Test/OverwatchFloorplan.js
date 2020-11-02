@@ -4,15 +4,17 @@ import { makeStyles } from "@material-ui/core/styles";
 import Popover from "@material-ui/core/Popover";
 import Draggable from "react-draggable";
 import axios from "axios";
+import UnassignedDevices from "components/LiveEmStatus/UnassignedDevices";
+import jwt_decode from "jwt-decode";
 import {
   IconButton,
   TextField,
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Button,
   Icon,
 } from "@material-ui/core";
 
@@ -40,6 +42,31 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(1),
     width: "40vw",
   },
+  card: {
+    float: "left",
+    width: "100%",
+    maxHeight: "60px",
+    margin: "auto",
+    transition: "0.5s",
+    padding: "5px",
+    borderTopLeftRadius: "10px",
+    borderTopRightRadius: "10px",
+    backgroundColor: "rgba(161,161,161,0.2)",
+    color: "#464646",
+  },
+  heading: {
+    float: "left",
+    paddingLeft: "5px",
+    paddingTop: "4px",
+    textAlign: "center",
+    margin: "auto",
+    backgroundColor: "#3452B4",
+    borderRadius: "100px",
+    width: "50px",
+    height: "50px",
+    color: "white",
+    marginRight: "5px",
+  },
 }));
 
 export default function LiveFloorPlan(props) {
@@ -50,10 +77,17 @@ export default function LiveFloorPlan(props) {
   const [floorplanURL, setFloorplanURL] = React.useState("");
   const [floorplanNotFound, setFloorplanNotFound] = React.useState("");
   const [comment, setComment] = React.useState("");
+  const [devices, setDevices] = React.useState("");
+  const [activeDrags, setActiveDrags] = React.useState(0);
+  const [success, setSuccess] = React.useState(false);
 
   const openContextMenu = (event, deviceId) => {
-    setOpenedContextMenu(deviceId);
-    console.log(deviceId);
+    const token = localStorage.usertoken;
+    const decoded = jwt_decode(token);
+    if (decoded.access >= 99) {
+      setOpenedContextMenu(deviceId);
+      console.log(deviceId);
+    }
   };
 
   const handleCloseContextMenu = () => {
@@ -102,44 +136,81 @@ export default function LiveFloorPlan(props) {
   };
 
   useEffect(() => {
+    const { devices } = props;
+    setDevices(devices);
     axios
-      .get(
-        global.BASE_URL +
-          "/api/levels/floorplan/" +
-          props.liveDevices[0].levels_id,
-        {
-          headers: {
-            "Content-Type": "application/json;charset=UTF-8",
-            Authorization: "Bearer " + localStorage.usertoken,
-          },
-          responseType: "blob",
-        }
-      )
+      .get(global.BASE_URL + "/api/levels/floorplan/" + props.clickedLevel, {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+        responseType: "blob",
+      })
       .catch((err) => {
         console.log(err);
-        setFloorplanNotFound(
-          "No floorplan assigned. You can assign it by navigating to that level in a table on the top of the page"
-        );
+        setFloorplanNotFound("No floorplan assigned.");
       })
       .then((response) => {
         if (response) setFloorplanURL(URL.createObjectURL(response.data));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [props.devices]);
+
+  const handleSavePositions = () => {
+    axios({
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      url: global.BASE_URL + "/api/lights/edit/many",
+      data: { devices: devices },
+    }).then((res) => {
+      console.log(res);
+      if (res.status === 200) {
+        setSuccess(true);
+      }
+    });
+  };
+
+  const handleDrag = (e, ui, index, id) => {
+    let { liveDevices } = props;
+    liveDevices[index].fp_coordinates_bot =
+      liveDevices[index].fp_coordinates_bot + ui.deltaY;
+    liveDevices[index].fp_coordinates_left =
+      liveDevices[index].fp_coordinates_left + ui.deltaX;
+    setDevices(liveDevices);
+  };
+
+  const onStart = () => {
+    setActiveDrags(activeDrags + 1);
+  };
+
+  const onStop = () => {
+    setActiveDrags(activeDrags - 1);
+  };
 
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
+  const dragHandlers = { onStart: onStart, onStop: onStop };
   return (
     <div>
-      <Typography variant="h4" gutterBottom>
-        {props.liveDevices[0].level} level
-      </Typography>
-      <div style={{ overflowX: "scroll", width: "100%" }}>
+      <div className={classes.card}>
+        <Typography variant="h4" style={{ marginTop: "5px" }}>
+          Level{" "}
+          {props.liveDevices.length > 0 ? props.liveDevices[0].level : null}{" "}
+          <p style={{ float: "right", display: "inline-block" }}>
+            Luminaires:{" "}
+            {props.liveDevices.length > 1 ? props.liveDevices.length : 0}
+          </p>
+        </Typography>
+      </div>
+      <div style={{ overflow: "hidden", width: "100%", height: "90vh" }}>
         <div
           // src={this.state.objectURL}
           style={{
-            height: "550px",
-            width: "1200px",
+            height: "100%",
+            width: "100%",
             border: "1pt solid black",
             backgroundRepeat: "no-repeat",
             backgroundSize: "contain",
@@ -147,72 +218,82 @@ export default function LiveFloorPlan(props) {
           }}
           alt="Third Level"
         >
-          {props.liveDevices.length > 0 && !floorplanNotFound ? (
-            props.liveDevices.map((el) => {
-              let color;
+          <div style={{ width: "100%", height: "110vh" }}>
+            {props.liveDevices.length > 0 ? (
+              !floorplanNotFound ? (
+                <div></div>
+              ) : (
+                <div>No floorplan </div>
+              )
+            ) : (
+              <div>No devices </div>
+            )}
+            {props.liveDevices.length > 0 && !floorplanNotFound ? (
+              props.liveDevices.map((el, index) => {
+                let color;
 
-              switch (el.status) {
-                case "OK":
-                  color = "#4fa328";
-                  break;
-                case "No connection to driver":
-                  color = "orange";
-                  break;
-                case "Battery powered/under test":
-                  color = "blue";
-                  setInterval(() => {
-                    color = "grey";
-                  }, 1000);
-                  setInterval(() => {
+                switch (el.status) {
+                  case "OK":
+                    color = "#4fa328";
+                    break;
+                  case "No connection to driver":
+                    color = "orange";
+                    break;
+                  case "Battery powered/under test":
                     color = "blue";
-                  }, 2000);
-                  break;
-                case "Weak connection to Mesh":
-                  color = "#F50158";
-                  break;
-                case "Battery disconnected":
-                  color = "purple";
-                  break;
-                default:
-                  color = "grey";
-                  break;
-              }
+                    setInterval(() => {
+                      color = "grey";
+                    }, 1000);
+                    setInterval(() => {
+                      color = "blue";
+                    }, 2000);
+                    break;
+                  case "Weak connection to Mesh":
+                    color = "#F50158";
+                    break;
+                  case "Battery disconnected":
+                    color = "purple";
+                    break;
+                  default:
+                    color = "grey";
+                    break;
+                }
 
-              let blink =
-                el.status === "Battery powered/under test"
-                  ? classes.blink
-                  : null;
+                let blink =
+                  el.status === "Battery powered/under test"
+                    ? classes.blink
+                    : null;
 
-              return (
-                <Draggable
-                  key={el.id}
-                  position={{
-                    x: el.fp_coordinates_left,
-                    y: el.fp_coordinates_bot,
-                  }}
-                  onStart={() => false}
-                >
-                  <div
-                    style={{
-                      width: "0px",
-                      height: "0px",
-                      position: "relative",
+                return (
+                  <Draggable
+                    key={el.id}
+                    position={{
+                      x: el.fp_coordinates_left,
+                      y: el.fp_coordinates_bot,
                     }}
+                    onDrag={(e, ui) => handleDrag(e, ui, index, el.id)}
+                    {...dragHandlers}
+                    onStart={onStart}
+                    onStop={onStop}
+                    grid={[5, 5]}
+                    bounds={"parent"}
                   >
-                    {/* {el.status === "Battery powered/under test" ? (
+                    <div
+                      style={{
+                        width: "0px",
+                        height: "0px",
+                        position: "relative",
+                      }}
+                    >
                       <Icon
                         className={blink}
                         style={{
                           fontSize: "4em",
                           position: "absolute",
-                          cursor: "pointer",
+                          cursor: "move",
+                          color: color,
                         }}
-                        onContextMenu={(e) => {
-                          e.preventDefault();
-                          //add closing functionality
-                          openContextMenu(e, el.id);
-                        }}
-                        onClick={(e) => handleHover(e, el.id)}
+                        onClick={(e) => openContextMenu(e, el.id)}
                         onMouseEnter={(e) => handleHover(e, el.id)}
                         onMouseLeave={handleClose}
                         onTouchStart={(e) => handleHover(e, el.id)}
@@ -220,129 +301,117 @@ export default function LiveFloorPlan(props) {
                       >
                         location_on
                       </Icon>
-                    ) : ( */}
-                    <Icon
-                      className={blink}
-                      style={{
-                        fontSize: "4em",
-                        position: "absolute",
-                        cursor: "pointer",
-                        color: color,
-                      }}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        //add closing functionality
-                        openContextMenu(e, el.id);
-                      }}
-                      onClick={(e) => openContextMenu(e, el.id)}
-                      onMouseEnter={(e) => handleHover(e, el.id)}
-                      onMouseLeave={handleClose}
-                      onTouchStart={(e) => handleHover(e, el.id)}
-                      onTouchEnd={handleClose}
-                    >
-                      location_on
-                    </Icon>
-                    {/* )} */}
+                      {/* )} */}
 
-                    <Dialog
-                      open={openedContextMenu === el.id}
-                      onClose={handleCloseContextMenu}
-                      aria-labelledby="form-dialog-title"
-                    >
-                      <DialogTitle id="form-dialog-title">
-                        {`${el.device_id} - ${el.type} - ${el.node_id}`}
-                      </DialogTitle>
-                      <DialogContent>
-                        <DialogContentText>
-                          Status: {el.status}
-                        </DialogContentText>
-                        <DialogContentText>
-                          {el.comment ? (
-                            <span>
-                              Comment: <i>{el.comment}</i>
-                            </span>
-                          ) : (
-                            <i>No comment</i>
-                          )}
-                        </DialogContentText>
-                        <TextField
-                          className={classes.textField}
-                          autoFocus
-                          margin="dense"
-                          id="name"
-                          label="Add comment"
-                          type="text"
-                          onChange={onChange}
-                        />
-                        <IconButton
-                          onClick={() => props.addComment(el.id, comment)}
-                          color="primary"
-                        >
-                          <Icon>add_comment</Icon>
-                        </IconButton>
-                        <IconButton
-                          onClick={() => props.addComment(el.id, "")}
-                          color="secondary"
-                        >
-                          <Icon>delete</Icon>
-                        </IconButton>
-                      </DialogContent>
-                      <DialogActions>
-                        <Button onClick={() => checkConnectivity(el.id)}>
-                          test connectivity
-                        </Button>
-                        <Button
-                          onClick={handleCloseContextMenu}
-                          color="primary"
-                        >
-                          close
-                        </Button>
-                      </DialogActions>
-                    </Dialog>
-
-                    <Popover
-                      id={id}
-                      open={openedPopoverId === el.id}
-                      anchorEl={anchorEl}
-                      style={{ pointerEvents: "none" }} //important
-                      anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "center",
-                      }}
-                      transformOrigin={{
-                        vertical: "top",
-                        horizontal: "center",
-                      }}
-                    >
-                      <div>
-                        <Typography className={classes.typography}>
+                      <Dialog
+                        open={openedContextMenu === el.id}
+                        onClose={handleCloseContextMenu}
+                        aria-labelledby="form-dialog-title"
+                      >
+                        <DialogTitle id="form-dialog-title">
                           {`${el.device_id} - ${el.type} - ${el.node_id}`}
-                        </Typography>
-                      </div>
-                      <div>
-                        <Typography className={classes.typography}>
-                          Status: {el.status}
-                        </Typography>
-                      </div>
-                      <div style={{ maxWidth: "25vw" }}>
-                        <Typography className={classes.typography}>
-                          {el.comment ? (
-                            <span>
-                              Comment: <i>{el.comment}</i>
-                            </span>
-                          ) : null}
-                        </Typography>
-                      </div>
-                    </Popover>
-                  </div>
-                </Draggable>
-              );
-            })
-          ) : (
-            <h5>{floorplanNotFound}</h5>
-          )}
+                        </DialogTitle>
+                        <DialogContent>
+                          <DialogContentText>
+                            Status: {el.status}
+                          </DialogContentText>
+                          <DialogContentText>
+                            {el.comment ? (
+                              <span>
+                                Comment: <i>{el.comment}</i>
+                              </span>
+                            ) : (
+                              <i>No comment</i>
+                            )}
+                          </DialogContentText>
+                          <TextField
+                            className={classes.textField}
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Add comment"
+                            type="text"
+                            onChange={onChange}
+                          />
+                          <IconButton
+                            onClick={() => props.addComment(el.id, comment)}
+                            color="primary"
+                          >
+                            <Icon>add_comment</Icon>
+                          </IconButton>
+                          <IconButton
+                            onClick={() => props.addComment(el.id, "")}
+                            color="secondary"
+                          >
+                            <Icon>delete</Icon>
+                          </IconButton>
+                        </DialogContent>
+                        <DialogActions>
+                          <Button onClick={() => checkConnectivity(el.id)}>
+                            test connectivity
+                          </Button>
+                          <Button
+                            onClick={handleCloseContextMenu}
+                            color="primary"
+                          >
+                            close
+                          </Button>
+                        </DialogActions>
+                      </Dialog>
+
+                      {activeDrags < 1 ? (
+                        <Popover
+                          id={id}
+                          open={openedPopoverId === el.id}
+                          anchorEl={anchorEl}
+                          style={{ pointerEvents: "none" }} //important
+                          anchorOrigin={{
+                            vertical: "bottom",
+                            horizontal: "center",
+                          }}
+                          transformOrigin={{
+                            vertical: "top",
+                            horizontal: "center",
+                          }}
+                        >
+                          <div>
+                            <Typography className={classes.typography}>
+                              {`${el.device_id} - ${el.type} - ${el.node_id}`}
+                            </Typography>
+                          </div>
+                          <div>
+                            <Typography className={classes.typography}>
+                              Status: {el.status}
+                            </Typography>
+                          </div>
+                        </Popover>
+                      ) : null}
+                    </div>
+                  </Draggable>
+                );
+              })
+            ) : (
+              <div>
+                <h5>{floorplanNotFound}</h5>
+                <Button variant="contained" color="primary">
+                  UPLOAD
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+      <Button color="primary" onClick={handleSavePositions}>
+        save device positions
+      </Button>
+      {success ? <h5>Device positions saved.</h5> : null}
+
+      <UnassignedDevices
+        clickedBuilding={props.clickedBuilding}
+        clickedLevel={props.clickedLevel}
+        clickedGroup={props.clickedGroup}
+        assignLight={props.assignLight}
+      />
     </div>
   );
 }

@@ -1,14 +1,13 @@
+// core components
+import GridItem from "components/Grid/GridItem.js";
+import React from "react";
 // @material-ui/core components
-import { makeStyles } from "@material-ui/core/styles";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import CardHeader from "components/Card/CardHeader.js";
 import GridContainer from "components/Grid/GridContainer.js";
-// core components
-import GridItem from "components/Grid/GridItem.js";
-// import TestComp from "components/Data/TestsTableSelf.js";
-import TestCompTrial from "components/Data/TrialTestsTableSelf";
-import React from "react";
+import LiveEmStatus from "components/LiveEmStatus/LiveEmStatus";
+import { makeStyles } from "@material-ui/core/styles";
 
 const styles = {
   cardCategoryWhite: {
@@ -43,49 +42,28 @@ const styles = {
     flexGrow: "1",
     maxWidth: "400",
   },
-};
-
-const lightText = {
-  fontWeight: "100",
-  textDecoration: "none",
-  marginBottom: "20px",
+  lightText: {
+    fontWeight: "100",
+    textDecoration: "none",
+    marginBottom: "20px",
+  },
 };
 
 const useStyles = makeStyles(styles);
 
-export default function TableList() {
+export default function Reports() {
   const classes = useStyles();
 
   return (
     <div>
-      {/**
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={12}>
-          <Card>
-            <CardHeader color="success">
-              <h4 className={classes.cardTitleWhite}>Users Table</h4>
-            </CardHeader>
-            <CardBody>
-              <UsersTable />
-              <AddUser />
-            </CardBody>
-          </Card>
-        </GridItem>
-      </GridContainer>
-       */}
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={12} style={{ textAlign: "center" }}>
-          <h2 style={lightText}>Test history</h2>
-        </GridItem>
-      </GridContainer>
       <GridContainer justify="center">
         <GridItem xs={12} sm={12} md={12}>
           <Card>
             <CardHeader color="success">
-              <h4 className={classes.cardTitleWhite}>Test history</h4>
+              <h4 className={classes.cardTitleWhite}>Live EM Status</h4>
             </CardHeader>
             <CardBody>
-              <TestCompTrial />
+              <LiveEmStatus />
             </CardBody>
           </Card>
         </GridItem>

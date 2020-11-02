@@ -1,45 +1,54 @@
 // @material-ui/icons
-import LocationCity from "@material-ui/icons/LocationCity";
-import Dashboard from "@material-ui/icons/Dashboard";
+// import LocationCity from "@material-ui/icons/LocationCity";
+// import Dashboard from "@material-ui/icons/Dashboard";
 // import LibraryBooks from "@material-ui/icons/LibraryBooks";
 import PersonIcon from "@material-ui/icons/Person";
 // core components/views for Admin layout
 // import Dev from "views/Dev/Dev.js";
-import DashboardPage from "views/Dashboard/Dashboard.js";
+// import DashboardPage from "views/Dashboard/Dashboard.js";
 // core components/views for RTL layout
 import SiteManagementDev from "views/SiteManagement/SiteManagementDev.js";
 import Test from "views/Test/Test.js";
 import UserProfile from "views/UserProfile/UserProfile";
-import TrialTest from "views/TrialTest/TrialTest";
 import Developer from "views/Developer/Developer";
 import AdminPage from "views/Admin/AdminPage";
 import SocketDevTest from "views/SocketDevTest/SocketDevTest";
+import LiveEmStatus from "views/LiveEmStatus/LiveEmStatus";
+import SiteSetup from "views/SiteSetup/SiteSetup";
 
 const dashboardRoutes = [
   {
-    path: "/dashboard",
-    name: "Dashboard",
-    icon: Dashboard,
-    component: DashboardPage,
+    path: "/live-em-status",
+    name: "Live EM Status",
+    icon: "map",
+    component: LiveEmStatus,
     layout: "/admin",
     access: 1,
   },
+  // {
+  //   path: "/site-management",
+  //   name: "Site management",
+  //   icon: "map",
+  //   component: SiteManagementDev,
+  //   layout: "/admin",
+  //   access: 1,
+  // },
   {
-    path: "/management",
-    name: "Site Management",
-    icon: LocationCity,
-    component: SiteManagementDev,
-    layout: "/admin",
-    access: 1,
-  },
-  {
-    path: "/test",
-    name: "Test History",
+    path: "/em-test-reports",
+    name: "EM Test Reports",
     icon: "content_paste",
     component: Test,
     layout: "/admin",
     access: 1,
   },
+  // {
+  //   path: "/test",
+  //   name: "Test History",
+  //   icon: "content_paste",
+  //   component: Test,
+  //   layout: "/admin",
+  //   access: 1,
+  // },
   // {
   //   path: "/configuration",
   //   name: "Test configuration",
@@ -49,9 +58,9 @@ const dashboardRoutes = [
   // },
   {
     path: "/trialtest",
-    name: "Site Test",
-    icon: "assignment",
-    component: TrialTest,
+    name: "Site Setup",
+    icon: "settings_applications",
+    component: SiteSetup,
     layout: "/admin",
     access: 2,
   },

@@ -957,6 +957,8 @@ router.post("/app/relay/on", auth, (req, res) => {
             device.handleMessage = (packet, callback) => {
               clearInterval(msgTimeout);
               clearInterval(errTimeout);
+              const message = packet.payload.toString("utf8");
+              const arrayContainsMessage = messages.includes(message);
               const rawResponse = message.slice(13, 25);
               const destinationNode = rawResponse.slice(0, 4);
               const paramData = rawResponse.slice(8, 12);
@@ -1009,7 +1011,7 @@ router.post("/app/relay/off", auth, (req, res) => {
               if (!arrayContainsMessage && !received) {
                 received = true;
                 messages.push(message);
-                console.log(message, msg_node_id);
+                console.log(message, paramData);
                 res.status(200).send(`${destinationNode}: SET OFF`);
                 callback(packet);
               } else callback(packet);

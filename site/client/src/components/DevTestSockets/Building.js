@@ -11,9 +11,9 @@ import CardIcon from "components/Card/CardIcon.js";
 import CardFooter from "components/Card/CardFooter.js";
 import { makeStyles } from "@material-ui/core/styles";
 import GridContainer from "components/Grid/GridContainer";
-import Fab from "@material-ui/core/Fab";
-import Devices from "components/DevTestSockets/SelectDevices";
-import TestContainer from "components/DevTestSockets/TestContainer";
+// import Fab from "@material-ui/core/Fab";
+// import Devices from "components/DevTestSockets/SelectDevices";
+// import TestContainer from "components/DevTestSockets/TestContainer";
 
 const NoDataIndication = () => (
   <div
