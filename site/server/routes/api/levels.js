@@ -46,6 +46,35 @@ router.get("/", auth, (req, res) =>
     }
   })
 ),
+  router.get("/site/:sites_id", auth, (req, res) =>
+    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+      if (err) {
+        res.sendStatus(403);
+      } else {
+        con.query(
+          `select
+      levels.*,
+        GROUP_CONCAT(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name,
+        count(lights.id) as lights_count, 
+        GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
+        MIN(lgt_groups.id) as group_id
+    from
+      levels
+  LEFT OUTER JOIN
+  buildings ON buildings.id = levels.buildings_id
+        LEFT OUTER JOIN
+        sites ON sites.id = buildings.sites_id
+        LEFT OUTER JOIN 
+        lgt_groups on lgt_groups.levels_id = levels.id
+        LEFT OUTER JOIN
+        lights on lights.lgt_groups_id = lgt_groups.id
+      WHERE sites.id = ${req.params.sites_id}
+    GROUP BY levels.id`,
+          (err, rows) => res.json(rows)
+        );
+      }
+    })
+  ),
   //get group by param: id
   router.get("/building/:building_id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {

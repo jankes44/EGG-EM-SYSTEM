@@ -10,7 +10,8 @@ import "bootstrap/dist/css/bootstrap.css";
 import Skeleton from "@material-ui/lab/Skeleton";
 import NewBuilding from "components/SiteSetup/NewBuilding";
 import Devices from "components/SiteSetup/Devices";
-import NewDevices from "components/SiteSetup/NewDevices";
+import NewLevel from "components/SiteSetup/NewLevel";
+import "./style.css";
 
 function NoDataIndication() {
   return (
@@ -27,6 +28,7 @@ function NoDataIndication() {
 export default function SiteSetup() {
   const [sites, setSites] = useState([]);
   const [buildings, setBuildings] = useState([]);
+  const [levels, setLevels] = useState([]);
   const [siteName, setSiteName] = React.useState("");
   const [stage, setStage] = React.useState(1);
   const [backDisabled, setBackDisabled] = React.useState(true);
@@ -71,12 +73,29 @@ export default function SiteSetup() {
   };
 
   const callBuildings = async (siteID) => {
-    const data = await axios.get(global.BASE_URL + "/api/buildings/" + siteID, {
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "Bearer " + localStorage.usertoken,
-      },
-    });
+    const data = await axios.get(
+      global.BASE_URL + "/api/buildings/joinlevels/" + siteID,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      }
+    );
+
+    return data;
+  };
+
+  const callLevels = async (siteID) => {
+    const data = await axios.get(
+      global.BASE_URL + "/api/levels/site/" + siteID,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      }
+    );
 
     return data;
   };
@@ -93,6 +112,7 @@ export default function SiteSetup() {
       setClickedSite(sites_id);
       setSiteName(res.data[0].name);
       callBuildings(sites_id).then((res) => setBuildings(res.data));
+      callLevels(sites_id).then((res) => setLevels(res.data));
       setTabsDisabled(false);
     });
   }, []);
@@ -109,7 +129,7 @@ export default function SiteSetup() {
   const { SearchBar } = Search;
   const columns = [
     {
-      dataField: "id",
+      dataField: "buildings_id",
       text: "ID",
       hidden: true,
     },
@@ -118,43 +138,51 @@ export default function SiteSetup() {
       text: "Building",
     },
     {
-      dataField: "level",
-      text: "Level",
+      dataField: "levels",
+      text: "Levels",
     },
     {
       dataField: "devices",
-      text: "Luminaires",
+      text: "Luminaires count",
     },
   ];
 
   const expandRow = {
     renderer: (row) => {
+      let data = [];
       const levelColumns = [
         {
           dataField: "id",
           text: "ID",
           hidden: true,
-        },
-        {
-          dataField: "building",
-          text: "Building",
+          sort: true,
         },
         {
           dataField: "level",
           text: "Level",
+          sort: true,
         },
         {
           dataField: "devices",
           text: "Luminaires",
+          sort: true,
+        },
+        {
+          dataField: "lights_count",
+          text: "Luminaires count",
+          sort: true,
         },
       ];
+      levels.forEach((el) => {
+        if (row.buildings_id === el.buildings_id) data.push(el);
+      });
+
       return (
         <div>
-          <BootstrapTable
-            keyField="levels_id"
-            data={buildings}
-            columns={levelColumns}
-          />
+          <GridItem xs={1} style={{ marginBottom: "10px" }}>
+            <NewLevel />
+          </GridItem>
+          <BootstrapTable keyField="id" data={data} columns={levelColumns} />
         </div>
       );
     },
@@ -222,11 +250,6 @@ export default function SiteSetup() {
               </Tooltip>
             </GridItem>
           ) : null}
-          {stage === 1 ? (
-            <GridItem xs={1}>
-              <NewDevices />
-            </GridItem>
-          ) : null}
         </GridContainer>
       </div>
       {createNewBuilding ? (
@@ -238,7 +261,7 @@ export default function SiteSetup() {
       {stage === 1 ? (
         <GridItem xs={12}>
           <ToolkitProvider
-            keyField="levels_id"
+            keyField="buildings_id"
             data={buildings}
             columns={columns}
             search
@@ -250,7 +273,6 @@ export default function SiteSetup() {
                 <BootstrapTable
                   {...props.baseProps}
                   noDataIndication={() => <NoDataIndication />}
-                  hover
                   rowStyle={{ cursor: "pointer" }}
                   expandRow={expandRow}
                 />
