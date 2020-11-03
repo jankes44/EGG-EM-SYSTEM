@@ -2,61 +2,42 @@ import React from "react";
 import ToolkitProvider, { Search } from "react-bootstrap-table2-toolkit";
 import BootstrapTable from "react-bootstrap-table-next";
 import NoDataIndication from "components/NoDataIndication/NoDataIndicationTable";
-import Icon from "@material-ui/core/Icon";
+import "./table.css";
 
 export default function buildings(props) {
   const { SearchBar } = Search;
 
   const columns = [
     {
-      dataField: "id",
+      dataField: "buildings_id",
       text: "ID",
       hidden: true,
     },
     {
-      dataField: "status",
-      text: "Status",
-      align: "center",
-      headerStyle: (colum, colIndex) => {
-        return { width: "100px", textAlign: "center" };
-      },
-      formatter: (cell, row) => {
-        if (row.status === "OK") {
-          return (
-            <span>
-              <Icon style={{ color: "green" }}>check_circle</Icon>
-            </span>
-          );
-        } else {
-          return (
-            <span>
-              <Icon style={{ color: "red" }}>cancel</Icon>
-            </span>
-          );
-        }
-      },
+      dataField: "building",
+      text: "Building",
     },
     {
-      dataField: "device_id",
-      text: "Device ID",
+      dataField: "address",
+      text: "Address",
     },
     {
-      dataField: "type",
-      text: "Fitting type",
+      dataField: "devices",
+      text: "Luminaires count",
     },
   ];
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
-      // props.handleClickBuilding(row);
+      props.handleClickBuilding(row);
     },
   };
 
   return (
     <div>
       <ToolkitProvider
-        keyField="id"
-        data={props.devices}
+        keyField="buildings_id"
+        data={props.buildings}
         columns={columns}
         search
       >

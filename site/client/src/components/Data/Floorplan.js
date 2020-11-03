@@ -131,9 +131,6 @@ class Floorplan extends Component {
       data: { devices: this.state.devices },
     }).then((res) => {
       console.log(res);
-      if (res.status === 200) {
-        this.setState({ success: true });
-      }
     });
   };
 

@@ -1,52 +1,64 @@
-import React, { useEffect, useState } from "react";
-import { InputLabel, TextField, Slider, Button } from "@material-ui/core";
+import React, { useState, useEffect } from "react";
+import GridContainer from "components/Grid/GridContainer";
+import { Icon, IconButton } from "@material-ui/core";
 
 export default function NewBuilding(props) {
-  const [levelCount, setLevelCount] = useState(1);
-  const [buildingName, setBuildingName] = useState("");
+  //eslint-disable-next-line
+
+  let textInput = null;
+  useEffect(() => {
+    textInput.focus();
+    //eslint-disable-next-line
+  }, []);
 
   return (
-    <div
+    <GridContainer
       style={{
-        width: "100%",
-        height: "600px",
-        backgroundColor: "whitesmoke",
-        padding: "10px",
+        border: "1px solid lightblue",
+        padding: "5px",
       }}
     >
-      <h5>Create new building</h5>
       <div
         style={{
           width: "100%",
-          backgroundColor: "black",
-          height: "1px",
-          marginBottom: "20px",
+          display: "flex",
+          margin: "-5px",
         }}
-      />
-      <InputLabel htmlFor="age-native-simple">Building name</InputLabel>
-      <TextField
-        id="outlined-basic"
-        label="Name"
-        variant="outlined"
-        style={{ marginBottom: "20px" }}
-        onChange={(e) => setBuildingName(e.target.value)}
-      />
-      <InputLabel htmlFor="age-native-simple">Level count</InputLabel>
-      <Slider
-        defaultValue={1}
-        valueLabelDisplay="auto"
-        step={1}
-        marks={true}
-        min={1}
-        max={80}
-        onChange={(e, val) => setLevelCount(val)}
-      />
-      <Button
-        color="primary"
-        //   onClick={this.handleCreateBuilding}
       >
-        Create
-      </Button>
-    </div>
+        <input
+          ref={(input) => {
+            textInput = input;
+          }}
+          label="Name"
+          placeholder="Building name"
+          className="form-control"
+          style={{ margin: "15px", width: "31%", display: "inline-block" }}
+          onChange={(e) => props.setBuildingName(e)}
+        />
+        <div
+          style={{
+            height: "100%",
+            width: "1px",
+            backgroundColor: "#DDE2E6",
+            display: "inline-block",
+          }}
+        />
+        <input
+          label="Address"
+          placeholder="Building address"
+          className="form-control"
+          style={{ margin: "15px", width: "31%", display: "inline-block" }}
+          onChange={(e) => props.setBuildingAddress(e)}
+        />
+
+        <IconButton
+          style={{ float: "right", textAlign: "center" }}
+          color="primary"
+          onClick={() => props.saveNewBuilding()}
+        >
+          <Icon style={{ fontSize: "1.3em" }}>check_circle</Icon>
+        </IconButton>
+      </div>
+    </GridContainer>
   );
 }

@@ -67,13 +67,8 @@ export default function UnassignedDevices(props) {
 
   return (
     <div>
-      <h4>Unassigned Devices in the building</h4>
-      {/* {props.clickedBuilding ? (
-        <p>
-          {" "}
-          {props.clickedBuilding} - {props.clickedLevel} - {props.clickedGroup}
-        </p>
-      ) : null} */}
+      <h4>Unassigned Devices</h4>
+
       <BootstrapTable
         keyField="id"
         data={devices}

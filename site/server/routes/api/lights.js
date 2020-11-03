@@ -222,7 +222,7 @@ router.get("/:uid", auth, (req, res) =>
         users_has_sites ON users_has_sites.sites_id = sites.id
           LEFT OUTER JOIN
         users ON users.id = users_has_sites.users_id
-      WHERE levels.id = ? AND lights.is_assigned = 1
+      WHERE levels.id = ?
 	GROUP BY lights.id, levels.id`,
           [req.params.level_id],
           (err, rows) => {

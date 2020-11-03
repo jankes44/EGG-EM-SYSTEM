@@ -1,0 +1,4 @@
+.react-bootstrap-table table {
+  table-layout: auto;
+  margin-bottom: 0 !important;
+}

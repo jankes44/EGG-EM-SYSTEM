@@ -84,17 +84,20 @@ router.get("/", auth, (req, res) =>
         con.query(
           `select
           levels.*,
-            GROUP_CONCAT(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name,
             count(lights.id) as lights_count, 
             GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
             MIN(lgt_groups.id) as group_id
         from
           levels
+      LEFT OUTER JOIN
+      buildings ON buildings.id = levels.buildings_id
+            LEFT OUTER JOIN
+            sites ON sites.id = buildings.sites_id
             LEFT OUTER JOIN 
             lgt_groups on lgt_groups.levels_id = levels.id
             LEFT OUTER JOIN
             lights on lights.lgt_groups_id = lgt_groups.id
-          WHERE levels.buildings_id = ?
+          WHERE buildings.id = ${req.params.building_id}
         GROUP BY levels.id`,
           [req.params.building_id],
           (err, rows) => res.json(rows)
@@ -109,8 +112,8 @@ router.get("/", auth, (req, res) =>
         res.sendStatus(403);
       } else {
         con.query(
-          "INSERT INTO levels SET `buildings_id`=?",
-          [req.body.buildings_id],
+          "INSERT INTO levels SET `buildings_id`=?, `level`=?",
+          [req.body.buildings_id, req.body.level],
           function (error, results, fields) {
             if (error) throw error;
             res.end(JSON.stringify(results));

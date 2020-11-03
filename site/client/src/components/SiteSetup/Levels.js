@@ -2,7 +2,6 @@ import React from "react";
 import ToolkitProvider, { Search } from "react-bootstrap-table2-toolkit";
 import BootstrapTable from "react-bootstrap-table-next";
 import NoDataIndication from "components/NoDataIndication/NoDataIndicationTable";
-import Icon from "@material-ui/core/Icon";
 
 export default function buildings(props) {
   const { SearchBar } = Search;
@@ -12,43 +11,30 @@ export default function buildings(props) {
       dataField: "id",
       text: "ID",
       hidden: true,
+      sort: true,
     },
     {
-      dataField: "status",
-      text: "Status",
-      align: "center",
-      headerStyle: (colum, colIndex) => {
-        return { width: "100px", textAlign: "center" };
-      },
-      formatter: (cell, row) => {
-        if (row.status === "OK") {
-          return (
-            <span>
-              <Icon style={{ color: "green" }}>check_circle</Icon>
-            </span>
-          );
-        } else {
-          return (
-            <span>
-              <Icon style={{ color: "red" }}>cancel</Icon>
-            </span>
-          );
-        }
-      },
+      dataField: "level",
+      text: "Level",
+      sort: true,
     },
     {
-      dataField: "device_id",
-      text: "Device ID",
+      dataField: "devices",
+      text: "Luminaires",
+      sort: true,
+      editable: false,
     },
     {
-      dataField: "type",
-      text: "Fitting type",
+      dataField: "lights_count",
+      text: "Luminaires count",
+      sort: true,
+      editable: false,
     },
   ];
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
-      // props.handleClickBuilding(row);
+      props.handleClickLevel(row);
     },
   };
 
@@ -56,7 +42,7 @@ export default function buildings(props) {
     <div>
       <ToolkitProvider
         keyField="id"
-        data={props.devices}
+        data={props.levels}
         columns={columns}
         search
       >

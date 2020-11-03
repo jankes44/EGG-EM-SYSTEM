@@ -25,6 +25,7 @@ router.get("/", auth, (req, res) =>
           s.id as sites_id,
             buildings.building,
             buildings.id as buildings_id,
+            buildings.address,
             levels.id AS levels_id,
             levels.level,
             sum(case when lights.is_assigned = 1 then 1 else 0 end) as devices
@@ -57,6 +58,7 @@ router.get("/", auth, (req, res) =>
           s.id as sites_id,
            buildings.id as buildings_id,
             buildings.building,
+            buildings.address,
             group_concat(DISTINCT levels.level SEPARATOR ', ') as levels,
             sum(case when lights.is_assigned = 1 then 1 else 0 end) as devices
         FROM
@@ -118,7 +120,35 @@ router.get("/", auth, (req, res) =>
     });
   });
 
-// Update chosen light
+router.post("/new-empty", auth, function (req, res) {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      con.query(
+        "INSERT INTO buildings SET building = ?, address = ?, sites_id = ?",
+        [req.body.building_name, req.body.address, req.body.sites_id],
+        function (error, results, fields) {
+          if (error) throw error;
+          con.query(
+            "INSERT INTO levels SET level = '1', buildings_id = ?",
+            [results.insertId],
+            (err, results) => {
+              if (err) throw err;
+              con.query(
+                "INSERT INTO lgt_groups SET levels_id=?",
+                [results.insertId],
+                (err, results) => res.end(JSON.stringify(results))
+              );
+            }
+          );
+        }
+      );
+    }
+  });
+});
+
+// Update chosen
 router.post("/:id", auth, function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {

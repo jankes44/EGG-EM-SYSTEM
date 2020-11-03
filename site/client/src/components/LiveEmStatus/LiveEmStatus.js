@@ -25,6 +25,8 @@ function NoDataIndication() {
 export default function LiveEmStatus() {
   const [sites, setSites] = React.useState([]);
   const [buildings, setBuildings] = React.useState([]);
+  const [levels, setLevels] = React.useState([]);
+  const [devices, setDevices] = React.useState([]);
 
   const [clickedSite, setClickedSite] = React.useState(null);
   //eslint-disable-next-line
@@ -49,8 +51,8 @@ export default function LiveEmStatus() {
       text: "Building",
     },
     {
-      dataField: "level",
-      text: "Level",
+      dataField: "address",
+      text: "Address",
     },
     {
       dataField: "devices",
@@ -66,7 +68,6 @@ export default function LiveEmStatus() {
     if (sites.find((x) => x.sites_id === site) && clickedSite !== site) {
       setTabsDisabled(true);
       setStage(1);
-      setBuildings([]);
       callBuildings(site).then((res) => {
         setClickedSite(site);
         setTimeout(() => {
@@ -95,18 +96,53 @@ export default function LiveEmStatus() {
           setSites(response.data);
           setClickedSite(sites_id);
           setSiteName(response.data[0].name);
-          callBuildings(sites_id).then((res) => setBuildings(res.data));
+          callBuildings(sites_id).then((res) => {
+            console.log(res);
+            setBuildings(res.data);
+            callLevels(sites_id).then((res) => setLevels(res.data));
+          });
           setTabsDisabled(false);
         }
       });
   };
   const callBuildings = async (siteID) => {
-    const data = await axios.get(global.BASE_URL + "/api/buildings/" + siteID, {
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "Bearer " + localStorage.usertoken,
-      },
-    });
+    const data = await axios.get(
+      global.BASE_URL + "/api/buildings/joinlevels/" + siteID,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      }
+    );
+
+    return data;
+  };
+
+  const callLevels = async (siteID) => {
+    const data = await axios.get(
+      global.BASE_URL + "/api/levels/site/" + siteID,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      }
+    );
+
+    return data;
+  };
+
+  const callDevices = async (levelID) => {
+    const data = await axios.get(
+      global.BASE_URL + "/api/lights/level/" + levelID,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      }
+    );
 
     return data;
   };
@@ -118,7 +154,10 @@ export default function LiveEmStatus() {
 
   const handleClickRow = (row) => {
     setStage(2);
-    setClickedLevel(row.levels_id);
+    setClickedLevel(row.id);
+    callDevices(row.id).then((res) => {
+      setDevices(res.data);
+    });
   };
 
   const rowEvents = {
@@ -127,6 +166,52 @@ export default function LiveEmStatus() {
       setClickedBuilding(row.buildings_id);
       handleClickRow(row);
       if (stage >= 1) setBackDisabled(false);
+    },
+  };
+
+  const expandRow = {
+    renderer: (row) => {
+      let data = [];
+      const levelColumns = [
+        {
+          dataField: "id",
+          text: "ID",
+          hidden: true,
+          sort: true,
+        },
+        {
+          dataField: "level",
+          text: "Level",
+          sort: true,
+        },
+        {
+          dataField: "devices",
+          text: "Luminaires",
+          sort: true,
+          editable: false,
+        },
+        {
+          dataField: "lights_count",
+          text: "Luminaires count",
+          sort: true,
+          editable: false,
+        },
+      ];
+      levels.forEach((el) => {
+        if (row.buildings_id === el.buildings_id) data.push(el);
+      });
+
+      return (
+        <div>
+          <BootstrapTable
+            keyField="id"
+            data={data}
+            rowEvents={rowEvents}
+            columns={levelColumns}
+            rowStyle={{ cursor: "pointer" }}
+          />
+        </div>
+      );
     },
   };
 
@@ -177,7 +262,7 @@ export default function LiveEmStatus() {
       </GridItem>
       {stage === 1 ? (
         <ToolkitProvider
-          keyField="levels_id"
+          keyField="buildings_id"
           data={buildings}
           columns={columns}
           search
@@ -191,7 +276,7 @@ export default function LiveEmStatus() {
               <hr />
               <BootstrapTable
                 {...props.baseProps}
-                rowEvents={rowEvents}
+                expandRow={expandRow}
                 noDataIndication={() => <NoDataIndication />}
                 hover
                 rowStyle={{ cursor: "pointer" }}
@@ -209,9 +294,8 @@ export default function LiveEmStatus() {
               clickedGroup={clickedGroup}
               setClickedGroup={setClickedLgtGroup}
             />
-            <h5>{clickedGroup}</h5>
           </div>
-          <Devices level={clickedLevel} />
+          <Devices level={clickedLevel} devices={devices} />
         </div>
       ) : null}
     </div>
