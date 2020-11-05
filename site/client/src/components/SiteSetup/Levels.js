@@ -16,14 +16,21 @@ export default function Levels(props) {
       sort: true,
     },
     {
+      field: "description",
+      title: "Description",
+      sort: true,
+    },
+    {
       field: "devices",
       title: "Luminaires",
       sort: true,
+      editable: "never",
     },
     {
       field: "lights_count",
       title: "Luminaires count",
       sort: true,
+      editable: "never",
     },
   ];
 

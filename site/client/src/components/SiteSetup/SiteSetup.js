@@ -233,6 +233,7 @@ export default class SiteSetup extends React.Component {
     switch (action) {
       case "add":
         console.log(newData);
+        newData.buildings_id = this.state.clickedBuilding;
         this.setState({ levels: [...this.state.levels, newData] });
         break;
 
@@ -253,27 +254,27 @@ export default class SiteSetup extends React.Component {
     }
   };
 
-  handleEditLevel = (levelID, colName, newValue) => {
-    axios({
-      //Axios POST request
-      method: "post",
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "Bearer " + localStorage.usertoken,
-      },
-      url: global.BASE_URL + "/api/levels/edit/" + parseInt(levelID),
-      data: {
-        colName: colName,
-        level: newValue,
-      },
-    })
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  // handleEditLevel = (levelID, colName, newValue) => {
+  //   axios({
+  //     //Axios POST request
+  //     method: "post",
+  //     headers: {
+  //       "Content-Type": "application/json;charset=UTF-8",
+  //       Authorization: "Bearer " + localStorage.usertoken,
+  //     },
+  //     url: global.BASE_URL + "/api/levels/edit/" + parseInt(levelID),
+  //     data: {
+  //       colName: colName,
+  //       level: newValue,
+  //     },
+  //   })
+  //     .then((res) => {
+  //       console.log(res);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+  // };
 
   refresh = async () => {
     let promise = new Promise((resolve, reject) => {
@@ -432,6 +433,27 @@ export default class SiteSetup extends React.Component {
           ) : null}
         </GridItem>
 
+        <GridContainer
+          justify="center"
+          style={{ margin: "5px", textAlign: "center" }}
+        >
+          {/* TABS */}
+          <GridItem xs={12}>
+            {stage > 1 ? (
+              <div>
+                <EditBuilding building={this.state.clickedBuildingDetails} />
+
+                {stage > 2 ? (
+                  <h5>Level {this.state.clickedLevelDetails.level}</h5>
+                ) : (
+                  <div style={{ height: "50px" }}></div>
+                )}
+              </div>
+            ) : (
+              <div style={{ height: "50px" }}></div>
+            )}
+          </GridItem>
+        </GridContainer>
         {/* BACK BUTTON */}
         <div style={{ margin: "20px", marginLeft: "15px" }}>
           <GridContainer>
@@ -459,62 +481,8 @@ export default class SiteSetup extends React.Component {
                 </span>
               </Tooltip>
             </GridItem>
-            {stage === 1 ? (
-              <GridItem xs={1}>
-                <Tooltip
-                  title="Setup new building"
-                  aria-label="add new building"
-                >
-                  <Fab color="primary" onClick={this.handleNewBuilding}>
-                    <Icon>add</Icon>
-                    <Icon style={{ fontSize: "1.5em" }}>apartment</Icon>
-                  </Fab>
-                </Tooltip>
-              </GridItem>
-            ) : null}
-            {stage === 2 ? (
-              <GridItem xs={1}>
-                <Tooltip title="Add a level" aria-label="add a level">
-                  <Fab color="primary" onClick={this.handleNewLevel}>
-                    <Icon>add</Icon>
-                    lvl
-                  </Fab>
-                </Tooltip>
-              </GridItem>
-            ) : null}
-            {stage === 3 ? (
-              <GridItem xs={1}>
-                <Tooltip title="Add devices" aria-label="add devices">
-                  <Fab color="primary" onClick={this.handleNewBuilding}>
-                    <Icon>add</Icon>
-                    <Icon style={{ fontSize: "1.5em" }}>emoji_objects</Icon>
-                  </Fab>
-                </Tooltip>
-              </GridItem>
-            ) : null}
           </GridContainer>
         </div>
-        <GridContainer
-          justify="center"
-          style={{ margin: "5px", textAlign: "center" }}
-        >
-          {/* TABS */}
-          <GridItem xs={12}>
-            {stage > 1 ? (
-              <div>
-                <EditBuilding building={this.state.clickedBuildingDetails} />
-
-                {stage > 2 ? (
-                  <h5>Level {this.state.clickedLevelDetails.level}</h5>
-                ) : (
-                  <div style={{ height: "50px" }}></div>
-                )}
-              </div>
-            ) : (
-              <div style={{ height: "50px" }}></div>
-            )}
-          </GridItem>
-        </GridContainer>
         {stage === 1 ? (
           <GridItem xs={12}>
             <Buildings
@@ -542,6 +510,7 @@ export default class SiteSetup extends React.Component {
               callLevels={this.callLevels}
               handleClickLevel={this.handleClickLevel}
               clickedLevel={clickedLevel}
+              handleEditLevel={this.handleEditLevel}
             />
             {createNewLevel ? (
               <div style={{ marginLeft: "15px", marginRight: "15px" }}>
