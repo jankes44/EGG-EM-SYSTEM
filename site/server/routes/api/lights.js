@@ -621,7 +621,11 @@ router.get("/lightcount/all", auth, (req, res) => {
       } else {
         con.query(
           "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1",
-          (err, rows) => res.json(rows)
+          (err, rows) => {
+            if (err) throw err;
+            console.log(rows);
+            res.json(rows[0]);
+          }
         );
       }
     })

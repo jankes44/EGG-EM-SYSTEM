@@ -15,6 +15,7 @@ import AdminPage from "views/Admin/AdminPage";
 import SocketDevTest from "views/SocketDevTest/SocketDevTest";
 import LiveEmStatus from "views/LiveEmStatus/LiveEmStatus";
 import SiteSetup from "views/SiteSetup/SiteSetup";
+import SiteSetup2 from "views/SiteSetup2/SiteSetup";
 
 const dashboardRoutes = [
   {
@@ -61,6 +62,14 @@ const dashboardRoutes = [
     name: "Site Setup",
     icon: "settings_applications",
     component: SiteSetup,
+    layout: "/admin",
+    access: 2,
+  },
+  {
+    path: "/site-setup-2",
+    name: "Site Setup",
+    icon: "settings_applications",
+    component: SiteSetup2,
     layout: "/admin",
     access: 2,
   },

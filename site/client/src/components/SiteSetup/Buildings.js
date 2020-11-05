@@ -1,61 +1,71 @@
 import React from "react";
-import ToolkitProvider, { Search } from "react-bootstrap-table2-toolkit";
-import BootstrapTable from "react-bootstrap-table-next";
 import NoDataIndication from "components/NoDataIndication/NoDataIndicationTable";
 import "./table.css";
+import MaterialTable from "material-table";
 
 export default function buildings(props) {
-  const { SearchBar } = Search;
-
   const columns = [
     {
-      dataField: "buildings_id",
-      text: "ID",
+      field: "buildings_id",
+      title: "ID",
       hidden: true,
     },
     {
-      dataField: "building",
-      text: "Building",
+      field: "building",
+      title: "Building",
     },
     {
-      dataField: "address",
-      text: "Address",
+      field: "address",
+      title: "Address",
     },
     {
-      dataField: "devices",
-      text: "Luminaires count",
+      field: "devices",
+      title: "Luminaires count",
+      editable: "never",
     },
   ];
 
-  const rowEvents = {
-    onClick: (e, row, rowIndex) => {
-      props.handleClickBuilding(row);
-    },
+  const editable = {
+    onRowAdd: (newData) =>
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          //   setData([...data, newData]);
+          props.handleEditBuilding(newData, {}, "add");
+          resolve();
+        }, 1000);
+      }),
+    onRowUpdate: (newData, oldData) =>
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          //   const dataUpdate = [...data];
+          //   const index = oldData.tableData.id;
+          //   dataUpdate[index] = newData;
+          //   setData([...dataUpdate]);
+          props.handleEditBuilding(newData, oldData, "update");
+
+          resolve();
+        }, 1000);
+      }),
+    onRowDelete: (oldData) =>
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          //   const dataDelete = [...data];
+          //   const index = oldData.tableData.id;
+          //   dataDelete.splice(index, 1);
+          //   setData([...dataDelete]);
+          props.handleEditBuilding({}, oldData, "delete");
+          resolve();
+        }, 1000);
+      }),
   };
 
   return (
-    <div>
-      <ToolkitProvider
-        keyField="buildings_id"
-        data={props.buildings}
-        columns={columns}
-        search
-      >
-        {(props) => (
-          <div>
-            <SearchBar {...props.searchProps} />
-            <hr />
-            <BootstrapTable
-              {...props.baseProps}
-              noDataIndication={() => <NoDataIndication />}
-              rowStyle={{ cursor: "pointer" }}
-              rowEvents={rowEvents}
-              hover
-              wrapperClasses="table-responsive"
-            />
-          </div>
-        )}
-      </ToolkitProvider>
-    </div>
+    <MaterialTable
+      columns={columns}
+      onRowClick={props.handleClickBuilding}
+      data={props.buildings}
+      title="Buildings"
+      editable={editable}
+    />
   );
 }

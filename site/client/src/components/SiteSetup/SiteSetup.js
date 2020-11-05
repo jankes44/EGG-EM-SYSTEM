@@ -8,6 +8,8 @@ import Devices from "components/SiteSetup/Devices";
 import Levels from "components/SiteSetup/Levels";
 import NewBuilding from "components/SiteSetup/NewBuilding";
 import NewLevel from "components/SiteSetup/NewLevel";
+import EditBuilding from "components/SiteSetup/EditBuilding";
+import DeviceEditable from "components/Data/DeviceTableEditable";
 import jwt_decode from "jwt-decode";
 import React from "react";
 
@@ -89,7 +91,12 @@ export default class SiteSetup extends React.Component {
         level: this.state.levelName,
       },
     }).then((res) => {
-      this.refresh().then(() => this.setState({ createNewLevel: false }));
+      this.refresh().then(() =>
+        this.setState({
+          createNewLevel: false,
+          clickedBuilding: this.state.clickedBuilding,
+        })
+      );
       console.log(res);
     });
   };
@@ -172,7 +179,10 @@ export default class SiteSetup extends React.Component {
   };
 
   /* HANDLERS */
-  handleClickBuilding = (row) => {
+  handleClickBuilding = (event, rowData) => {
+    const index = this.state.buildings.indexOf(rowData);
+    const row = this.state.buildings[index];
+
     this.setState({
       stage: 2,
       clickedBuilding: row.buildings_id,
@@ -183,12 +193,39 @@ export default class SiteSetup extends React.Component {
     });
   };
 
-  handleClickLevel = (row) => {
+  handleClickLevel = (event, rowData) => {
+    const index = this.state.levels.indexOf(rowData);
+    const row = this.state.levels[index];
     this.setState({ stage: 3, clickedLevel: row.id, clickedLevelDetails: row });
     this.callDevices(row.id).then((res) => {
       console.log(res);
       this.setState({ devices: res.data, backDisabled: false });
     });
+  };
+
+  handleEditBuilding = (newData, oldData, action) => {
+    console.log(newData, action);
+    switch (action) {
+      case "add":
+        console.log(newData);
+        this.setState({ buildings: [...this.state.buildings, newData] });
+        break;
+
+      case "update":
+        const dataUpdate = [...this.state.buildings];
+        const index = oldData.tableData.id;
+        dataUpdate[index] = newData;
+        this.setState({ buildings: [...dataUpdate] });
+        break;
+
+      case "delete":
+        const dataDelete = [...this.state.buildings];
+        const indexDel = oldData.tableData.id;
+        dataDelete.splice(indexDel, 1);
+        console.log(this.state.buildings[indexDel]);
+        this.setState({ buildings: [...dataDelete] });
+        break;
+    }
   };
 
   handleEditLevel = (levelID, colName, newValue) => {
@@ -227,8 +264,11 @@ export default class SiteSetup extends React.Component {
           console.log(res);
           this.setState({ buildings: res.data });
         });
-        this.callLevels(sites_id).then((res) => {
-          this.setState({ levels: res.data });
+        this.callLevels(this.state.clickedBuilding).then((res) => {
+          console.log(res.data);
+          this.setState({
+            levels: res.data,
+          });
           resolve("");
         });
         this.setState({ tabsDisabled: false });
@@ -437,7 +477,8 @@ export default class SiteSetup extends React.Component {
           <GridItem xs={12}>
             {stage > 1 ? (
               <div>
-                <h4>{this.state.clickedBuildingDetails.building}</h4>
+                <EditBuilding building={this.state.clickedBuildingDetails} />
+
                 {stage > 2 ? (
                   <h5>Level {this.state.clickedLevelDetails.level}</h5>
                 ) : (
@@ -455,6 +496,7 @@ export default class SiteSetup extends React.Component {
               buildings={buildings}
               handleClickBuilding={this.handleClickBuilding}
               clickedBuilding={clickedBuilding}
+              handleEditBuilding={this.handleEditBuilding}
             />
             {createNewBuilding ? (
               <div style={{ marginLeft: "15px", marginRight: "15px" }}>
@@ -488,11 +530,9 @@ export default class SiteSetup extends React.Component {
           </GridItem>
         ) : null}
         {stage === 3 ? (
-          devices.length > 0 ? (
-            <Devices level={clickedLevel} devices={devices} />
-          ) : (
-            <h4 style={{ color: "#0F1C23" }}>No devices? Add them!</h4>
-          )
+          <GridItem xs={12}>
+            <Devices devices={this.state.devices} />{" "}
+          </GridItem>
         ) : null}
       </div>
     );
