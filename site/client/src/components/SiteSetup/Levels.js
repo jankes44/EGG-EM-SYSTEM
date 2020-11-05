@@ -27,12 +27,47 @@ export default function Levels(props) {
     },
   ];
 
+  const editable = {
+    onRowAdd: (newData) =>
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          //   setData([...data, newData]);
+          props.handleEditLevel(newData, {}, "add");
+          resolve();
+        }, 1000);
+      }),
+    onRowUpdate: (newData, oldData) =>
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          //   const dataUpdate = [...data];
+          //   const index = oldData.tableData.id;
+          //   dataUpdate[index] = newData;
+          //   setData([...dataUpdate]);
+          props.handleEditLevel(newData, oldData, "update");
+
+          resolve();
+        }, 1000);
+      }),
+    onRowDelete: (oldData) =>
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          //   const dataDelete = [...data];
+          //   const index = oldData.tableData.id;
+          //   dataDelete.splice(index, 1);
+          //   setData([...dataDelete]);
+          props.handleEditLevel({}, oldData, "delete");
+          resolve();
+        }, 1000);
+      }),
+  };
+
   return (
     <MaterialTable
       columns={columns}
       onRowClick={props.handleClickLevel}
       data={props.levels}
       title="Levels"
+      editable={editable}
     />
     // <div>
     //   <ToolkitProvider

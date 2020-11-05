@@ -228,6 +228,31 @@ export default class SiteSetup extends React.Component {
     }
   };
 
+  handleEditLevel = (newData, oldData, action) => {
+    console.log(newData, action);
+    switch (action) {
+      case "add":
+        console.log(newData);
+        this.setState({ levels: [...this.state.levels, newData] });
+        break;
+
+      case "update":
+        const dataUpdate = [...this.state.levels];
+        const index = oldData.tableData.id;
+        dataUpdate[index] = newData;
+        this.setState({ levels: [...dataUpdate] });
+        break;
+
+      case "delete":
+        const dataDelete = [...this.state.levels];
+        const indexDel = oldData.tableData.id;
+        dataDelete.splice(indexDel, 1);
+        console.log(this.state.levels[indexDel]);
+        this.setState({ levels: [...dataDelete] });
+        break;
+    }
+  };
+
   handleEditLevel = (levelID, colName, newValue) => {
     axios({
       //Axios POST request
