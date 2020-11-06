@@ -12,7 +12,7 @@ router.post("/insert", auth, (req, res, next) => {
         else {
             const data_ = req.body
             const data = data_.map(el=>Object.values(el));
-            const sql = "INSERT INTO data (line, epoch, power, current ,voltage) VALUES ?"
+            const sql = "INSERT INTO power_data (line, epoch, power, current ,voltage) VALUES ?"
             conn.query(sql, [data], (err) =>{
                 if (err){
                     res.json({status: "Error", data: err.stack})
@@ -32,7 +32,7 @@ router.get("/lines", auth, (req, res, next) => {
           res.sendStatus(403);
         } 
         else {
-            conn.query("select distinct line from data order by line", (err, result, fields) => {
+            conn.query("select distinct line from power_data order by line", (err, result, fields) => {
             if (err){
                 res.json({status: "Error", data: err.stack})
             }
@@ -50,7 +50,7 @@ router.get("/voltage", auth, (req, res, next) => {
           res.sendStatus(403);
         } 
         else {
-        conn.query("select distinct epoch, voltage from data order by epoch",(err, result, fields) => {
+        conn.query("select distinct epoch, voltage from power_data order by epoch",(err, result, fields) => {
             if (err){
                 res.json({status: "Error", data: err.stack})
             }
@@ -68,7 +68,7 @@ router.get("/power", auth, (req, res, next) => {
           res.sendStatus(403);
         } 
         else {
-            conn.query("select epoch, group_concat(power order by line) as 'values' from data group by epoch having count(*) > 1  order by epoch ", (err, result, fields) => {
+            conn.query("select epoch, group_concat(power order by line) as 'values' from power_data group by epoch having count(*) > 1  order by epoch ", (err, result, fields) => {
                 if (err){
                     res.json({status: "Error", data: err.stack})
                 }
@@ -86,7 +86,7 @@ router.get("/current", auth, (req, res, next) => {
           res.sendStatus(403);
         } 
         else {
-            conn.query("select epoch, group_concat(current order by line) as 'values' from data group by epoch having count(*) > 1  order by epoch", (err, result, fields) => {
+            conn.query("select epoch, group_concat(current order by line) as 'values' from power_data group by epoch having count(*) > 1  order by epoch", (err, result, fields) => {
                 if (err){
                     res.json({status: "Error", data: err.stack})
                 }
