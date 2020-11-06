@@ -110,9 +110,9 @@ class GroupsTable extends Component {
     };
 
     const selectOptions = {
-      Successful: "Successful",
-      Failed: "Failed",
+      Finished: "Finished",
       "In Progress": "In Progress",
+      Cancelled: "Cancelled",
     };
 
     const columns = [
@@ -220,19 +220,19 @@ class GroupsTable extends Component {
         },
       },
       {
-        dataField: "set",
-        text: "Set",
+        dataField: "type",
+        text: "Type",
         sort: true,
         filter: textFilter(),
         headerFormatter: this.locationFormatter,
         headerStyle: (colum, colIndex) => {
           return { width: "90px" };
         },
-        style: {
-          whiteSpace: "nowrap",
-          textOverflow: "ellipsis",
-          overflow: "hidden",
-        },
+        // style: {
+        //   whiteSpace: "nowrap",
+        //   textOverflow: "ellipsis",
+        //   overflow: "hidden",
+        // },
       },
       {
         dataField: "created_at",

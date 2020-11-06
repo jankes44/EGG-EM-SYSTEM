@@ -8,7 +8,7 @@ var con = mysql.createPool({
   database: "emergencyegg",
 });
 
-//make connection
+// make connection
 con.getConnection(function (error) {
   if (!!error) {
     console.log(error);

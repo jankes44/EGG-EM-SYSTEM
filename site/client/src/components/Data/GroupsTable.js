@@ -51,6 +51,7 @@ class GroupsTable extends Component {
           text: "Status",
           align: "center",
           editable: false,
+          hidden: true,
           headerStyle: (colum, colIndex) => {
             return { width: "100px", textAlign: "center" };
           },
@@ -75,6 +76,7 @@ class GroupsTable extends Component {
           text: "Status info",
           sort: true,
           editable: false,
+          hidden: true,
         },
         {
           dataField: "device_id",

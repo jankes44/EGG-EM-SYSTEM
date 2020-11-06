@@ -64,7 +64,7 @@ export default function TableList() {
         <GridItem xs={12} sm={12} md={12}>
           <Card>
             <CardHeader color="info">
-              <h4 className={classes.cardTitleWhite}>Trial test history</h4>
+              <h4 className={classes.cardTitleWhite}>Test history</h4>
             </CardHeader>
             <CardBody>
               <TrialTestsTableSelf />

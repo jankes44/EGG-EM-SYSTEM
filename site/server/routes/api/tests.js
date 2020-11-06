@@ -182,6 +182,61 @@ router.get("/", auth, (req, res) =>
       }
     })
   ),
+  router.get("/usr/:id/:limit", auth, (req, res) =>
+    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+      if (err) {
+        res.sendStatus(403);
+      } else {
+        con.query(
+          `SELECT 
+          tests.id,
+          tests.lights,
+          tests.result,
+          tests.set,
+          tests.created_at,
+          FLOOR(SUM(errors.error != 'OK') / tests.lights) AS errors,
+          FLOOR(SUM(errors.error = 'OK') / tests.lights) AS responseok,
+          GROUP_CONCAT(DISTINCT lgt_groups.group_name
+              SEPARATOR ', ') AS group_name,
+          GROUP_CONCAT(DISTINCT levels.level
+              SEPARATOR ', ') AS level,
+          GROUP_CONCAT(DISTINCT buildings.building
+              SEPARATOR ', ') AS building,
+          sites.name as site,
+          users.id as users_id
+      FROM
+          tests
+              LEFT OUTER JOIN
+          tests_has_lights ON tests_has_lights.tests_id = tests.id
+              LEFT OUTER JOIN
+          lights ON lights.id = tests_has_lights.lights_id
+              LEFT OUTER JOIN
+          lgt_groups ON lgt_groups.id = lights.lgt_groups_id
+              LEFT OUTER JOIN
+          errors ON errors.test_id = tests.id
+              LEFT OUTER JOIN
+          levels ON levels.id = lgt_groups.levels_id
+          LEFT OUTER JOIN
+        buildings ON buildings.id = levels.buildings_id
+          LEFT OUTER JOIN
+        sites ON sites.id = buildings.sites_id
+          LEFT OUTER JOIN
+        users_has_sites ON users_has_sites.sites_id = sites.id
+          LEFT OUTER JOIN
+        users ON users.id = users_has_sites.users_id
+          WHERE users.id = ?
+      GROUP BY tests.id
+      LIMIT ?
+      `,
+          [req.params.id, req.params.limit],
+          (err, rows) => {
+            if (err) throw err;
+            res.send(rows);
+          }
+        );
+      }
+    })
+  ),
   // Create new test
   router.post("/", auth, function (req, res) {
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {

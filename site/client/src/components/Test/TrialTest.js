@@ -321,7 +321,7 @@ class TrialTest extends Component {
             return <span style={{ textAlign: "center" }}>Power back on</span>;
           }
           if (row.powercut === 3) {
-            return <span>Bluetooth module not responding</span>;
+            return <span>No connection to Mesh</span>;
           }
         },
       },
@@ -350,8 +350,8 @@ class TrialTest extends Component {
               label: "Battery Fault",
             },
             {
-              value: "No response from Bluetooth Module",
-              label: "No response from Bluetooth Module",
+              value: "Device failed(mesh)",
+              label: "Device failed(mesh)",
             },
           ],
         },
@@ -410,7 +410,7 @@ class TrialTest extends Component {
             "Content-Type": "application/json;charset=UTF-8",
             Authorization: "Bearer " + localStorage.usertoken,
           },
-          url: global.BASE_URL + "/trialmqtt/testinfo/" + user,
+          url: global.BASE_URL + "/mqtt/testinfo/" + user,
         }).then((res) => {
           if (res.data.length > 0) {
             this.setState({
@@ -472,7 +472,7 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/testinfo/" + user,
+      url: global.BASE_URL + "/mqtt/testinfo/" + user,
     }).then((res) => {
       if (res.data.length) {
         console.log(res.data[0].hasAccess, res.data[0].isTest, res.data[1]);
@@ -539,7 +539,7 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/trialteststart/" + user,
+      url: global.BASE_URL + "/mqtt/trialteststart/" + user,
       data: {
         //data object sent in request's body
         message: this.state.step,
@@ -583,7 +583,7 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/cutpowersingle",
+      url: global.BASE_URL + "/mqtt/cutpowersingle",
       data: {
         //data object sent in request's body
         device: device,
@@ -616,7 +616,7 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/cutpowerall",
+      url: global.BASE_URL + "/mqtt/cutpowerall",
       data: {
         //data object sent in request's body
         message: this.state.step,
@@ -647,7 +647,7 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/userinput/" + deviceId,
+      url: global.BASE_URL + "/mqtt/userinput/" + deviceId,
       data: {
         //data object sent in request's body
         userInput: input,
@@ -680,7 +680,7 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/trialmqtt/savetest/" + this.state.testid,
+      url: global.BASE_URL + "/mqtt/savetest/" + this.state.testid,
       timeout: 0,
       data: { user: user, topic: this.state.liveDevices[0].mqtt_topic },
     })
@@ -731,7 +731,7 @@ class TrialTest extends Component {
           "Content-Type": "application/json;charset=UTF-8",
           Authorization: "Bearer " + localStorage.usertoken,
         },
-        url: global.BASE_URL + "/trialmqtt/aborttest/" + this.state.testid,
+        url: global.BASE_URL + "/mqtt/aborttest/" + this.state.testid,
         timeout: 0,
         data: { user: user, topic: this.state.liveDevices[0].mqtt_topic },
       })
@@ -849,7 +849,7 @@ class TrialTest extends Component {
           "Content-Type": "application/json;charset=UTF-8",
           Authorization: "Bearer " + localStorage.usertoken,
         },
-        url: global.BASE_URL + "/trialmqtt/setchecked",
+        url: global.BASE_URL + "/mqtt/setchecked",
         data: {
           devices: this.state.selectedDevicesLive,
           value: this.state.selectedAction,

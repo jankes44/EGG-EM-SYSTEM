@@ -13,6 +13,7 @@ const center = {
 };
 
 function MyComponent() {
+  // eslint-disable-next-line
   const [map, setMap] = React.useState(null);
 
   const onLoad = React.useCallback(function callback(map) {

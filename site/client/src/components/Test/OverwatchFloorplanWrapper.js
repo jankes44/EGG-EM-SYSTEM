@@ -45,12 +45,38 @@ export default class LiveFloorplanWrapper extends Component {
     clearInterval(this.lightsInterval);
   }
 
+  addComment = (id, comment) => {
+    this.setState((prevState) => ({
+      lights: prevState.lights.map((obj) =>
+        obj.id === id ? Object.assign(obj, { comment: comment }) : obj
+      ),
+    }));
+
+    axios
+      //route to lights of group id = this.state.rowId
+      .post(global.BASE_URL + "/api/lights/edit/" + id, ["comment", comment], {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      })
+      .then((response) => {
+        console.log(response);
+      });
+  };
+
   render() {
     let devicesGrouped = _.groupBy(this.state.lights, "levels_id");
     return (
       <div>
         {_.map(devicesGrouped, (subArr, i) => {
-          return <OverwatchFloorplan key={i} liveDevices={subArr} />; //map those devices and return LiveFloorPlan component which will display floorplans
+          return (
+            <OverwatchFloorplan
+              key={i}
+              liveDevices={subArr}
+              addComment={this.addComment}
+            />
+          ); //map those devices and return LiveFloorPlan component which will display floorplans
         })}
       </div>
     );

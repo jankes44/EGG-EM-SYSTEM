@@ -21,9 +21,11 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 const hist = createBrowserHistory({
   basename: "#",
 });
-
-global.BASE_URL = "http://34.252.71.170:5000";
+//http://34.252.71.170:5000
+//http://63.32.97.125:5000
+global.BASE_URL = "http://localhost:5000";
 global.intervalCheck = false;
+global.SEND_TOPIC = "DEVCOMSP";
 
 const checkAuth = () => {
   const token = localStorage.getItem("usertoken");

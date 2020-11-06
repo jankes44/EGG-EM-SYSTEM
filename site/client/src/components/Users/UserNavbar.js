@@ -168,7 +168,7 @@ class UserNavbar extends Component {
             className="d-inline-block align-top"
             alt="Logo"
           />
-          {/** */} EmergencyEgg
+          {/** */} EmergencyEGG
         </Link>
         <div
           className="collapse navbar-collapse justify-content-md-end"

@@ -1,10 +1,14 @@
-// @material-ui/core
+// core components
+import GridItem from "components/Grid/GridItem.js";
 import React from "react";
-import Groups from "components/Data/Groups.js";
+// @material-ui/core components
 import Card from "components/Card/Card.js";
+import CardBody from "components/Card/CardBody.js";
 import CardHeader from "components/Card/CardHeader.js";
+import GridContainer from "components/Grid/GridContainer.js";
+import LiveEmStatus from "components/LiveEmStatus/LiveEmStatus";
 import { makeStyles } from "@material-ui/core/styles";
-import Management from "components/Management/Management.js";
+
 const styles = {
   cardCategoryWhite: {
     "&,& a,& a:hover,& a:focus": {
@@ -47,22 +51,23 @@ const styles = {
 
 const useStyles = makeStyles(styles);
 
-export default function Dashboard() {
+export default function Reports() {
   const classes = useStyles();
+
   return (
     <div>
-      <Card>
-        <CardHeader color="info">
-          <h4 className={classes.cardTitleWhite}>Site Management</h4>
-        </CardHeader>
-        <Groups />
-      </Card>
-      <Card>
-        <CardHeader color="info">
-          <h4 className={classes.cardTitleWhite}>Site Management</h4>
-        </CardHeader>
-        <Management />
-      </Card>
+      <GridContainer justify="center">
+        <GridItem xs={12} sm={12} md={12}>
+          <Card>
+            <CardHeader color="success">
+              <h4 className={classes.cardTitleWhite}>Live EM Status</h4>
+            </CardHeader>
+            <CardBody>
+              <LiveEmStatus />
+            </CardBody>
+          </Card>
+        </GridItem>
+      </GridContainer>
     </div>
   );
 }

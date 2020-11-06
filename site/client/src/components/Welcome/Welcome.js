@@ -25,6 +25,8 @@ export default function Welcome(props) {
   const [firstName, setFirstName] = useState("");
   const [lastTest, setLastTest] = useState({});
   const [cardColor] = useState("success");
+  const [gwState, setGwState] = useState("...");
+  const [stateColor, setStateColor] = useState("black");
   const [date] = useState(
     new Date()
       .toISOString()
@@ -38,6 +40,33 @@ export default function Welcome(props) {
 
     setFirstName(decoded.first_name);
 
+    axios({
+      //Axios POST request
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      url: global.BASE_URL + "/mqtt/dev/gateway/state",
+      data: {
+        topic: global.SEND_TOPIC,
+      },
+      timeout: 0,
+    })
+      .then((res) => {
+        console.log(res);
+        if (res.data.includes("STATE_OK")) {
+          setGwState("✅");
+          setStateColor("green");
+        } else {
+          setStateColor("red");
+          setGwState("❌");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     axios
       .get(global.BASE_URL + "/api/tests/lasttest/" + decoded.id, {
         headers: {
@@ -46,7 +75,6 @@ export default function Welcome(props) {
         },
       })
       .then((response) => {
-        console.log(response.data);
         newDate = moment(response.data.created_at)
           .add(30, "days")
           ._d.toISOString()
@@ -70,11 +98,7 @@ export default function Welcome(props) {
   return (
     <div style={{ textAlign: "center" }}>
       <h1 style={lightText}>Welcome {firstName}</h1>
-      <h3 style={lightText}>
-        This is your emergency lighting dashboard. Below you can see test
-        history. Navigate using the sidebar to manage your site, configure your
-        tests and generate reports.
-      </h3>
+
       <GridContainer justify="center" style={{ textAlign: "right" }}>
         <GridItem xs={12} sm={6}>
           <Card>
@@ -88,6 +112,18 @@ export default function Welcome(props) {
                 {lastTest.building} -{" "}
                 {moment(lastTest.created_at).format("DD.MM.YYYY")}
               </h3>
+              <h4 className={classes.cardTitle}>
+                Site connection status:{" "}
+                <p
+                  style={{
+                    display: "inline-block",
+                    fontWeight: "bolder",
+                    color: stateColor,
+                  }}
+                >
+                  {gwState}
+                </p>
+              </h4>
             </CardHeader>
             <CardFooter stats>
               <div className={classes.stats}>

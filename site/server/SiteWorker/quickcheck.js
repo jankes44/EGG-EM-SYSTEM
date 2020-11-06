@@ -3,7 +3,7 @@ var schedule = require("node-schedule");
 const con = require("../database/dbSiteWorker");
 var nodemailer = require("nodemailer");
 
-sendEmailNotification = (topic) => {
+module.exports.sendEmailNotification = (topic) => {
   return new Promise((resolve, reject) => {
     var transporter = nodemailer.createTransport({
       service: "gmail",
@@ -14,7 +14,7 @@ sendEmailNotification = (topic) => {
     });
 
     var mailOptions = {
-      from: "em.platform@gmail.com",
+      from: "platform.notifications2020@gmail.com",
       to: "notifications@egglighting.com",
       subject: `No response from ${topic}`,
       text: `No response from ${topic}, check state of the gateway immediately.`,
@@ -87,7 +87,7 @@ checkSitesHealth = () => {
   });
 };
 
-checkSitesHealth();
+// checkSitesHealth();
 
 // var j = schedule.scheduleJob("*/1 * * * *", function () {
 //   device.publish("LIVESPCOM", "XchkX", () => {
