@@ -226,6 +226,7 @@ export default class SiteSetup extends React.Component {
         this.setState({ buildings: [...dataDelete] });
         break;
     }
+    this.refresh();
   };
 
   handleEditLevel = (newData, oldData, action) => {
@@ -490,6 +491,7 @@ export default class SiteSetup extends React.Component {
               handleClickBuilding={this.handleClickBuilding}
               clickedBuilding={clickedBuilding}
               handleEditBuilding={this.handleEditBuilding}
+              clickedSite={clickedSite}
             />
             {createNewBuilding ? (
               <div style={{ marginLeft: "15px", marginRight: "15px" }}>

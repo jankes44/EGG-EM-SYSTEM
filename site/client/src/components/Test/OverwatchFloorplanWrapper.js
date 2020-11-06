@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import _ from "lodash";
-import OverwatchFloorplan from "components/Test/OverwatchFloorplan";
+import OverwatchFloorplan from "components/Test/LiveLights";
 import jwt_decode from "jwt-decode";
 import axios from "axios";
 

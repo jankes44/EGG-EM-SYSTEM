@@ -127,18 +127,25 @@ router.post("/new-empty", auth, function (req, res) {
     } else {
       con.query(
         "INSERT INTO buildings SET building = ?, address = ?, sites_id = ?",
-        [req.body.building_name, req.body.address, req.body.sites_id],
-        function (error, results, fields) {
+        [req.body.building, req.body.address, req.body.sites_id],
+        function (error, resultsbldng, fields) {
           if (error) throw error;
           con.query(
             "INSERT INTO levels SET level = '1', buildings_id = ?",
-            [results.insertId],
-            (err, results) => {
+            [resultsbldng.insertId],
+            (err, resultslvls) => {
               if (err) throw err;
               con.query(
                 "INSERT INTO lgt_groups SET levels_id=?",
-                [results.insertId],
-                (err, results) => res.end(JSON.stringify(results))
+                [resultslvls.insertId],
+                (err, resultsgroups) => {
+                  con.query(
+                    "INSERT INTO lights SET lgt_groups_id=?",
+                    [resultsgroups.insertId],
+                    (err, resultsdevices) =>
+                      res.end(JSON.stringify(resultsdevices))
+                  );
+                }
               );
             }
           );
@@ -154,25 +161,14 @@ router.post("/:id", auth, function (req, res) {
     if (err) {
       res.sendStatus(403);
     } else {
-      if (req.body.description) {
-        con.query(
-          "UPDATE `buildings` SET `group_name`=?, `description`=? where `id`=(?)",
-          [req.body.group_name, req.body.description, req.params.id],
-          function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-          }
-        );
-      } else {
-        con.query(
-          "UPDATE `buildings` SET `group_name`=? where `id`=(?)",
-          [req.body.group_name, req.params.id],
-          function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-          }
-        );
-      }
+      con.query(
+        "UPDATE `buildings` SET `building`=?, `address`=? where `id`=(?)",
+        [req.body.building, req.body.address, req.params.id],
+        function (error, results, fields) {
+          if (error) throw error;
+          res.end(JSON.stringify(results));
+        }
+      );
     }
   });
 });
@@ -183,7 +179,6 @@ router.delete("/:id", auth, function (req, res) {
     if (err) {
       res.sendStatus(403);
     } else {
-      console.log(req.body);
       con.query(
         "DELETE FROM `buildings` WHERE `id`=?",
         [req.params.id],

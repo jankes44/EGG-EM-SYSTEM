@@ -22,6 +22,14 @@ export default function buildings(props) {
       field: "node_id",
       title: "Mesh Address",
     },
+    {
+      field: "",
+      title: "Battery",
+    },
+    {
+      field: "",
+      title: "Luminance",
+    },
   ];
 
   return (

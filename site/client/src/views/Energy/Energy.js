@@ -6,7 +6,7 @@ import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import CardHeader from "components/Card/CardHeader.js";
 import GridContainer from "components/Grid/GridContainer.js";
-import SiteSetup2 from "components/MaterialTable/SiteSetup.js";
+import Power from "components/power/Dashboard";
 import { makeStyles } from "@material-ui/core/styles";
 
 const styles = {
@@ -60,10 +60,10 @@ export default function Reports() {
         <GridItem xs={12} sm={12} md={12}>
           <Card>
             <CardHeader color="success">
-              <h4 className={classes.cardTitleWhite}>Site Setup</h4>
+              <h4 className={classes.cardTitleWhite}>Energy overview</h4>
             </CardHeader>
             <CardBody>
-              <SiteSetup2 />
+              <Power />
             </CardBody>
           </Card>
         </GridItem>

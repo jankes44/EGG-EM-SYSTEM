@@ -15,7 +15,7 @@ import AdminPage from "views/Admin/AdminPage";
 import SocketDevTest from "views/SocketDevTest/SocketDevTest";
 import LiveEmStatus from "views/LiveEmStatus/LiveEmStatus";
 import SiteSetup from "views/SiteSetup/SiteSetup";
-import SiteSetup2 from "views/SiteSetup2/SiteSetup";
+import Energy from "views/Energy/Energy";
 
 const dashboardRoutes = [
   {
@@ -58,10 +58,18 @@ const dashboardRoutes = [
   //   layout: "/admin",
   // },
   {
-    path: "/trialtest",
+    path: "/site-setup",
     name: "Site Setup",
     icon: "settings_applications",
     component: SiteSetup,
+    layout: "/admin",
+    access: 2,
+  },
+  {
+    path: "/energy",
+    name: "Energy",
+    icon: "eco",
+    component: Energy,
     layout: "/admin",
     access: 2,
   },

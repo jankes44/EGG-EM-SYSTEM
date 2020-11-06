@@ -67,6 +67,10 @@ const useStyles = makeStyles((theme) => ({
     color: "white",
     marginRight: "5px",
   },
+  changeButton: {
+    display: "inline-block",
+    margin: "5px",
+  },
 }));
 
 export default function LiveFloorPlan(props) {
@@ -110,11 +114,11 @@ export default function LiveFloorPlan(props) {
 
   const checkConnectivity = (deviceId) => {
     console.log(
-      props.liveDevices.find((el) => {
+      liveDevices_.find((el) => {
         return el.id === deviceId;
       })
     );
-    const device = props.liveDevices.find((el) => {
+    const device = liveDevices_.find((el) => {
       return el.id === deviceId;
     });
     axios({
@@ -193,16 +197,16 @@ export default function LiveFloorPlan(props) {
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
   const dragHandlers = { onStart: onStart, onStop: onStop };
+
+  const liveDevices_ = props.liveDevices;
+
   return (
     <div>
       <div className={classes.card}>
         <Typography variant="h4" style={{ marginTop: "5px" }}>
-          Level{" "}
-          {props.liveDevices.length > 0 ? props.liveDevices[0].level : null}{" "}
-          <p style={{ float: "right", display: "inline-block" }}>
-            Luminaires:{" "}
-            {props.liveDevices.length > 1 ? props.liveDevices.length : 0}
-          </p>
+          Level {liveDevices_.length > 0 ? liveDevices_[0].level : null}{" "}
+          Luminaires: {liveDevices_.length > 1 ? liveDevices_.length : 0}
+          <p style={{ float: "right" }}></p>
         </Typography>
       </div>
       <div style={{ overflow: "hidden", width: "100%", height: "90vh" }}>
@@ -219,7 +223,7 @@ export default function LiveFloorPlan(props) {
           alt="Third Level"
         >
           <div style={{ width: "100%", height: "110vh" }}>
-            {props.liveDevices.length > 0 ? (
+            {liveDevices_.length > 0 ? (
               !floorplanNotFound ? (
                 <div></div>
               ) : (
@@ -228,8 +232,8 @@ export default function LiveFloorPlan(props) {
             ) : (
               <div>No devices </div>
             )}
-            {props.liveDevices.length > 0 && !floorplanNotFound ? (
-              props.liveDevices.map((el, index) => {
+            {liveDevices_.length > 0 && !floorplanNotFound ? (
+              liveDevices_.map((el, index) => {
                 let color;
 
                 switch (el.status) {
