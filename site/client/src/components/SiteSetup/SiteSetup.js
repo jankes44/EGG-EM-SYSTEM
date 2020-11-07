@@ -207,7 +207,6 @@ export default class SiteSetup extends React.Component {
     console.log(newData, action);
     switch (action) {
       case "add":
-        console.log(newData);
         this.setState({ buildings: [...this.state.buildings, newData] });
         break;
 
@@ -222,7 +221,6 @@ export default class SiteSetup extends React.Component {
         const dataDelete = [...this.state.buildings];
         const indexDel = oldData.tableData.id;
         dataDelete.splice(indexDel, 1);
-        console.log(this.state.buildings[indexDel]);
         this.setState({ buildings: [...dataDelete] });
         break;
     }
@@ -230,10 +228,8 @@ export default class SiteSetup extends React.Component {
   };
 
   handleEditLevel = (newData, oldData, action) => {
-    console.log(newData, action);
     switch (action) {
       case "add":
-        console.log(newData);
         newData.buildings_id = this.state.clickedBuilding;
         this.setState({ levels: [...this.state.levels, newData] });
         break;
@@ -249,7 +245,6 @@ export default class SiteSetup extends React.Component {
         const dataDelete = [...this.state.levels];
         const indexDel = oldData.tableData.id;
         dataDelete.splice(indexDel, 1);
-        console.log(this.state.levels[indexDel]);
         this.setState({ levels: [...dataDelete] });
         break;
     }
@@ -513,6 +508,7 @@ export default class SiteSetup extends React.Component {
               handleClickLevel={this.handleClickLevel}
               clickedLevel={clickedLevel}
               handleEditLevel={this.handleEditLevel}
+              clickedBuilding={clickedBuilding}
             />
             {createNewLevel ? (
               <div style={{ marginLeft: "15px", marginRight: "15px" }}>

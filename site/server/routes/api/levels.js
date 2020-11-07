@@ -105,33 +105,44 @@ router.get("/", auth, (req, res) =>
       }
     })
   ),
-  // Create new group
-  router.post("/", auth, function (req, res) {
+  // Create new level
+  router.post("/add", auth, function (req, res) {
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {
         res.sendStatus(403);
       } else {
         con.query(
-          "INSERT INTO levels SET `buildings_id`=?, `level`=?",
-          [req.body.buildings_id, req.body.level],
-          function (error, results, fields) {
+          "INSERT INTO levels SET `buildings_id`=?, `level`=?, `description`=?",
+          [req.body.buildings_id, req.body.level, req.body.description],
+          (error, results, fields) => {
             if (error) throw error;
-            res.end(JSON.stringify(results));
+            con.query(
+              "INSERT INTO lgt_groups SET levels_id=?",
+              [results.insertId],
+              (err, resultsgroups) => {
+                con.query(
+                  "INSERT INTO lights SET lgt_groups_id=?",
+                  [resultsgroups.insertId],
+                  (err, resultsdevices) =>
+                    res.end(JSON.stringify(resultsdevices))
+                );
+              }
+            );
           }
         );
       }
     });
   });
 
-// Update chosen light
+// Update chosen level
 router.post("/edit/:id", auth, function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
       res.sendStatus(403);
     } else {
       con.query(
-        "UPDATE `levels` SET ??=? where `id`=(?)",
-        [req.body.colName, req.body.level, req.params.id],
+        "UPDATE `levels` SET `level`=?, `description`=? where `id`=(?)",
+        [req.body.level_name, req.body.description, req.params.id],
         function (error, results, fields) {
           if (error) throw error;
           res.end(JSON.stringify(results));
@@ -207,7 +218,6 @@ router.delete("/:id", auth, function (req, res) {
     if (err) {
       res.sendStatus(403);
     } else {
-      console.log(req.body);
       con.query("DELETE FROM `levels` WHERE `id`=?", [req.params.id], function (
         error,
         results,
