@@ -1,6 +1,8 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
 import axios from "axios";
+import SummaryCard from './SummaryCard'
+import Grid from '@material-ui/core/Grid'
 
 class Dashboard extends React.Component {
   columns = [];
@@ -9,11 +11,19 @@ class Dashboard extends React.Component {
     power: null,
     current: null,
     show: "voltage",
-    URL: global.BASE_URL + "/api/power/",
+    URL: global.BASE_URL + "/api/power",
     headers: {
       "Content-Type": "application/json;charset=UTF-8",
       Authorization: "Bearer " + localStorage.usertoken,
     },
+    summary: {
+      month_total: null,
+      month_line: null,
+      three_months_total: null,
+      three_months_line: null,
+      year_total: null,
+      year_total_line: null
+    }
   };
 
   constructor(props) {
@@ -27,10 +37,10 @@ class Dashboard extends React.Component {
   }
 
   async fetchColumns() {
-    const response = await axios.get(this.state.URL + "lines", {
+    const response = await axios.get(this.state.URL + "/lines", {
       headers: this.state.headers,
     });
-    const res = await response;
+    const res = response;
     const data = res.data;
 
     const lines = data.data.map((x) => x.line);
@@ -41,7 +51,7 @@ class Dashboard extends React.Component {
     const columns = await this.fetchColumns();
 
     axios
-      .get(this.state.URL + "/voltage", {
+      .post(this.state.URL + "/voltage", {}, {
         headers: this.state.headers,
       })
       .then((res) => {
@@ -54,7 +64,7 @@ class Dashboard extends React.Component {
       });
 
     axios
-      .get(this.state.URL + "/power", {
+      .post(this.state.URL + "/power", {}, {
         headers: this.state.headers,
       })
       .then((res) => {
@@ -83,7 +93,7 @@ class Dashboard extends React.Component {
       });
 
     axios
-      .get(this.state.URL + "/current", {
+      .post(this.state.URL + "/current", {}, {
         headers: this.state.headers,
       })
       .then((res) => {
@@ -108,7 +118,93 @@ class Dashboard extends React.Component {
       .catch((err) => {
         console.log(err);
       });
-  }
+
+      axios
+      .post(this.state.URL + "/power", {aggregate: "total_month"}, {
+        headers: this.state.headers
+      })
+      .then((res) => {
+        const month_total = res.data.data[0].power_consumption.toFixed(2)
+        var summary = {...this.state.summary}
+        summary.month_total = month_total 
+        this.setState({summary: summary})
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  axios
+      .post(this.state.URL + "/power", {aggregate: "total_three_months"}, {
+        headers: this.state.headers,
+      })
+      .then((res) => {
+        const three_months = res.data.data[0].power_consumption.toFixed(2)
+        var summary = {...this.state.summary}
+        summary.three_months_total = three_months 
+        this.setState({summary: summary})
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  axios
+      .post(this.state.URL + "/power", {aggregate: "total_year"}, {
+        headers: this.state.headers,
+      })
+      .then((res) => {
+        const year_total = res.data.data[0].power_consumption.toFixed(2)
+        var summary = {...this.state.summary}
+        summary.year_total = year_total 
+        this.setState({summary: summary})
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+      axios
+      .post(this.state.URL + "/power", {aggregate: "total_month_line"}, {
+        headers: this.state.headers,
+        
+      })
+      .then((res) => {
+        const month_total_line = res.data.data
+        var summary = {...this.state.summary}
+        summary.month_line = month_total_line 
+        this.setState({summary: summary})
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  axios
+      .post(this.state.URL + "/power", {aggregate: "total_three_months_line"}, {
+        headers: this.state.headers,
+        
+      })
+      .then((res) => {
+        const three_months_line = res.data.data
+        var summary = {...this.state.summary}
+        summary.three_months_line = three_months_line 
+        this.setState({summary: summary})
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  axios
+      .post(this.state.URL + "/power", {aggregate: "total_year_line"}, {
+        headers: this.state.headers,    
+      })
+      .then((res) => {
+        const year_total_line = res.data.data
+        var summary = {...this.state.summary}
+        summary.year_total_line = year_total_line
+        this.setState({summary: summary}) 
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    }
 
   componentDidMount() {
     this.fetchData();
@@ -185,6 +281,14 @@ class Dashboard extends React.Component {
 
     return (
       <div>
+        <Grid container direction="row" justify="center" alignItems="center" spacing={4}>
+          <SummaryCard title="30 Days" total_data={this.state.summary.month_total} 
+          line_data={this.state.summary.month_line}/>
+          <SummaryCard title="3 Months" total_data={this.state.summary.three_months_total} 
+          line_data={this.state.summary.three_months_line}/>
+          <SummaryCard title="Year" total_data={this.state.summary.year_total} 
+          line_data={this.state.summary.year_total_line}/>
+        </Grid>
         <div onChange={this.onChangeValue}>
           <input
             type="radio"
