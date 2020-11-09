@@ -51,7 +51,7 @@ class Dashboard extends React.Component {
     const columns = await this.fetchColumns();
 
     axios
-      .post(this.state.URL + "/voltage", {
+      .post(this.state.URL + "/voltage", {}, {
         headers: this.state.headers,
       })
       .then((res) => {
@@ -64,7 +64,7 @@ class Dashboard extends React.Component {
       });
 
     axios
-      .post(this.state.URL + "/power", {
+      .post(this.state.URL + "/power", {}, {
         headers: this.state.headers,
       })
       .then((res) => {
@@ -93,7 +93,7 @@ class Dashboard extends React.Component {
       });
 
     axios
-      .post(this.state.URL + "/current", {
+      .post(this.state.URL + "/current", {}, {
         headers: this.state.headers,
       })
       .then((res) => {
@@ -120,12 +120,11 @@ class Dashboard extends React.Component {
       });
 
       axios
-      .post(this.state.URL + "/power", {
-        headers: this.state.headers,
-        data: {aggregate: "total_month"}
+      .post(this.state.URL + "/power", {aggregate: "total_month"}, {
+        headers: this.state.headers
       })
       .then((res) => {
-        const month_total = res.data.data.power_consumption.toFixed(2)
+        const month_total = res.data.data[0].power_consumption.toFixed(2)
         var summary = {...this.state.summary}
         summary.month_total = month_total 
         this.setState({summary: summary})
@@ -135,12 +134,11 @@ class Dashboard extends React.Component {
       });
 
   axios
-      .post(this.state.URL + "/power", {
+      .post(this.state.URL + "/power", {aggregate: "total_three_months"}, {
         headers: this.state.headers,
-        data: {aggregate: "total_three_months"}
       })
       .then((res) => {
-        const three_months = res.data.data.power_consumption.toFixed(2)
+        const three_months = res.data.data[0].power_consumption.toFixed(2)
         var summary = {...this.state.summary}
         summary.three_months_total = three_months 
         this.setState({summary: summary})
@@ -150,12 +148,11 @@ class Dashboard extends React.Component {
       });
 
   axios
-      .post(this.state.URL + "/power", {
+      .post(this.state.URL + "/power", {aggregate: "total_year"}, {
         headers: this.state.headers,
-        data: {aggregate: "total_year"}
       })
       .then((res) => {
-        const year_total = res.data.data.power_consumption.toFixed(2)
+        const year_total = res.data.data[0].power_consumption.toFixed(2)
         var summary = {...this.state.summary}
         summary.year_total = year_total 
         this.setState({summary: summary})
@@ -165,9 +162,9 @@ class Dashboard extends React.Component {
       });
 
       axios
-      .post(this.state.URL + "/power", {
+      .post(this.state.URL + "/power", {aggregate: "total_month_line"}, {
         headers: this.state.headers,
-        data: {aggregate: "total_month_line"}
+        
       })
       .then((res) => {
         const month_total_line = res.data.data
@@ -180,9 +177,9 @@ class Dashboard extends React.Component {
       });
 
   axios
-      .post(this.state.URL + "/power", {
+      .post(this.state.URL + "/power", {aggregate: "total_three_months_line"}, {
         headers: this.state.headers,
-        data: {aggregate: "total_three_months_line"}
+        
       })
       .then((res) => {
         const three_months_line = res.data.data
@@ -195,9 +192,8 @@ class Dashboard extends React.Component {
       });
 
   axios
-      .post(this.state.URL + "/power", {
-        headers: this.state.headers,
-        data: {aggregate: "total_year_line"}
+      .post(this.state.URL + "/power", {aggregate: "total_year_line"}, {
+        headers: this.state.headers,    
       })
       .then((res) => {
         const year_total_line = res.data.data

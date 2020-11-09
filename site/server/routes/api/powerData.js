@@ -50,7 +50,7 @@ router.post("/voltage", auth, (req, res, next) => {
       res.sendStatus(403);
     } else {
       const query_ = "select distinct epoch, voltage from power_data \
-                      where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 DAY)) * 1000 order by epoch "
+                      where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 HOUR)) * 1000 order by epoch "
       con.query(
         query_,
         (err, result, fields) => {
@@ -135,8 +135,9 @@ router.post("/power", auth, (req, res, next) => {
       }
       else {
         query_ = "select epoch, group_concat(power order by line) as 'values' \
-                        from power_data group by epoch having count(*) > 1  \
-                        where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 DAY)) * 1000 \
+                        from power_data   \
+                        where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 HOUR)) * 1000 \
+                        group by epoch having count(*) > 1 \
                         order by epoch  "
       }
       con.query(query_,
@@ -158,8 +159,9 @@ router.post("/current", auth, (req, res, next) => {
       res.sendStatus(403);
     } else {
       con.query(
-        "select epoch, group_concat(current order by line) as 'values' from power_data group by epoch having count(*) > 1 \
-        where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 DAY)) * 1000 \
+        "select epoch, group_concat(current order by line) as 'values' from power_data \
+        where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 HOUR)) * 1000 \
+        group by epoch having count(*) > 1 \
         order by epoch ",
         (err, result, fields) => {
           if (err) {

@@ -7,13 +7,15 @@ import Grid from '@material-ui/core/Grid'
 
 const SummaryCard = ({title, total_data, line_data}) => 
 <Card>
+    {(title && total_data && line_data) ?
     <CardContent>
         <Typography variant="h5" component="h2">{title}</Typography>
         <Typography variant="h6" component="h6"> {total_data} Kwh </Typography>
+        <br />
         <Grid container direction="column" justify="center" alignItems="center" spacing={2}>
-            {line_data.map(x => <p>Line {x.line}: {x.power_consumption} Kwh </p>)}
+            {line_data.map(x => <p key={x.line}>Line {x.line}: {x.power_consumption.toFixed(2)} Kwh </p>)}
         </Grid>
-    </CardContent>
+    </CardContent> : null }
 </Card>
 
 export default SummaryCard
