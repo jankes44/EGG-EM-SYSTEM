@@ -1214,6 +1214,7 @@ router.post("/dev/relay/state", auth, (req, res) => {
       let counter = 0;
       const length = deviceData.length;
       var messages = [];
+      console.log(req.body.topic);
 
       loop = () => {
         if (counter < length) {

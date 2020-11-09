@@ -36,9 +36,7 @@ router.get("/", auth, (req, res) =>
                 LEFT OUTER JOIN
             levels ON levels.buildings_id = buildings.id
                 LEFT OUTER JOIN
-            lgt_groups ON lgt_groups.levels_id = levels.id
-                LEFT OUTER JOIN
-            lights ON lights.lgt_groups_id = lgt_groups.id
+            lights ON lights.levels_id = levels.id
         WHERE s.id = ${req.params.sites_id}
         GROUP BY buildings.id, levels.id
         `,
@@ -68,9 +66,7 @@ router.get("/", auth, (req, res) =>
                 LEFT OUTER JOIN
             levels ON levels.buildings_id = buildings.id
                 LEFT OUTER JOIN
-            lgt_groups ON lgt_groups.levels_id = levels.id
-                LEFT OUTER JOIN
-            lights ON lights.lgt_groups_id = lgt_groups.id
+            lights ON lights.levels_id = levels.id
         WHERE s.id = ${req.params.sites_id}
         GROUP BY buildings.id
         `,
@@ -98,15 +94,7 @@ router.get("/", auth, (req, res) =>
               if (counter < length) {
                 con.query(
                   "INSERT INTO levels SET level = ?, buildings_id = ?",
-                  [counter, results.insertId],
-                  (err, results) => {
-                    if (err) throw err;
-                    con.query("INSERT INTO lgt_groups SET levels_id=?", [
-                      results.insertId,
-                    ]);
-                    counter++;
-                    loop();
-                  }
+                  [counter, results.insertId]
                 );
               } else {
                 res.status(200).send("Building created");
@@ -136,16 +124,9 @@ router.post("/new-empty", auth, function (req, res) {
             (err, resultslvls) => {
               if (err) throw err;
               con.query(
-                "INSERT INTO lgt_groups SET levels_id=?",
+                "INSERT INTO lights SET levels_id=?",
                 [resultslvls.insertId],
-                (err, resultsgroups) => {
-                  con.query(
-                    "INSERT INTO lights SET lgt_groups_id=?",
-                    [resultsgroups.insertId],
-                    (err, resultsdevices) =>
-                      res.end(JSON.stringify(resultsdevices))
-                  );
-                }
+                (err, resultsdevices) => res.end(JSON.stringify(resultsdevices))
               );
             }
           );

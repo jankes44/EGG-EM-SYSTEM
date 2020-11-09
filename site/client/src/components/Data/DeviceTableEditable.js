@@ -698,7 +698,7 @@ class groups extends Component {
     axios
       .post(
         global.BASE_URL + "/api/lights/move/" + light.id,
-        { lgt_groups_id: this.state.lgt_groups_id },
+        { levels_id: this.state.levels_id },
         {
           headers: {
             "Content-Type": "application/json;charset=UTF-8",

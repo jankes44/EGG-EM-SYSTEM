@@ -23,10 +23,6 @@ router.get("/", auth, (req, res) =>
             SEPARATOR ', ') AS tests_lights,
         GROUP_CONCAT(DISTINCT lights.device_id
             SEPARATOR ', ') AS device_id,
-        GROUP_CONCAT(DISTINCT lights.lgt_groups_id
-            SEPARATOR ', ') AS group_id,
-        GROUP_CONCAT(DISTINCT lgt_groups.group_name
-            SEPARATOR ', ') AS group_name,
         GROUP_CONCAT(DISTINCT levels.level
             SEPARATOR ', ') AS level
     FROM
@@ -36,11 +32,9 @@ router.get("/", auth, (req, res) =>
             LEFT OUTER JOIN
         lights ON lights.id = tests_has_lights.lights_id
             LEFT OUTER JOIN
-        lgt_groups ON lgt_groups.id = lights.lgt_groups_id
-            LEFT OUTER JOIN
         errors ON errors.test_id = tests.id
             LEFT OUTER JOIN
-        levels ON levels.id = lgt_groups.levels_id
+        levels ON levels.id = lights.levels_id
     GROUP BY tests.id`,
         (err, rows) => res.json(rows)
       );
@@ -62,10 +56,8 @@ router.get("/", auth, (req, res) =>
         trial_tests_has_lights ON trial_tests_has_lights.trial_tests_id = trial_tests.id
           LEFT OUTER JOIN
         lights ON lights.id = trial_tests_has_lights.lights_id
-          LEFT OUTER JOIN
-              lgt_groups ON lights.lgt_groups_id = lgt_groups.id
                 LEFT OUTER JOIN
-              levels ON levels.id = lgt_groups.levels_id
+              levels ON levels.id = lights.levels_id
                 LEFT OUTER JOIN
               buildings ON buildings.id = levels.buildings_id
                 LEFT OUTER JOIN
@@ -83,28 +75,6 @@ router.get("/", auth, (req, res) =>
       }
     })
   ),
-  //get report data by param: id
-  router.get("/reportdata/:id", auth, (req, res) =>
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          "SELECT tests.*, a.error, a.device, lgt_groups.group_name AS location FROM tests JOIN errors AS a ON FIND_IN_SET(a.tests_id, tests.id) LEFT OUTER JOIN lgt_groups ON lgt_groups.id = tests.group_id where tests.id=?",
-          [req.params.id],
-          (err, rows) => {
-            res.setHeader(
-              "Content-Type",
-              "application/json",
-              "Access-Control-Allow-Headers",
-              "Origin, X-Requested-With, Content-Type, Accept"
-            );
-            return res.send(rows[0]);
-          }
-        );
-      }
-    })
-  ),
   //get test by param: id
   router.get("/:id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
@@ -112,7 +82,7 @@ router.get("/", auth, (req, res) =>
         res.sendStatus(403);
       } else {
         con.query(
-          "SELECT tests.id, tests.lights, tests.result, tests.set, tests.created_at, FLOOR(SUM(errors.error != 'OK') / tests.lights) AS errors, FLOOR(SUM(errors.error = 'OK')/tests.lights) as responseok, GROUP_CONCAT(DISTINCT tests_has_lights.lights_id SEPARATOR ', ') AS tests_lights, GROUP_CONCAT(DISTINCT lights.device_id SEPARATOR ', ') as device_id, GROUP_CONCAT(DISTINCT lights.lgt_groups_id SEPARATOR ', ') as group_id, group_concat(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name, group_concat(DISTINCT levels.level separator ', ') as level, group_concat(DISTINCT levels.id separator ', ') as level_id FROM tests LEFT OUTER JOIN tests_has_lights ON tests_has_lights.tests_id = tests.id LEFT OUTER JOIN lights ON lights.id = tests_has_lights.lights_id LEFT OUTER JOIN lgt_groups ON lgt_groups.id = lights.lgt_groups_id LEFT OUTER JOIN errors ON errors.test_id = tests.id LEFT OUTER JOIN levels on levels.id = lgt_groups.levels_id WHERE tests.id=? GROUP BY tests.id",
+          "SELECT tests.id, tests.lights, tests.result, tests.set, tests.created_at, FLOOR(SUM(errors.error != 'OK') / tests.lights) AS errors, FLOOR(SUM(errors.error = 'OK')/tests.lights) as responseok, GROUP_CONCAT(DISTINCT tests_has_lights.lights_id SEPARATOR ', ') AS tests_lights, GROUP_CONCAT(DISTINCT lights.device_id SEPARATOR ', ') as device_id, GROUP_CONCAT(DISTINCT lights.lgt_groups_id SEPARATOR ', ') as group_id, group_concat(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name, group_concat(DISTINCT levels.level separator ', ') as level, group_concat(DISTINCT levels.id separator ', ') as level_id FROM tests LEFT OUTER JOIN tests_has_lights ON tests_has_lights.tests_id = tests.id LEFT OUTER JOIN lights ON lights.id = tests_has_lights.lights_id LEFT OUTER JOIN lgt_groups ON lgt_groups.id = lights.lgt_groups_id LEFT OUTER JOIN errors ON errors.test_id = tests.id LEFT OUTER JOIN levels on levels.id = lights.levels_id WHERE tests.id=? GROUP BY tests.id",
           [req.params.id],
           (err, rows) => {
             res.setHeader(

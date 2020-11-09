@@ -30,16 +30,12 @@ router.get("/", auth, (req, res) =>
       con.query(
         `select
         levels.*,
-          GROUP_CONCAT(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name,
           count(lights.id) as lights_count, 
-          GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
-          MIN(lgt_groups.id) as group_id
+          GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
       from
         levels
-          LEFT OUTER JOIN 
-          lgt_groups on lgt_groups.levels_id = levels.id
           LEFT OUTER JOIN
-          lights on lights.lgt_groups_id = lgt_groups.id
+          lights on lights.levels_id = levels.id
       GROUP BY levels.id`,
         (err, rows) => res.json(rows)
       );
@@ -54,20 +50,16 @@ router.get("/", auth, (req, res) =>
         con.query(
           `select
       levels.*,
-        GROUP_CONCAT(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name,
         count(lights.id) as lights_count, 
-        GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
-        MIN(lgt_groups.id) as group_id
+        GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
     from
       levels
   LEFT OUTER JOIN
   buildings ON buildings.id = levels.buildings_id
         LEFT OUTER JOIN
         sites ON sites.id = buildings.sites_id
-        LEFT OUTER JOIN 
-        lgt_groups on lgt_groups.levels_id = levels.id
         LEFT OUTER JOIN
-        lights on lights.lgt_groups_id = lgt_groups.id
+        lights on lights.levels_id = levels.id
       WHERE sites.id = ${req.params.sites_id}
     GROUP BY levels.id`,
           (err, rows) => res.json(rows)
@@ -85,18 +77,15 @@ router.get("/", auth, (req, res) =>
           `select
           levels.*,
             count(lights.id) as lights_count, 
-            GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
-            MIN(lgt_groups.id) as group_id
+            GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
         from
           levels
       LEFT OUTER JOIN
       buildings ON buildings.id = levels.buildings_id
             LEFT OUTER JOIN
             sites ON sites.id = buildings.sites_id
-            LEFT OUTER JOIN 
-            lgt_groups on lgt_groups.levels_id = levels.id
             LEFT OUTER JOIN
-            lights on lights.lgt_groups_id = lgt_groups.id
+            lights on lights.levels_id = levels.id
           WHERE buildings.id = ${req.params.building_id}
         GROUP BY levels.id`,
           [req.params.building_id],
@@ -117,15 +106,11 @@ router.get("/", auth, (req, res) =>
           (error, results, fields) => {
             if (error) throw error;
             con.query(
-              "INSERT INTO lgt_groups SET levels_id=?",
+              "INSERT INTO lights SET levels_id=?",
               [results.insertId],
-              (err, resultsgroups) => {
-                con.query(
-                  "INSERT INTO lights SET lgt_groups_id=?",
-                  [resultsgroups.insertId],
-                  (err, resultsdevices) =>
-                    res.end(JSON.stringify(resultsdevices))
-                );
+              (err, resultsdevices) => {
+                console.log(resultsdevices);
+                res.end(JSON.stringify(resultsdevices));
               }
             );
           }

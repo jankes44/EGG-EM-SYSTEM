@@ -42,13 +42,12 @@ app.use("/api/groups", require("./routes/api/groups"));
 app.use("/api/tests", require("./routes/api/tests"));
 app.use("/api/errors", require("./routes/api/errors"));
 app.use("/api/levels", require("./routes/api/levels"));
-app.use("/api/schedule", require("./routes/api/schedule"));
 app.use("/api/buildings", require("./routes/api/buildings"));
 app.use("/api/sites", require("./routes/api/sites"));
 app.use("/api/trialtests", require("./routes/api/trialtests"));
 app.use("/api/rolesusers", require("./routes/api/roles_users"));
 app.use("/api/generatepdf", require("./routes/api/PdfGenerate"));
 app.use("/sockets", require("./routes/socketsControl"));
-app.use('/api/power', require('./routes/api/powerData'))
+app.use("/api/power", require("./routes/api/powerData"));
 
 app.listen(PORT, () => console.log("Server started on port", PORT, Date()));

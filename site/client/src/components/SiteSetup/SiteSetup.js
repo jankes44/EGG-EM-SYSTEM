@@ -189,6 +189,7 @@ export default class SiteSetup extends React.Component {
       clickedBuildingDetails: row,
     });
     this.callLevels(row.buildings_id).then((res) => {
+      console.log(res);
       this.setState({ levels: res.data, backDisabled: false });
     });
   };
@@ -248,7 +249,22 @@ export default class SiteSetup extends React.Component {
         this.setState({ levels: [...dataDelete] });
         break;
     }
+    this.refresh();
   };
+
+  bulkEditDevices = (changes) => {
+    const updateData = Object.keys(changes).map((i) => changes[i]);
+    console.log(updateData);
+    const dataUpdate = [...this.state.devices];
+
+    updateData.forEach((el) => {
+      const index = el.newData.tableData.id;
+      dataUpdate[index] = el.newData;
+    });
+    this.setState({ devices: [...dataUpdate] });
+  };
+
+  handleAddEmptyDevices = () => {};
 
   // handleEditLevel = (levelID, colName, newValue) => {
   //   axios({
@@ -523,7 +539,11 @@ export default class SiteSetup extends React.Component {
         ) : null}
         {stage === 3 ? (
           <GridItem xs={12}>
-            <Devices devices={this.state.devices} />{" "}
+            <Devices
+              devices={this.state.devices}
+              addEmpty={this.addEmpty}
+              bulkEditDevices={this.bulkEditDevices}
+            />
           </GridItem>
         ) : null}
       </div>
