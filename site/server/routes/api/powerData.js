@@ -49,8 +49,11 @@ router.post("/voltage", auth, (req, res, next) => {
     if (err) {
       res.sendStatus(403);
     } else {
-      const query_ = "select distinct epoch, voltage from power_data \
-                      where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 HOUR)) * 1000 order by epoch "
+      const query_ = "select UNIX_TIMESTAMP(date_hour) * 1000 as epoch, voltage from (select DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), \
+      '%Y-%m-%d-%H') as date_hour, \
+      avg(voltage) as voltage from power_data \
+      where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -2 DAY)) * 1000 \
+      group by date_hour order by epoch ) t"
       con.query(
         query_,
         (err, result, fields) => {
@@ -73,7 +76,7 @@ router.post("/power", auth, (req, res, next) => {
       if (req.body.hasOwnProperty('aggregate')){
         switch(req.body.aggregate){
           case 'avg_day_line': var query_ = "select line, if(DAYOFWEEK(date_) > 6 or DAYOFWEEK(date_) = 1, 'weekend', 'weekday') as day, sum(kwh) as power_consumption \
-          from ( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, \
+          from ( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, \
                 FROM_UNIXTIME(epoch/1000) as date_, line, \
                 avg(if(power > 0, power, 0))/1000 as kwh \
             from power_data \
@@ -82,28 +85,28 @@ router.post("/power", auth, (req, res, next) => {
             group by line, day"
           break
           case 'total_month_line':  query_ = "select line, sum(kwh) as power_consumption from "  +
-                              "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, " +
+                              "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, " +
                 "FROM_UNIXTIME(epoch/1000) as date_, line, avg(if(power > 0, power, 0))/1000 as kwh from power_data " +
             "where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 MONTH)) * 1000 \
             group by date_hour, line ) t \
           group by line" 
           break
           case 'total_three_months_line': query_ = "select line, sum(kwh) as power_consumption from "  +
-          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, " +
+          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, " +
           "FROM_UNIXTIME(epoch/1000) as date_, line, avg(if(power > 0, power, 0))/1000 as kwh from power_data " +
           "where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 MONTH)) * 1000 \
           group by date_hour, line ) t \
           group by line" 
           break 
           case 'total_year_line':  query_ = "select line, sum(kwh) as power_consumption from "  +
-          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, " +
+          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, " +
           "FROM_UNIXTIME(epoch/1000) as date_, line, avg(if(power > 0, power, 0))/1000 as kwh from power_data " +
           "where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 YEAR)) * 1000 \
           group by date_hour, line ) t \
           group by line" 
           break
           case 'avg_day':  query_ = "select if(DAYOFWEEK(date_) > 6 or DAYOFWEEK(date_) = 1, 'weekend', 'weekday') as day, sum(kwh) as power_consumption \
-          from ( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, \
+          from ( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, \
                 FROM_UNIXTIME(epoch/1000) as date_, line, \
                 avg(if(power > 0, power, 0))/1000 as kwh \
             from power_data \
@@ -112,19 +115,19 @@ router.post("/power", auth, (req, res, next) => {
             group by day"
           break
           case 'total_month':  query_ = "select sum(kwh) as power_consumption from "  +
-                              "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, " +
+                              "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, " +
                 "FROM_UNIXTIME(epoch/1000) as date_, line, avg(if(power > 0, power, 0))/1000 as kwh from power_data " +
             "where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 MONTH)) * 1000 \
             group by date_hour, line ) t" 
           break
           case 'total_three_months':  query_ = "select sum(kwh) as power_consumption from "  +
-          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, " +
+          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, " +
           "FROM_UNIXTIME(epoch/1000) as date_, line, avg(if(power > 0, power, 0))/1000 as kwh from power_data " +
           "where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 MONTH)) * 1000 \
           group by date_hour, line ) t" 
           break 
           case 'total_year':  query_ = "select sum(kwh) as power_consumption from "  +
-          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%h') as date_hour, " +
+          "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, " +
           "FROM_UNIXTIME(epoch/1000) as date_, line, avg(if(power > 0, power, 0))/1000 as kwh from power_data " +
           "where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 YEAR)) * 1000 \
           group by date_hour, line ) t" 
@@ -134,11 +137,11 @@ router.post("/power", auth, (req, res, next) => {
         }
       }
       else {
-        query_ = "select epoch, group_concat(power order by line) as 'values' \
-                        from power_data   \
-                        where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 HOUR)) * 1000 \
-                        group by epoch having count(*) > 1 \
-                        order by epoch  "
+        query_ = "select UNIX_TIMESTAMP(date_hour) * 1000 as epoch, group_concat(power order by line) \
+        as 'values' from (select DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, \
+        line, avg(if (power > 0, power, 0)) as power \
+        from power_data where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -2 DAY)) * 1000 \
+        GROUP by date_hour, line ) t group by epoch "
       }
       con.query(query_,
         (err, result, fields) => {
@@ -159,10 +162,11 @@ router.post("/current", auth, (req, res, next) => {
       res.sendStatus(403);
     } else {
       con.query(
-        "select epoch, group_concat(current order by line) as 'values' from power_data \
-        where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 HOUR)) * 1000 \
-        group by epoch having count(*) > 1 \
-        order by epoch ",
+        "select UNIX_TIMESTAMP(date_hour) * 1000 as epoch, group_concat(current order by line) \
+        as 'values' from (select DATE_FORMAT((FROM_UNIXTIME(epoch/1000)), '%Y-%m-%d-%H') as date_hour, \
+        line, avg(if (current > 0, current, 0)) as current \
+        from power_data where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -2 DAY)) * 1000 \
+        GROUP by date_hour, line ) t group by epoch",
         (err, result, fields) => {
           if (err) {
             res.json({ status: "Error", data: err.stack });
