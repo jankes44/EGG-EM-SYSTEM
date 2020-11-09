@@ -74,6 +74,59 @@ export default function buildings(props) {
     return result;
   };
 
+  const updateDevice = async (updateData) => {
+    let result = await axios({
+      //Axios POST request
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      url: global.BASE_URL + "/api/lights/edit/single/" + updateData.id,
+      data: {
+        device_id: updateData.device_id,
+        node_id: updateData.node_id,
+        type: updateData.type,
+      },
+      timeout: 0,
+    });
+    return result;
+  };
+
+  const addDevice = async (updateData) => {
+    let result = await axios({
+      //Axios POST request
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      url: global.BASE_URL + "/api/lights/add",
+      data: {
+        device_id: updateData.device_id,
+        node_id: updateData.node_id,
+        type: updateData.type,
+        levels_id: props.clickedLevel,
+      },
+      timeout: 0,
+    });
+    return result;
+  };
+
+  const deleteDevice = async (data) => {
+    let result = await axios({
+      //Axios POST request
+      method: "delete",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      url: global.BASE_URL + "/api/lights/" + data.id,
+      timeout: 0,
+    });
+    return result;
+  };
+
   const editable = {
     onBulkUpdate: (changes) =>
       new Promise((resolve, reject) => {
@@ -85,21 +138,27 @@ export default function buildings(props) {
       }),
     onRowAdd: (newData) =>
       new Promise((resolve, reject) => {
-        setTimeout(() => {
+        addDevice(newData).then((res) => {
+          console.log(res);
+          props.handleEditDevice(newData, {}, "add");
           resolve();
-        }, 1000);
+        });
       }),
     onRowUpdate: (newData, oldData) =>
       new Promise((resolve, reject) => {
-        setTimeout(() => {
+        updateDevice(newData).then((res) => {
+          console.log(res);
+          props.handleEditDevice(newData, oldData, "update");
           resolve();
-        }, 1000);
+        });
       }),
     onRowDelete: (oldData) =>
       new Promise((resolve, reject) => {
-        setTimeout(() => {
+        deleteDevice(oldData).then((res) => {
+          console.log(res);
+          props.handleEditDevice({}, oldData, "delete");
           resolve();
-        }, 1000);
+        });
       }),
   };
 

@@ -252,6 +252,30 @@ export default class SiteSetup extends React.Component {
     this.refresh();
   };
 
+  handleEditDevice = (newData, oldData, action) => {
+    switch (action) {
+      case "add":
+        newData.levels_id = this.state.clickedLevel;
+        this.setState({ devices: [...this.state.devices, newData] });
+        break;
+
+      case "update":
+        const dataUpdate = [...this.state.devices];
+        const index = oldData.tableData.id;
+        dataUpdate[index] = newData;
+        this.setState({ devices: [...dataUpdate] });
+        break;
+
+      case "delete":
+        const dataDelete = [...this.state.devices];
+        const indexDel = oldData.tableData.id;
+        dataDelete.splice(indexDel, 1);
+        this.setState({ devices: [...dataDelete] });
+        break;
+    }
+    this.refresh();
+  };
+
   bulkEditDevices = (changes) => {
     const updateData = Object.keys(changes).map((i) => changes[i]);
     console.log(updateData);
@@ -262,6 +286,7 @@ export default class SiteSetup extends React.Component {
       dataUpdate[index] = el.newData;
     });
     this.setState({ devices: [...dataUpdate] });
+    this.refresh();
   };
 
   handleAddEmptyDevices = () => {};
@@ -543,6 +568,8 @@ export default class SiteSetup extends React.Component {
               devices={this.state.devices}
               addEmpty={this.addEmpty}
               bulkEditDevices={this.bulkEditDevices}
+              handleEditDevice={this.handleEditDevice}
+              clickedLevel={clickedLevel}
             />
           </GridItem>
         ) : null}

@@ -196,17 +196,39 @@ router.get("/:uid", auth, (req, res) =>
       }
     })
   ),
-  router.post("/addempty/:amount", auth, function (req, res) {
+  router.post("/add", auth, function (req, res) {
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {
         res.sendStatus(403);
       } else {
-        console.log("Add", req.params.amount, "empty devices");
-
-        res.sendStatus(200);
+        con.query(
+          "INSERT INTO lights SET ?",
+          [
+            {
+              device_id: req.body.device_id,
+              node_id: req.body.node_id,
+              type: req.body.type,
+            },
+          ],
+          (err, results) => {
+            if (err) res.send(err).status(400);
+            res.sendStatus(200);
+          }
+        );
       }
     });
   });
+router.post("/addempty/:amount", auth, function (req, res) {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      console.log("Add", req.params.amount, "empty devices");
+
+      res.sendStatus(200);
+    }
+  });
+});
 
 router.post("/edit/many", auth, function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
@@ -256,6 +278,31 @@ router.post("/bulkedit", auth, function (req, res) {
   });
 });
 
+router.post("/edit/single/:id", auth, function (req, res) {
+  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
+    if (err) {
+      res.sendStatus(403);
+    } else {
+      con.query(
+        "UPDATE lights SET ? WHERE id=?",
+        [
+          {
+            device_id: req.body.device_id,
+            node_id: req.body.node_id,
+            type: req.body.type,
+            levels_id: req.body.levels_id,
+          },
+          req.params.id,
+        ],
+        function (error, results, fields) {
+          if (error) throw error;
+          res.end(JSON.stringify(results));
+        }
+      );
+    }
+  });
+});
+
 router.post("/edit/:id", auth, function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
@@ -297,23 +344,11 @@ router.delete("/:id", auth, function (req, res) {
       res.sendStatus(403);
     } else {
       con.query(
-        "SELECT * FROM `lights` WHERE `id`=?",
+        "DELETE FROM lights WHERE id = ?",
         [req.params.id],
         (err, results) => {
-          if (results.length) {
-            con.query(
-              "DELETE FROM `lights` WHERE `id`=?",
-              [req.params.id],
-              function (error, results, fields, rows, id) {
-                if (error) throw error;
-                res.end(JSON.stringify(results));
-                console.log("Deleted device id " + req.params.id);
-              }
-            );
-          } else {
-            console.log(`Device ${req.params.id} doesn't exist`);
-            res.end(JSON.stringify(results));
-          }
+          if (err) throw err;
+          res.sendStatus(200);
         }
       );
     }
