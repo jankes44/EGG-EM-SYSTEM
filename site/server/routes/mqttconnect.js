@@ -1,6 +1,6 @@
 var awsIot = require("aws-iot-device-sdk");
 var path = require("path");
-var mqtt = require("mqtt");
+const { AsyncClient } = require("async-mqtt");
 
 // LIVE CONFIG
 var device = awsIot.device({
@@ -12,7 +12,11 @@ var device = awsIot.device({
   protocol: "mqtts",
   keepAlive: 0,
 });
+
+device = new AsyncClient(device);
+
 var topic = "LIVESPRSP";
+
 
 // //DEV CONFIG
 // var device = awsIot.device({
@@ -35,7 +39,7 @@ var topic = "LIVESPRSP";
 
 device.on("connect", () => {
   console.log("Mqtt connected");
-  device.subscribe(topic);
+  await device.subscribe(topic);
 });
 
 device.on("reset", () => {

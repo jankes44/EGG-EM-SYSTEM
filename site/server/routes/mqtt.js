@@ -169,6 +169,7 @@ const noResponseTimeout = 15000;
 //   checkSiteState();
 // });
 
+//to send message to device
 const pubHandle = (cmd, deviceId, counter, messages, topic, user) => {
   return new Promise((resolve, reject) => {
     const usersDevices = findUsersTest(user).devices;
@@ -268,7 +269,6 @@ async function checkDeviceState(counter, topic, deviceId, user, type) {
     let received = false;
     const command = type === "led" ? "10038205000096" : "10018201000096";
     device.publish(
-      //publish cut power command
       topic,
       `${deviceId}${command}`,
       { qos: 1 },

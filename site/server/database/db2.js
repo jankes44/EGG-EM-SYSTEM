@@ -1,6 +1,6 @@
-var mysql = require("mysql");
+var mysql = require("promise-mysql");
 //connection details
-var con = mysql.createPool({
+var con = await mysql.createPool({
   connectionLimit: 10,
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
