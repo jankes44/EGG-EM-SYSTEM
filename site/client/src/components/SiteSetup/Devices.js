@@ -127,7 +127,7 @@ export default function buildings(props) {
     return result;
   };
 
-  const editable = {
+  let editable = {
     onBulkUpdate: (changes) =>
       new Promise((resolve, reject) => {
         bulkEdit(changes).then((res) => {
@@ -162,7 +162,7 @@ export default function buildings(props) {
       }),
   };
 
-  const actions = [
+  let actions = [
     {
       icon: "add",
       tooltip: "Add 5 empty",
@@ -170,6 +170,11 @@ export default function buildings(props) {
       onClick: (event) => addEmpty(),
     },
   ];
+
+  if (!props.editable) {
+    editable = {};
+    actions = [];
+  }
 
   return (
     <MaterialTable
@@ -182,28 +187,5 @@ export default function buildings(props) {
       editable={editable}
       actions={actions}
     />
-    // <div>
-    //   <ToolkitProvider
-    //     keyField="id"
-    //     data={props.devices}
-    //     columns={columns}
-    //     search
-    //   >
-    //     {(props) => (
-    //       <div>
-    //         <SearchBar {...props.searchProps} />
-    //         <hr />
-    //         <BootstrapTable
-    //           {...props.baseProps}
-    //           noDataIndication={() => <NoDataIndication />}
-    //           rowStyle={{ cursor: "pointer" }}
-    //           rowEvents={rowEvents}
-    //           hover
-    //           wrapperClasses="table-responsive"
-    //         />
-    //       </div>
-    //     )}
-    //   </ToolkitProvider>
-    // </div>
   );
 }

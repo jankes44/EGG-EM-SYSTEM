@@ -84,6 +84,7 @@ export default function LiveFloorPlan(props) {
   const [devices, setDevices] = React.useState("");
   const [activeDrags, setActiveDrags] = React.useState(0);
   const [success, setSuccess] = React.useState(false);
+  const [selectedFile, setSelectedFile] = React.useState();
 
   const openContextMenu = (event, deviceId) => {
     const token = localStorage.usertoken;
@@ -194,6 +195,39 @@ export default function LiveFloorPlan(props) {
     setActiveDrags(activeDrags - 1);
   };
 
+  const uploadFP = (event) => {
+    const selectedFile = event.target.files[0];
+    var idxDot = selectedFile.name.lastIndexOf(".") + 1;
+    var extFile = selectedFile.name
+      .substr(idxDot, selectedFile.name.length)
+      .toLowerCase();
+    // eslint-disable-next-line
+    if (extFile == "jpg" || extFile == "jpeg") {
+      //do whatever want to do
+
+      setSelectedFile(event.target.files[0]);
+
+      const data = new FormData();
+      data.append("level", props.clickedLevel);
+      data.append("file", event.target.files[0]);
+
+      axios
+        .post(global.BASE_URL + "/api/levels/testUpload", data, {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            Authorization: "Bearer " + localStorage.usertoken,
+          },
+          responseType: "blob",
+        })
+        .then((response) => {
+          console.log(URL.createObjectURL(response.data));
+          setFloorplanURL(URL.createObjectURL(response.data));
+        });
+    } else {
+      alert("Only jpg/jpeg files are allowed");
+    }
+  };
+
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
   const dragHandlers = { onStart: onStart, onStop: onStop };
@@ -209,199 +243,210 @@ export default function LiveFloorPlan(props) {
           <p style={{ float: "right" }}></p>
         </Typography>
       </div>
-      <div style={{ overflow: "hidden", width: "100%", height: "90vh" }}>
+      <div
+        style={{
+          overflowX: "scroll",
+          width: "100%",
+          height: "90vh",
+          border: "1pt solid black",
+        }}
+      >
         <div
           // src={this.state.objectURL}
           style={{
-            height: "100%",
-            width: "100%",
-            border: "1pt solid black",
+            height: "700px",
+            width: "1000px",
             backgroundRepeat: "no-repeat",
             backgroundSize: "contain",
             backgroundImage: `url(${floorplanURL})`,
           }}
           alt="Third Level"
         >
-          <div style={{ width: "100%", height: "110vh" }}>
+          <div style={{ width: "100%", height: "100%", position: "relative" }}>
             {liveDevices_.length > 0 ? (
               !floorplanNotFound ? (
                 <div></div>
               ) : (
-                <div>No floorplan </div>
+                <div>
+                  <Typography variant="h6" gutterBottom>
+                    Upload (only .jpg file extension)
+                  </Typography>
+                  <input
+                    type="file"
+                    accept=".jpg"
+                    onChange={uploadFP}
+                    name="upload"
+                  />
+                </div>
               )
             ) : (
-              <div>No devices </div>
+              <Typography variant="h4" gutterBottom>
+                No devices{" "}
+              </Typography>
             )}
-            {liveDevices_.length > 0 && !floorplanNotFound ? (
-              liveDevices_.map((el, index) => {
-                let color;
+            {liveDevices_.length > 0 && !floorplanNotFound
+              ? liveDevices_.map((el, index) => {
+                  let color;
 
-                switch (el.status) {
-                  case "OK":
-                    color = "#4fa328";
-                    break;
-                  case "No connection to driver":
-                    color = "orange";
-                    break;
-                  case "Battery powered/under test":
-                    color = "blue";
-                    setInterval(() => {
-                      color = "grey";
-                    }, 1000);
-                    setInterval(() => {
+                  switch (el.status) {
+                    case "OK":
+                      color = "#4fa328";
+                      break;
+                    case "No connection to driver":
+                      color = "orange";
+                      break;
+                    case "Battery powered/under test":
                       color = "blue";
-                    }, 2000);
-                    break;
-                  case "Weak connection to Mesh":
-                    color = "#F50158";
-                    break;
-                  case "Battery disconnected":
-                    color = "purple";
-                    break;
-                  default:
-                    color = "grey";
-                    break;
-                }
+                      setInterval(() => {
+                        color = "grey";
+                      }, 1000);
+                      setInterval(() => {
+                        color = "blue";
+                      }, 2000);
+                      break;
+                    case "Weak connection to Mesh":
+                      color = "#F50158";
+                      break;
+                    case "Battery disconnected":
+                      color = "purple";
+                      break;
+                    default:
+                      color = "grey";
+                      break;
+                  }
 
-                let blink =
-                  el.status === "Battery powered/under test"
-                    ? classes.blink
-                    : null;
+                  let blink =
+                    el.status === "Battery powered/under test"
+                      ? classes.blink
+                      : null;
 
-                return (
-                  <Draggable
-                    key={el.id}
-                    position={{
-                      x: el.fp_coordinates_left,
-                      y: el.fp_coordinates_bot,
-                    }}
-                    onDrag={(e, ui) => handleDrag(e, ui, index, el.id)}
-                    {...dragHandlers}
-                    onStart={onStart}
-                    onStop={onStop}
-                    grid={[5, 5]}
-                    bounds={"parent"}
-                  >
-                    <div
-                      style={{
-                        width: "0px",
-                        height: "0px",
-                        position: "relative",
+                  return (
+                    <Draggable
+                      key={el.id}
+                      position={{
+                        x: el.fp_coordinates_left,
+                        y: el.fp_coordinates_bot,
                       }}
+                      onDrag={(e, ui) => handleDrag(e, ui, index, el.id)}
+                      {...dragHandlers}
+                      onStart={onStart}
+                      onStop={onStop}
+                      grid={[5, 5]}
+                      bounds={"parent"}
                     >
-                      <Icon
-                        className={blink}
+                      <div
                         style={{
-                          fontSize: "4em",
-                          position: "absolute",
-                          cursor: "move",
-                          color: color,
+                          width: "0px",
+                          height: "0px",
+                          position: "relative",
                         }}
-                        onClick={(e) => openContextMenu(e, el.id)}
-                        onMouseEnter={(e) => handleHover(e, el.id)}
-                        onMouseLeave={handleClose}
-                        onTouchStart={(e) => handleHover(e, el.id)}
-                        onTouchEnd={handleClose}
                       >
-                        location_on
-                      </Icon>
-                      {/* )} */}
-
-                      <Dialog
-                        open={openedContextMenu === el.id}
-                        onClose={handleCloseContextMenu}
-                        aria-labelledby="form-dialog-title"
-                      >
-                        <DialogTitle id="form-dialog-title">
-                          {`${el.device_id} - ${el.type} - ${el.node_id}`}
-                        </DialogTitle>
-                        <DialogContent>
-                          <DialogContentText>
-                            Status: {el.status}
-                          </DialogContentText>
-                          <DialogContentText>
-                            {el.comment ? (
-                              <span>
-                                Comment: <i>{el.comment}</i>
-                              </span>
-                            ) : (
-                              <i>No comment</i>
-                            )}
-                          </DialogContentText>
-                          <TextField
-                            className={classes.textField}
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Add comment"
-                            type="text"
-                            onChange={onChange}
-                          />
-                          <IconButton
-                            onClick={() => props.addComment(el.id, comment)}
-                            color="primary"
-                          >
-                            <Icon>add_comment</Icon>
-                          </IconButton>
-                          <IconButton
-                            onClick={() => props.addComment(el.id, "")}
-                            color="secondary"
-                          >
-                            <Icon>delete</Icon>
-                          </IconButton>
-                        </DialogContent>
-                        <DialogActions>
-                          <Button onClick={() => checkConnectivity(el.id)}>
-                            test connectivity
-                          </Button>
-                          <Button
-                            onClick={handleCloseContextMenu}
-                            color="primary"
-                          >
-                            close
-                          </Button>
-                        </DialogActions>
-                      </Dialog>
-
-                      {activeDrags < 1 ? (
-                        <Popover
-                          id={id}
-                          open={openedPopoverId === el.id}
-                          anchorEl={anchorEl}
-                          style={{ pointerEvents: "none" }} //important
-                          anchorOrigin={{
-                            vertical: "bottom",
-                            horizontal: "center",
+                        <Icon
+                          className={blink}
+                          style={{
+                            fontSize: "4em",
+                            position: "absolute",
+                            cursor: "move",
+                            color: color,
                           }}
-                          transformOrigin={{
-                            vertical: "top",
-                            horizontal: "center",
-                          }}
+                          onClick={(e) => openContextMenu(e, el.id)}
+                          onMouseEnter={(e) => handleHover(e, el.id)}
+                          onMouseLeave={handleClose}
+                          onTouchStart={(e) => handleHover(e, el.id)}
+                          onTouchEnd={handleClose}
                         >
-                          <div>
-                            <Typography className={classes.typography}>
-                              {`${el.device_id} - ${el.type} - ${el.node_id}`}
-                            </Typography>
-                          </div>
-                          <div>
-                            <Typography className={classes.typography}>
+                          location_on
+                        </Icon>
+                        {/* )} */}
+
+                        <Dialog
+                          open={openedContextMenu === el.id}
+                          onClose={handleCloseContextMenu}
+                          aria-labelledby="form-dialog-title"
+                        >
+                          <DialogTitle id="form-dialog-title">
+                            {`${el.device_id} - ${el.type} - ${el.node_id}`}
+                          </DialogTitle>
+                          <DialogContent>
+                            <DialogContentText>
                               Status: {el.status}
-                            </Typography>
-                          </div>
-                        </Popover>
-                      ) : null}
-                    </div>
-                  </Draggable>
-                );
-              })
-            ) : (
-              <div>
-                <h5>{floorplanNotFound}</h5>
-                <Button variant="contained" color="primary">
-                  UPLOAD
-                </Button>
-              </div>
-            )}
+                            </DialogContentText>
+                            <DialogContentText>
+                              {el.comment ? (
+                                <span>
+                                  Comment: <i>{el.comment}</i>
+                                </span>
+                              ) : (
+                                <i>No comment</i>
+                              )}
+                            </DialogContentText>
+                            <TextField
+                              className={classes.textField}
+                              autoFocus
+                              margin="dense"
+                              id="name"
+                              label="Add comment"
+                              type="text"
+                              onChange={onChange}
+                            />
+                            <IconButton
+                              onClick={() => props.addComment(el.id, comment)}
+                              color="primary"
+                            >
+                              <Icon>add_comment</Icon>
+                            </IconButton>
+                            <IconButton
+                              onClick={() => props.addComment(el.id, "")}
+                              color="secondary"
+                            >
+                              <Icon>delete</Icon>
+                            </IconButton>
+                          </DialogContent>
+                          <DialogActions>
+                            <Button onClick={() => checkConnectivity(el.id)}>
+                              test connectivity
+                            </Button>
+                            <Button
+                              onClick={handleCloseContextMenu}
+                              color="primary"
+                            >
+                              close
+                            </Button>
+                          </DialogActions>
+                        </Dialog>
+
+                        {activeDrags < 1 ? (
+                          <Popover
+                            id={id}
+                            open={openedPopoverId === el.id}
+                            anchorEl={anchorEl}
+                            style={{ pointerEvents: "none" }} //important
+                            anchorOrigin={{
+                              vertical: "bottom",
+                              horizontal: "center",
+                            }}
+                            transformOrigin={{
+                              vertical: "top",
+                              horizontal: "center",
+                            }}
+                          >
+                            <div>
+                              <Typography className={classes.typography}>
+                                {`${el.device_id} - ${el.type} - ${el.node_id}`}
+                              </Typography>
+                            </div>
+                            <div>
+                              <Typography className={classes.typography}>
+                                Status: {el.status}
+                              </Typography>
+                            </div>
+                          </Popover>
+                        ) : null}
+                      </div>
+                    </Draggable>
+                  );
+                })
+              : null}
           </div>
         </div>
       </div>

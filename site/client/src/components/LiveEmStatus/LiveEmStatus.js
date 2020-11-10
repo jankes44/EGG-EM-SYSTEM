@@ -9,6 +9,9 @@ import "bootstrap/dist/css/bootstrap.css";
 import Skeleton from "@material-ui/lab/Skeleton";
 import Overwatch from "components/LiveEmStatus/Overwatch";
 import Devices from "components/SiteSetup/Devices";
+import MaterialTable from "material-table";
+import Buildings from "components/SiteSetup/Buildings";
+import Levels from "components/SiteSetup/Levels";
 
 function NoDataIndication() {
   return (
@@ -38,25 +41,25 @@ export default function LiveEmStatus() {
   const [clickedBuilding, setClickedBuilding] = React.useState(null);
   const [clickedGroup, setClickedGroup] = React.useState(null);
 
-  //BOOTSTRAP TABLE VARS
-  const { SearchBar } = Search;
+  //material table columns
   const columns = [
     {
-      dataField: "id",
-      text: "ID",
+      field: "buildings_id",
+      title: "ID",
       hidden: true,
     },
     {
-      dataField: "building",
-      text: "Building",
+      field: "building",
+      title: "Building",
     },
     {
-      dataField: "address",
-      text: "Address",
+      field: "address",
+      title: "Address",
     },
     {
-      dataField: "devices",
-      text: "Luminaires",
+      field: "devices",
+      title: "Luminaires count",
+      editable: "never",
     },
   ];
 
@@ -76,6 +79,31 @@ export default function LiveEmStatus() {
         }, 500);
       });
     }
+  };
+
+  const handleClickBuilding = (event, rowData) => {
+    const index = buildings.indexOf(rowData);
+    const row = buildings[index];
+
+    setStage(2);
+    setClickedBuilding(row.buildings_id);
+    callLevels(row.buildings_id).then((res) => {
+      console.log(res);
+      setLevels(res.data);
+      setBackDisabled(false);
+    });
+  };
+
+  const handleClickLevel = (event, rowData) => {
+    const index = levels.indexOf(rowData);
+    const row = levels[index];
+    setStage(3);
+    setClickedLevel(row.id);
+    callDevices(row.id).then((res) => {
+      console.log(res);
+      setDevices(res.data);
+      setBackDisabled(false);
+    });
   };
 
   const callSites = () => {
@@ -119,9 +147,9 @@ export default function LiveEmStatus() {
     return data;
   };
 
-  const callLevels = async (siteID) => {
+  const callLevels = async (buildingID) => {
     const data = await axios.get(
-      global.BASE_URL + "/api/levels/site/" + siteID,
+      global.BASE_URL + "/api/levels/building/" + buildingID,
       {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
@@ -260,7 +288,7 @@ export default function LiveEmStatus() {
           <Icon style={{ transform: "rotate(-90deg)" }}>navigation</Icon>
         </Fab>
       </GridItem>
-      {stage === 1 ? (
+      {/* {stage === 1 ? (
         <ToolkitProvider
           keyField="buildings_id"
           data={buildings}
@@ -284,8 +312,29 @@ export default function LiveEmStatus() {
             </div>
           )}
         </ToolkitProvider>
+      ) : null} */}
+      {stage === 1 ? (
+        <Buildings
+          buildings={buildings}
+          handleClickBuilding={handleClickBuilding}
+          clickedBuilding={clickedBuilding}
+          handleEditBuilding={() => {}}
+          clickedSite={clickedSite}
+          editable={false}
+        />
       ) : null}
-      {stage === 2 && clickedLevel ? (
+      {stage === 2 ? (
+        <Levels
+          levels={levels}
+          callLevels={callLevels}
+          handleClickLevel={handleClickLevel}
+          clickedLevel={clickedLevel}
+          handleEditLevel={() => {}}
+          clickedBuilding={clickedBuilding}
+          editable={false}
+        />
+      ) : null}
+      {stage === 3 && clickedLevel ? (
         <div>
           <div style={{ margin: "15px" }}>
             <Overwatch
@@ -295,7 +344,7 @@ export default function LiveEmStatus() {
               setClickedGroup={setClickedLgtGroup}
             />
           </div>
-          <Devices level={clickedLevel} devices={devices} />
+          <Devices level={clickedLevel} devices={devices} editable={false} />
         </div>
       ) : null}
     </div>

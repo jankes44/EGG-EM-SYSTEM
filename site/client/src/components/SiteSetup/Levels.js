@@ -86,7 +86,7 @@ export default function Levels(props) {
     return result;
   };
 
-  const editable = {
+  let editable = {
     onRowAdd: (newData) =>
       new Promise((resolve, reject) => {
         //   setData([...data, newData]);
@@ -120,6 +120,8 @@ export default function Levels(props) {
         });
       }),
   };
+
+  if (!props.editable) editable = {};
 
   return (
     <MaterialTable

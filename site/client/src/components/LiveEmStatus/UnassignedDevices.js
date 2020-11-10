@@ -1,8 +1,8 @@
 import React from "react";
-import BootstrapTable from "react-bootstrap-table-next";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Button from "@material-ui/core/Button";
+import MaterialTable from "material-table";
 
 export default function UnassignedDevices(props) {
   const [devices, setDevices] = React.useState([]);
@@ -34,47 +34,53 @@ export default function UnassignedDevices(props) {
 
   const columns = [
     {
-      dataField: "device_id",
-      text: "Device ID",
+      field: "id",
+      title: "ID",
+      hidden: true,
     },
     {
-      dataField: "node_id",
-      text: "Mesh address",
+      field: "device_id",
+      title: "Device",
     },
     {
-      dataField: "type",
-      text: "Type",
-    },
-    {
-      dataField: "",
-      text: "Actions",
-      formatter: (cell, row, rowIndex) => {
-        return (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              props.assignLight(row);
-              setDevices(devices.filter((el) => el.id !== row.id));
-            }}
-          >
-            Assign to this level
-          </Button>
-        );
+      field: "type",
+      title: "Fitting type",
+      lookup: {
+        "EX-58": "EX-58",
+        "F-51E": "F-51E",
+        "SA-25E": "SA-25E",
+        "S-25AE": "S-25AE",
+        "E-51": "E-51",
+        "EX-51E": "EX-51E",
       },
+    },
+    {
+      field: "node_id",
+      title: "Mesh Address",
+    },
+    {
+      field: "is_assigned",
+      title: "Battery",
+      editable: "never",
+    },
+    {
+      field: "building",
+      title: "Luminance",
+      editable: "never",
     },
   ];
 
   return (
-    <div>
-      <h4>Unassigned Devices</h4>
-
-      <BootstrapTable
-        keyField="id"
-        data={devices}
-        columns={columns}
-        noDataIndication={() => <p>No data</p>}
-      />
-    </div>
+    <MaterialTable
+      columns={columns}
+      onRowClick={(event, rowData) => {
+        const row = devices[devices.indexOf(rowData)];
+        console.log(row);
+        props.assignLight(row);
+        setDevices(devices.filter((el) => el.id !== row.id));
+      }}
+      data={devices}
+      title="Unassigned devices"
+    />
   );
 }

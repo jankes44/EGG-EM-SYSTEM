@@ -81,12 +81,10 @@ router.get("/:uid", auth, (req, res) =>
           LEFT OUTER JOIN
         users ON users.id = users_has_sites.users_id
       WHERE users.id = ? AND lights.is_assigned = 0`,
-          [req.params.uid, req.params.assigned],
+          [req.params.uid],
           (err, rows) => {
             if (err) throw err;
-            if (rows.length) {
-              res.json(rows);
-            } else res.json([]);
+            res.json(rows);
           }
         );
       }
@@ -208,6 +206,7 @@ router.get("/:uid", auth, (req, res) =>
               device_id: req.body.device_id,
               node_id: req.body.node_id,
               type: req.body.type,
+              levels_id: req.body.levels_id,
             },
           ],
           (err, results) => {

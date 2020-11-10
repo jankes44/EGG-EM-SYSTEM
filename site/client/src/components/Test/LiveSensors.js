@@ -84,6 +84,7 @@ export default function LiveFloorPlan(props) {
   const [devices, setDevices] = React.useState("");
   const [activeDrags, setActiveDrags] = React.useState(0);
   const [success, setSuccess] = React.useState(false);
+  const [selectedFile, setSelectedFile] = React.useState();
 
   const openContextMenu = (event, deviceId) => {
     const token = localStorage.usertoken;
@@ -194,6 +195,39 @@ export default function LiveFloorPlan(props) {
     setActiveDrags(activeDrags - 1);
   };
 
+  const uploadFP = (event) => {
+    const selectedFile = event.target.files[0];
+    var idxDot = selectedFile.name.lastIndexOf(".") + 1;
+    var extFile = selectedFile.name
+      .substr(idxDot, selectedFile.name.length)
+      .toLowerCase();
+    // eslint-disable-next-line
+    if (extFile == "jpg" || extFile == "jpeg") {
+      //do whatever want to do
+
+      setSelectedFile(event.target.files[0]);
+
+      const data = new FormData();
+      data.append("level", props.clickedLvl);
+      data.append("file", event.target.files[0]);
+
+      axios
+        .post(global.BASE_URL + "/api/levels/testUpload", data, {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            Authorization: "Bearer " + localStorage.usertoken,
+          },
+          responseType: "blob",
+        })
+        .then((response) => {
+          console.log(URL.createObjectURL(response.data));
+          setFloorplanURL(URL.createObjectURL(response.data));
+        });
+    } else {
+      alert("Only jpg/jpeg files are allowed");
+    }
+  };
+
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
   const dragHandlers = { onStart: onStart, onStop: onStop };
@@ -209,13 +243,12 @@ export default function LiveFloorPlan(props) {
           <p style={{ float: "right" }}></p>
         </Typography>
       </div>
-      <div style={{ overflow: "hidden", width: "100%", height: "90vh" }}>
+      <div style={{ overflowX: "scroll", width: "100%", height: "90vh",border: "1pt solid black" }}>
         <div
           // src={this.state.objectURL}
           style={{
-            height: "100%",
-            width: "100%",
-            border: "1pt solid black",
+            height: "700px",
+            width: "1000px",
             backgroundRepeat: "no-repeat",
             backgroundSize: "contain",
             backgroundImage: `url(${floorplanURL})`,
@@ -396,10 +429,15 @@ export default function LiveFloorPlan(props) {
               })
             ) : (
               <div>
-                <h5>{floorplanNotFound}</h5>
-                <Button variant="contained" color="primary">
-                  UPLOAD
-                </Button>
+                <Typography variant="h6" gutterBottom>
+                  Upload (only .jpg file extension)
+                </Typography>
+                <input
+                  type="file"
+                  accept=".jpg"
+                  onChange={uploadFP}
+                  name="upload"
+                />
               </div>
             )}
           </div>

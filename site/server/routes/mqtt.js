@@ -609,7 +609,7 @@ router.post("/dev/checkconnectivity", auth, (req, res) => {
     if (err) {
       res.sendStatus(403);
     } else {
-      checkDeviceConnectivity(req.body.topic, req.body.device, "led").then(
+      checkDeviceConnectivity("DEVCOMSP", req.body.device, "led").then(
         (result) => {
           res.status(200).send(result);
         }

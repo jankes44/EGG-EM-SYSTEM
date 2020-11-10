@@ -77,7 +77,7 @@ export default function buildings(props) {
     return result;
   };
 
-  const editable = {
+  let editable = {
     onRowAdd: (newData) =>
       new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -117,6 +117,8 @@ export default function buildings(props) {
         }, 1000);
       }),
   };
+
+  if (!props.editable) editable = {};
 
   return (
     <MaterialTable

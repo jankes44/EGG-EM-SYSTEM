@@ -179,6 +179,7 @@ router.post("/floorplan/upload/:id", auth, function (req, res) {
 router.post("/testUpload", function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     upload(req, res, function (err) {
+      console.log(req.body);
       if (err instanceof multer.MulterError) {
         console.log(err);
         return res.status(500).json(err);

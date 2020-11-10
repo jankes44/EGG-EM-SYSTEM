@@ -528,17 +528,8 @@ export default class SiteSetup extends React.Component {
               clickedBuilding={clickedBuilding}
               handleEditBuilding={this.handleEditBuilding}
               clickedSite={clickedSite}
+              editable
             />
-            {createNewBuilding ? (
-              <div style={{ marginLeft: "15px", marginRight: "15px" }}>
-                <NewBuilding
-                  setBuildingName={this.setBuildingName}
-                  clickedSite={clickedSite}
-                  saveNewBuilding={this.saveNewBuilding}
-                  setBuildingAddress={this.setBuildingAddress}
-                />
-              </div>
-            ) : null}
           </GridItem>
         ) : null}
         {stage === 2 ? (
@@ -550,16 +541,8 @@ export default class SiteSetup extends React.Component {
               clickedLevel={clickedLevel}
               handleEditLevel={this.handleEditLevel}
               clickedBuilding={clickedBuilding}
+              editable
             />
-            {createNewLevel ? (
-              <div style={{ marginLeft: "15px", marginRight: "15px" }}>
-                <NewLevel
-                  setLevelName={this.setLevelName}
-                  clickedBuilding={clickedBuilding}
-                  saveNewLevel={this.saveNewLevel}
-                />
-              </div>
-            ) : null}
           </GridItem>
         ) : null}
         {stage === 3 ? (
@@ -570,6 +553,7 @@ export default class SiteSetup extends React.Component {
               bulkEditDevices={this.bulkEditDevices}
               handleEditDevice={this.handleEditDevice}
               clickedLevel={clickedLevel}
+              editable
             />
           </GridItem>
         ) : null}
