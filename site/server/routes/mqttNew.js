@@ -3,7 +3,7 @@ const router = express.Router();
 const { device } = require("./mqttconnect");
 const auth = require("../middleware/auth");
 const jwt = require("jsonwebtoken");
-const con = require("../database/db2");
+const {con, async_con} = require("../database/db2");
 var mqtt = require("mqtt");
 var schedule = require("node-schedule");
 
@@ -135,14 +135,14 @@ async function insertMsg(msg) {
       node_id: msg.slice(13, 17),
       param_data: msg.slice(21, 25),
     };
-    con.query(insertMessage, data)
+    async_con.query(insertMessage, data)
     .catch(err => {throw err})
   }
   
 // DEVICE HELPERS
 const updateDeviceState = (status, id) => {
     console.log("update device state:", status, id);
-    con.query(updateDeviceStateQuery, [status, id])
+    async_con.query(updateDeviceStateQuery, [status, id])
     .then(err => {throw errr})
 }
 
@@ -153,10 +153,10 @@ const startTest = (requestBody, res, userParam) => {
     var devices = requestBody.devices;
     var devicesCopy = [];
     trialTestData = generateTrialTestData(devices.length)
-    con.query(trialTestsInsert, trialTestData)
+    async_con.query(trialTestsInsert, trialTestData)
     .then(result => {
         data = devices.map(d => ({trial_tests_id: result.insertId, lights_id: d.id}))
-        return con.query(trialsTestsLightsInsert, data) 
+        return async_con.query(trialsTestsLightsInsert, data) 
     })
     .then(result => {
             const testId = result.insertId;
@@ -181,7 +181,7 @@ const start = (req, res) => {
       }
 }
 
-const abort = (req, res) => {
+const abort = async (req, res) => {
     req.connection.setTimeout(1000 * 60 * 10);
     console.log(req.params.testid);
 
@@ -233,9 +233,9 @@ const abort = (req, res) => {
     console.log("abort done", counter, length);
     counter = 0;
     const testId = req.params.testid
-    con.query(updateAbortedTest, [testId])
+    async_con.query(updateAbortedTest, [testId])
     .then(() => {
-        devicesLive.forEach((el) => await con.query(updateLightsResults, [el.userInput, testId, el.id]))
+        devicesLive.forEach(async function (el) { await async_con.query(updateLightsResults, [el.userInput, testId, el.id]); })
         res.status(200).send("Test cancelled");
         testInProgress = false;
         liveTest = null 

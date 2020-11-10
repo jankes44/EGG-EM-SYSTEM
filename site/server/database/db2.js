@@ -1,12 +1,16 @@
-var mysql = require("promise-mysql");
-//connection details
-var con = await mysql.createPool({
+const mysql = require("mysql");
+const mysql_async = require("promise-mysql")
+
+const config = {
   connectionLimit: 10,
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_BASE,
-});
+}
+
+//connection details
+var con = mysql.createPool(config);
 
 //make connection
 con.getConnection(function (error) {
@@ -38,5 +42,13 @@ con.on("error", function (err) {
   }
 });
 
+const getAsyncCon = async () => {
+  pool = await mysql_async.createPool(config);
+  await pool.getConnection()
+  return pool;
+ }
+
+ async_con = getAsyncCon()
+
 //export module so other files can use it
-module.exports = con;
+module.exports = {con, async_con}

@@ -37,10 +37,10 @@ var topic = "LIVESPRSP";
 //   device.publish("irjghjhitj45645654", "Express server connected");
 // });
 
-device.on("connect", () => {
-  console.log("Mqtt connected");
-  await device.subscribe(topic);
-});
+device.on("connect", async function () {
+    console.log("Mqtt connected");
+    await device.subscribe(topic);
+  });
 
 device.on("reset", () => {
   console.log("Mqtt reset");
