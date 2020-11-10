@@ -12,6 +12,7 @@ import EditBuilding from "components/SiteSetup/EditBuilding";
 import DeviceEditable from "components/Data/DeviceTableEditable";
 import jwt_decode from "jwt-decode";
 import React from "react";
+import Sensors from "components/SiteSetup/Sensors";
 
 export default class SiteSetup extends React.Component {
   state = {
@@ -19,6 +20,7 @@ export default class SiteSetup extends React.Component {
     buildings: [],
     levels: [],
     devices: [],
+    sensors: [],
     siteName: "",
     stage: 1,
     backDisabled: true,
@@ -178,6 +180,20 @@ export default class SiteSetup extends React.Component {
     return data;
   };
 
+  callSensors = async (levelID) => {
+    const data = await axios.get(
+      global.BASE_URL + "/api/sensors/level/" + levelID,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      }
+    );
+
+    return data;
+  };
+
   /* HANDLERS */
   handleClickBuilding = (event, rowData) => {
     const index = this.state.buildings.indexOf(rowData);
@@ -197,10 +213,19 @@ export default class SiteSetup extends React.Component {
   handleClickLevel = (event, rowData) => {
     const index = this.state.levels.indexOf(rowData);
     const row = this.state.levels[index];
-    this.setState({ stage: 3, clickedLevel: row.id, clickedLevelDetails: row });
+
     this.callDevices(row.id).then((res) => {
       console.log(res);
       this.setState({ devices: res.data, backDisabled: false });
+    });
+    this.callSensors(row.id).then((res) => {
+      console.log(res);
+      this.setState({ sensors: res.data });
+      this.setState({
+        stage: 3,
+        clickedLevel: row.id,
+        clickedLevelDetails: row,
+      });
     });
   };
 
@@ -546,16 +571,27 @@ export default class SiteSetup extends React.Component {
           </GridItem>
         ) : null}
         {stage === 3 ? (
-          <GridItem xs={12}>
-            <Devices
-              devices={this.state.devices}
-              addEmpty={this.addEmpty}
-              bulkEditDevices={this.bulkEditDevices}
-              handleEditDevice={this.handleEditDevice}
-              clickedLevel={clickedLevel}
-              editable
-            />
-          </GridItem>
+          <div>
+            <GridItem xs={12}>
+              <Devices
+                devices={this.state.devices}
+                addEmpty={this.addEmpty}
+                bulkEditDevices={this.bulkEditDevices}
+                handleEditDevice={this.handleEditDevice}
+                clickedLevel={clickedLevel}
+                editable
+              />
+            </GridItem>
+            <GridItem xs={12}>
+              <Sensors
+                devices={this.state.sensors}
+                bulkEditDevices={this.bulkEditDevices}
+                handleEditDevice={this.handleEditDevice}
+                clickedLevel={clickedLevel}
+                editable
+              />
+            </GridItem>
+          </div>
         ) : null}
       </div>
     );

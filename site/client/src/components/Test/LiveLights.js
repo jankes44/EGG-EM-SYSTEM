@@ -136,6 +136,7 @@ export default function LiveFloorPlan(props) {
       },
       timeout: 0,
     }).then((res) => {
+      props.refreshData();
       console.log(res);
     });
   };

@@ -338,6 +338,7 @@ export default function Overwatch(props) {
             liveDevices={lights}
             clickedGroup={props.clickedGroup}
             assignLight={assignLight}
+            refreshData={callLightsFloorplans}
           />
         ) : (
           <LiveSensors
@@ -346,6 +347,7 @@ export default function Overwatch(props) {
             liveDevices={sensors}
             clickedGroup={props.clickedGroup}
             assignLight={assignLight}
+            refreshData={callLightsFloorplans}
           />
         )
       ) : (

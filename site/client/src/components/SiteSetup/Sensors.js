@@ -1,6 +1,4 @@
 import React from "react";
-import NoDataIndication from "components/NoDataIndication/NoDataIndicationTable";
-import Icon from "@material-ui/core/Icon";
 import MaterialTable from "material-table";
 import axios from "axios";
 
@@ -13,26 +11,18 @@ export default function buildings(props) {
     },
     {
       field: "device_id",
-      title: "Device ID",
+      title: "Sensor ID",
     },
     {
-      field: "type",
-      title: "Fitting type",
-      lookup: {
-        "EX-58": "EX-58",
-        "F-51E": "F-51E",
-        "SA-25E": "SA-25E",
-        "S-25AE": "S-25AE",
-        "E-51": "E-51",
-        "EX-51E": "EX-51E",
-      },
+      field: "sensor_type",
+      title: "Sensor type",
     },
     {
       field: "node_id",
       title: "Mesh Address",
     },
     {
-      field: "is_assigned",
+      field: "sensor_is_assigned",
       title: "Battery",
       editable: "never",
     },
@@ -42,20 +32,6 @@ export default function buildings(props) {
       editable: "never",
     },
   ];
-
-  const addEmpty = async (updateData) => {
-    let result = await axios({
-      //Axios POST request
-      method: "post",
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "Bearer " + localStorage.usertoken,
-      },
-      url: global.BASE_URL + "/api/lights/addempty/5",
-      timeout: 0,
-    });
-    return result;
-  };
 
   const bulkEdit = async (updateData) => {
     let result = await axios({
@@ -162,30 +138,19 @@ export default function buildings(props) {
       }),
   };
 
-  let actions = [
-    {
-      icon: "add",
-      tooltip: "Add 5 empty",
-      isFreeAction: true,
-      onClick: (event) => addEmpty(),
-    },
-  ];
-
   if (!props.editable) {
     editable = {};
-    actions = [];
   }
-
+  console.log(props.devices);
   return (
     <MaterialTable
       columns={columns}
       onRowClick={(event, rowData) =>
-        console.log(props.devices[props.devices.indexOf(rowData)])
+        console.log(props.sensors[props.sensors.indexOf(rowData)])
       }
       data={props.devices}
-      title="Devices"
+      title="Sensors"
       editable={editable}
-      actions={actions}
     />
   );
 }

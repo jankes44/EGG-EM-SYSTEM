@@ -71,6 +71,9 @@ export default function LiveEmStatus() {
     if (sites.find((x) => x.sites_id === site) && clickedSite !== site) {
       setTabsDisabled(true);
       setStage(1);
+      setBuildings([]);
+      setLevels([]);
+      setDevices([]);
       callBuildings(site).then((res) => {
         setClickedSite(site);
         setTimeout(() => {
@@ -86,6 +89,7 @@ export default function LiveEmStatus() {
     const row = buildings[index];
 
     setStage(2);
+    setLevels([]);
     setClickedBuilding(row.buildings_id);
     callLevels(row.buildings_id).then((res) => {
       console.log(res);
@@ -98,6 +102,7 @@ export default function LiveEmStatus() {
     const index = levels.indexOf(rowData);
     const row = levels[index];
     setStage(3);
+    setDevices([]);
     setClickedLevel(row.id);
     callDevices(row.id).then((res) => {
       console.log(res);
