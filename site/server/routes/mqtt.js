@@ -407,6 +407,122 @@ durationCounterStart = (counter, topic, user) => {
       var usersDevices = findUsersTest(user).devices;
       usersDevices[counter].duration = usersDevices[counter].duration - 1000;
 
+      var testedDevice = usersDevices[counter]
+      if (testedDevice.duration === 300000 || testedDevice.duration === 3600000 || testedDevice.duration === 9900000){
+        if (testedDevice.has_sensors){
+          testedDevice.sensors.forEach(s => {
+            switch(s.type){
+              case "VBAT": {
+                const sensorId = s.sensor_id
+                const topic = testedDevice.mqtt_topic_out;
+                publishGetState = () => {
+                  device.publish(
+                    topic,
+                    `${sensorId}10038205000096`,
+                    { qos: 1 },
+                    (err) => {
+                      if (err) {
+                        setTimeout(() => {
+                          publishGetState();
+                          console.log("retrying in 5s");
+                        }, 5000);
+                      } else {
+                        console.log("published on:", topic);
+                        var msgTimeout = setTimeout(() => {
+                          console.log("No response");
+                          s.sensor_responded = false
+                        }, 6000);
+                        device.handleMessage = (packet, callback) => {
+                          clearInterval(msgTimeout);
+                          const message = packet.payload.toString("utf8");
+                          const msgSliced = parseInt(`0x${message.slice(21, 25)}`);
+                          let arrayContainsMessage = messages.includes(message);
+                          const msg_node_id = message.slice("13", "17");
+                          const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4);
+                          var el = messages.find((a) => a.includes(msg_node_id));
+      
+                          if (!el) {
+                            insertMsg(message);
+                            messages.push(
+                              `${message} voltage: ${voltage}v`
+                            );
+                            console.log(
+                              message,
+                              msg_node_id,
+                              voltage,
+                              msgSliced
+                            );
+                            s.voltage = voltage
+                            s.sensor_responded = true
+                            callback(packet);
+                          } else {
+                            callback();
+                          }
+                        };
+                      }
+                    }
+                  );
+                };
+                publishGetState();
+              }
+              break 
+              case "LDR": {
+                const sensorId = s.sensor_id
+                const topic = testedDevice.mqtt_topic_out;
+                publishGetState = () => {
+                  device.publish(
+                    topic,
+                    `${sensorId}10038205000096`, //cmd to read ldr sensor
+                    { qos: 1 },
+                    (err) => {
+                      if (err) {
+                        setTimeout(() => {
+                          publishGetState();
+                          console.log("retrying in 5s");
+                        }, 5000);
+                      } else {
+                        console.log("published on:", topic);
+                        var msgTimeout = setTimeout(() => {
+                          console.log("No response");
+                          s.sensor_responded = false
+                        }, 6000);
+                        device.handleMessage = (packet, callback) => {
+                          clearInterval(msgTimeout);
+                          const message = packet.payload.toString("utf8");
+                          const ldrReading = parseInt(
+                            `0x${message.slice(21, 25)}`
+                          ).toFixed(4);
+                          let arrayContainsMessage = messages.includes(message);
+                          const msg_node_id = message.slice("13", "17");
+                          var el = messages.find((a) => a.includes(msg_node_id));
+                          let onOff =
+                            ldrReading > 2000 ? "EM Lamp ON" : "EM Lamp OFF";
+
+                          if (!el) {
+                            insertMsg(message);
+                            messages.push(`${message} ldr: ${ldrReading} ${onOff}`);
+                            console.log(message, msg_node_id, ldrReading);
+                            s.sensor_responded = true 
+                            s.reading = ldrReading
+                            callback(packet);
+                          } else {
+                            callback();
+                          }
+                        };
+                      }
+                    }
+                  );
+                };
+                publishGetState();
+
+              }
+              break 
+            }
+          })
+        }
+
+      }
+
       if (usersDevices[counter].duration === 0) {
         busy = true;
         var messages = [];
@@ -586,7 +702,6 @@ beforeTest = (requestBody, res, userParam) => {
                 el.has_sensors = false
               }
               devicesCopy.push(el)
-              console.log(devicesLive.devices)
             })
           });
           });
@@ -602,8 +717,6 @@ beforeTest = (requestBody, res, userParam) => {
         abort_clicked: 0,
         finish_clicked: 0,
       });
-
-      console.log(devicesLive)
 
       res.send("Devices ready, you can start the test");
     }
