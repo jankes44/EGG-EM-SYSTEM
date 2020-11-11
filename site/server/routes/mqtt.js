@@ -78,7 +78,7 @@ const noResponseTimeout = 15000;
 //           var deviceData = rows;
 //           let counter = 0;
 //           const length = deviceData.length;
-//           var messages = Set();
+//           var messages = new Set();
 
 //           loop = () => {
 //             if (counter < length) {
@@ -260,11 +260,13 @@ async function insertMsg(msg) {
   });
 }
 
-updateDeviceState = (status, id) => {
-  console.log("update device state:", status, id);
+updateDeviceState = (device) => {
+  const status = device.result.size > 0 ? Array.from(device.result).join(',') : "OK"
+  console.log("update device state:", status);
+
   con.query(
     `UPDATE lights SET status = ? WHERE id = ?`,
-    [status, id],
+    [status, device.id],
     (err, res) => {
       if (err) throw err;
     }
@@ -274,7 +276,7 @@ updateDeviceState = (status, id) => {
 async function checkDeviceState(counter, topic, deviceId, user, type) {
   let promise = new Promise((resolve, reject) => {
     var usersDevices = findUsersTest(user).devices;
-    var messages = Set();
+    var messages = new Set();
     let received = false;
     const command = type === "led" ? "10038205000096" : "10018201000096";
     device.publish(
@@ -289,9 +291,9 @@ async function checkDeviceState(counter, topic, deviceId, user, type) {
         var msgTimeout = setTimeout(() => {
           //if no response from device in X seconds, continue the loop
           usersDevices[counter].powercut = 3; //state 3 = no response
+          usersDevices[counter].result.add("Weak connection to mesh")
           updateDeviceState(
-            "Weak connection to Mesh",
-            usersDevices[counter].id
+            usersDevices[counter]
           );
           busy = false;
           resolve("No response");
@@ -301,28 +303,19 @@ async function checkDeviceState(counter, topic, deviceId, user, type) {
           const msgCut = msg.slice(21, 25).toUpperCase();
           console.log(msg, msgCut, counter);
           switch (msgCut) {
-            case "0CCD":
-              updateDeviceState("OK", usersDevices[counter].id);
-              // usersDevices[counter].userInput = "OK";
-              console.log(usersDevices[counter].userInput);
-              break;
-            case "6666":
-              updateDeviceState(
-                "Battery disconnected",
-                usersDevices[counter].id
-              );
-              // usersDevices[counter].userInput = "Battery disconnected";
-              console.log(usersDevices[counter].userInput);
+            case "0CCD": 
+              console.log(usersDevices[counter].result);
+            break;
+            case "6666": 
+              usersDevices[counter].result.add("Battery disconnected")
+              console.log(usersDevices[counter].result);
               break;
             case "7FFF":
-              updateDeviceState(
-                "Battery powered/under test",
-                usersDevices[counter].id
-              );
-              usersDevices[counter].userInput = "Battery powered/under test";
-              console.log(usersDevices[counter].userInput);
+              usersDevices[counter].result.add("Battery powered/under test")
+              console.log(usersDevices[counter].result);
               break;
           }
+          updateDeviceState(usersDevices[counter])
         };
 
         device.handleMessage = (packet, callback) => {
@@ -351,7 +344,7 @@ async function checkDeviceState(counter, topic, deviceId, user, type) {
 
 async function checkDeviceConnectivity(topic, deviceData, type) {
   let promise = new Promise((resolve, reject) => {
-    var messages = Set();
+    var messages = new Set();
     let received = false;
     const command = type === "led" ? "10038205000096" : "10018201000096";
     device.publish(
@@ -363,7 +356,8 @@ async function checkDeviceConnectivity(topic, deviceData, type) {
         console.log("state check: " + deviceData.id);
 
         var msgTimeout = setTimeout(() => {
-          updateDeviceState("Weak connection to Mesh", deviceData.id);
+          deviceData.result.add("Weak connection to Mesh")
+          updateDeviceState(deviceData);
           busy = false;
           resolve("No response");
         }, noResponseTimeout);
@@ -372,19 +366,19 @@ async function checkDeviceConnectivity(topic, deviceData, type) {
           const msgCut = msg.slice(21, 25).toUpperCase();
           console.log(msg, msgCut);
           switch (msgCut) {
-            case "0CCD":
-              updateDeviceState("OK", deviceData.id);
-              // usersDevices[counter].userInput = "OK";
-              break;
-            case "6666":
-              updateDeviceState("Battery disconnected", deviceData.id);
-              // usersDevices[counter].userInput = "Battery disconnected";
+            case "0CCD": 
+              console.log(usersDevices[counter].result);
+            break;
+            case "6666": 
+              usersDevices[counter].result.add("Battery disconnected")
+              console.log(usersDevices[counter].result);
               break;
             case "7FFF":
-              updateDeviceState("Battery powered/under test", deviceData.id);
-              // usersDevices[counter].userInput = "Battery powered/under test";
+              usersDevices[counter].result.add("Battery powered/under test")
+              console.log(usersDevices[counter].result);
               break;
           }
+          updateDeviceState(usersDevices[counter])
         };
 
         device.handleMessage = (packet, callback) => {
@@ -418,8 +412,8 @@ durationCounterStart = (counter, topic, user, testType) => {
         usersDevices[counter].duration = usersDevices[counter].duration - 1000;
 
         var testedDevice = usersDevices[counter];
-        if (testedDevice.duration === testCheckpointsTime[testType][0]|| testedDevice.duration === testCheckpointsTime[testType][1] || testedDevice.duration === testCheckpointsTime[testType][1]) {
-          var messages = Set()
+        if (testedDevice.duration === testCheckpointsTime[testType][0] || testedDevice.duration === testCheckpointsTime[testType][1] || testedDevice.duration === testCheckpointsTime[testType][2]) {
+          var messages = new Set()
           if (testedDevice.has_sensors) {
             testedDevice.sensors.forEach(s => {
               switch (s.type) {
@@ -442,6 +436,8 @@ durationCounterStart = (counter, topic, user, testType) => {
                           var msgTimeout = setTimeout(() => {
                             console.log("No response");
                             s.sensor_responded = false;
+                            testedDevice.result.add("Weak connection to mesh")
+                            updateDeviceState(testedDevice)
                           }, 6000);
                           device.handleMessage = (packet, callback) => {
                             clearInterval(msgTimeout);
@@ -464,6 +460,10 @@ durationCounterStart = (counter, topic, user, testType) => {
                               );
                               s.voltage = voltage;
                               s.sensor_responded = true;
+                              if (voltage > 3 || voltage < 2){
+                                testedDevice.result.add("Battery fault")
+                                updateDeviceState(testedDevice)
+                              } //TODO check with Nicola
                               callback(packet);
                             } else {
                               callback();
@@ -496,6 +496,9 @@ durationCounterStart = (counter, topic, user, testType) => {
                           var msgTimeout = setTimeout(() => {
                             console.log("No response");
                             s.sensor_responded = false;
+                            testedDevice.result.add("Weak connection to mesh")
+                            updateDeviceState(testedDevice)
+
                           }, 6000);
                           device.handleMessage = (packet, callback) => {
                             clearInterval(msgTimeout);
@@ -505,7 +508,19 @@ durationCounterStart = (counter, topic, user, testType) => {
                             ).toFixed(4);
                             const msg_node_id = message.slice("13", "17");
                             var el = setFind(messages, a => a.includes(msg_node_id));
-                            let onOff = ldrReading > 3000 ? "EM Lamp ON" : "EM Lamp OFF";
+                            let onOff
+                            if (ldrReading > 3000){
+                              onOff = "EM Lamp ON"
+                            }
+                            else {
+                              onOff = "EM Lamp OFF"
+                              if (testedDevice.duration === testCheckpointsTime[testType][0]){
+                                testedDevice.result.add("Lamp Fault")
+                              }
+                              testedDevice.result.add("Battery Fault")
+                            }
+                            
+                            updateDeviceState(testedDevice)
 
                             if (!el) {
                               insertMsg(message);
@@ -533,7 +548,7 @@ durationCounterStart = (counter, topic, user, testType) => {
         }
         if (usersDevices[counter].duration === 0) {
           busy = true;
-          var messages = Set()
+          var messages = new Set()
           var timeout = setTimeout(() => {
             if (testInProgress) {
               var deviceId = usersDevices[counter].node_id;
@@ -603,7 +618,7 @@ cutPowerSingle = (res, req, user) => {
     const deviceId = usersDevices[deviceIndex].node_id;
     const topic = usersDevices[deviceIndex].mqtt_topic_out;
 
-    var messages = Set();
+    var messages = new Set();
 
     console.log(`${deviceId}: MAIN OFF`);
     if (usersDevices[deviceIndex].powercut === 0) {
@@ -632,7 +647,7 @@ cutPowerAll = (res, user) => {
   usersTest.cut_all_clicked = 1;
   usersTest.abort_clicked = 1;
 
-  var messages = Set();
+  var messages = new Set();
 
   console.log(length);
 
@@ -699,7 +714,7 @@ beforeTest = (requestBody, res, userParam) => {
             el.duration = testTime[testType];
             el.durationStart = testTime[testType];
             el.user = requestBody.user;
-            el.userInput = "";
+            el.result = new Set();
             el.testid = result.insertId;
 
             con.query("select s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ?",
@@ -776,7 +791,7 @@ router.post("/aborttest/:testid", auth, (req, res) => {
       let counter = 0;
       let deviceId;
       const length = usersDevices.length;
-      var messages = Set();
+      var messages = new Set();
       usersTest.abort_clicked = 1;
 
       loop = () => {
@@ -837,7 +852,7 @@ router.post("/aborttest/:testid", auth, (req, res) => {
               devicesLive.forEach((el) => {
                 con.query(
                   "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?",
-                  [el.userInput, req.params.testid, el.id]
+                  [Array.from(el.result).join(','), req.params.testid, el.id]
                 );
               });
               setTimeout(() => {
@@ -870,7 +885,7 @@ router.post("/savetest/:testid", auth, (req, res) => {
 
       let counter = 0;
       let deviceId;
-      var messages = Set();
+      var messages = new Set();
       var user = req.body.user;
       var usersTest = findUsersTest(user);
       var usersDevices = usersTest.devices;
@@ -940,7 +955,7 @@ router.post("/savetest/:testid", auth, (req, res) => {
               usersDevices.forEach((el) => {
                 con.query(
                   "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?",
-                  [el.userInput, req.params.testid, el.id]
+                  [Array.from(el.result).join(','), req.params.testid, el.id]
                 );
               });
               setTimeout(() => {
@@ -1012,13 +1027,16 @@ router.get("/testinfo/:uid", auth, (req, res) => {
     } else {
       var usersTest = findUsersTest(req.params.uid);
 
+      console.log("1")
       if (usersTest) {
+        console.log("2")
         var hasAccess = false;
         if (typeof usersTest !== "undefined" && testInProgress) {
           if (
             parseInt(usersTest.user_id) === parseInt(req.params.uid) ||
             !testInProgress
           ) {
+            console.log("3")
             hasAccess = true;
           }
         }
@@ -1036,7 +1054,7 @@ router.get("/testinfo/:uid", auth, (req, res) => {
 });
 
 //device result user input
-router.post("/userinput/:id", auth, (req, res) => {
+router.post("/result/:id", auth, (req, res) => {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
       res.sendStatus(403);
@@ -1045,8 +1063,10 @@ router.post("/userinput/:id", auth, (req, res) => {
       var deviceIndex = usersDevices.findIndex(
         (x) => parseInt(x.id) === parseInt(req.params.id)
       );
-      usersDevices[deviceIndex].userInput = req.body.userInput;
+      if (!usersDevices[deviceIndex].has_sensors){
+      usersDevices[deviceIndex].result = req.body.result;
       console.log(usersDevices[deviceIndex]);
+      }
       res.send(usersDevices);
     }
   });
@@ -1064,8 +1084,8 @@ router.post("/setchecked", auth, (req, res) => {
       // console.log("setchecked", setValue);
       devices.forEach((el) => {
         usersDevices.find((findEl, index) => {
-          if (el.id === findEl.id) {
-            findEl.userInput = setValue;
+          if (el.id === findEl.id && !findEl.has_sensors) {
+            findEl.result = new Set(...setValue);
             // console.log(el.id, findEl.id, index);
           }
         });
@@ -1082,7 +1102,7 @@ router.post("/app/relay/on", auth, (req, res) => {
     } else {
       let received = false;
       let nodeID = req.body.node_id;
-      let messages = Set();
+      let messages = new Set();
 
       device.publish(
         sendTopic2,
@@ -1128,7 +1148,7 @@ router.post("/app/relay/off", auth, (req, res) => {
     } else {
       let received = false;
       let nodeID = req.body.node_id;
-      let messages = Set();
+      let messages = new Set();
 
       device.publish(
         sendTopic2,
@@ -1174,7 +1194,7 @@ router.post("/app/relay/state", auth, (req, res) => {
     } else {
       let received = false;
       let nodeID = req.body.node_id;
-      let messages = Set();
+      let messages = new Set();
 
       device.publish(
         sendTopic2,
@@ -1231,7 +1251,7 @@ router.post("/dev/relay/on", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
@@ -1294,7 +1314,7 @@ router.post("/dev/relay/off", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
@@ -1357,7 +1377,7 @@ router.post("/dev/relay/state", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
@@ -1426,7 +1446,7 @@ router.post("/dev/led/state", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
@@ -1493,7 +1513,7 @@ router.post("/dev/light/on", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
@@ -1559,7 +1579,7 @@ router.post("/dev/light/off", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
@@ -1654,7 +1674,7 @@ router.post("/dev/ldr", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
@@ -1727,7 +1747,7 @@ router.post("/dev/voltage", auth, (req, res) => {
       var deviceData = req.body.devices;
       let counter = 0;
       const length = deviceData.length;
-      var messages = Set();
+      var messages = new Set();
 
       loop = () => {
         if (counter < length) {
