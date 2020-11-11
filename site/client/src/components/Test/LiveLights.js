@@ -305,7 +305,7 @@ export default function LiveFloorPlan(props) {
                         color = "blue";
                       }, 2000);
                       break;
-                    case "Weak connection to Mesh":
+                    case "Weak connection to mesh":
                       color = "#F50158";
                       break;
                     case "Battery disconnected":

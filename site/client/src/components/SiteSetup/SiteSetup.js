@@ -48,6 +48,8 @@ export default class SiteSetup extends React.Component {
         tabsDisabled: true,
         stage: 1,
         buildings: [],
+        levels: [],
+        devices: [],
       });
       this.callBuildings(site).then((res) => {
         this.setState({ clickedSite: site });
@@ -301,6 +303,29 @@ export default class SiteSetup extends React.Component {
     this.refresh();
   };
 
+  handleEditSensor = (newData, oldData, action) => {
+    switch (action) {
+      case "add":
+        this.setState({ sensors: [...this.state.sensors, newData] });
+        break;
+
+      case "update":
+        const dataUpdate = [...this.state.sensors];
+        const index = oldData.tableData.id;
+        dataUpdate[index] = newData;
+        this.setState({ sensors: [...dataUpdate] });
+        break;
+
+      case "delete":
+        const dataDelete = [...this.state.sensors];
+        const indexDel = oldData.tableData.id;
+        dataDelete.splice(indexDel, 1);
+        this.setState({ sensors: [...dataDelete] });
+        break;
+    }
+    this.refresh();
+  };
+
   bulkEditDevices = (changes) => {
     const updateData = Object.keys(changes).map((i) => changes[i]);
     console.log(updateData);
@@ -342,18 +367,15 @@ export default class SiteSetup extends React.Component {
     let promise = new Promise((resolve, reject) => {
       this.callSites().then((res) => {
         const sites_id = res.data[0].sites_id;
-        console.log(res);
         this.setState({
           sites: res.data,
           clickedSite: sites_id,
           siteName: res.data[0].name,
         });
         this.callBuildings(sites_id).then((res) => {
-          console.log(res);
           this.setState({ buildings: res.data });
         });
         this.callLevels(this.state.clickedBuilding).then((res) => {
-          console.log(res.data);
           this.setState({
             levels: res.data,
           });
@@ -502,18 +524,17 @@ export default class SiteSetup extends React.Component {
           {/* TABS */}
           <GridItem xs={12}>
             {stage > 1 ? (
-              <div>
+              <div style={{ margin: "20px" }}>
                 <EditBuilding building={this.state.clickedBuildingDetails} />
 
                 {stage > 2 ? (
-                  <h5>Level {this.state.clickedLevelDetails.level}</h5>
-                ) : (
-                  <div style={{ height: "50px" }}></div>
-                )}
+                  <div>
+                    <h5>Level {this.state.clickedLevelDetails.level}</h5>
+                    <h6>{this.state.clickedLevelDetails.description}</h6>
+                  </div>
+                ) : null}
               </div>
-            ) : (
-              <div style={{ height: "50px" }}></div>
-            )}
+            ) : null}
           </GridItem>
         </GridContainer>
         {/* BACK BUTTON */}
@@ -586,7 +607,7 @@ export default class SiteSetup extends React.Component {
               <Sensors
                 devices={this.state.sensors}
                 bulkEditDevices={this.bulkEditDevices}
-                handleEditDevice={this.handleEditDevice}
+                handleEditSensor={this.handleEditSensor}
                 clickedLevel={clickedLevel}
                 editable
               />

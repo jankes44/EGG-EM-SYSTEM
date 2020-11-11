@@ -168,7 +168,7 @@ router.get("/:uid", auth, (req, res) =>
         users_has_sites ON users_has_sites.sites_id = sites.id
           LEFT OUTER JOIN
         users ON users.id = users_has_sites.users_id
-      WHERE levels.id = ?
+      WHERE levels.id = ? AND lights.is_assigned = 1
 	GROUP BY lights.id, levels.id`,
           [req.params.level_id],
           (err, rows) => {
@@ -181,14 +181,14 @@ router.get("/:uid", auth, (req, res) =>
       }
     })
   ),
-  router.get("/nodesingle/:id", auth, (req, res) =>
+  router.get("/device_id/:device_id/:levels_id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {
         res.sendStatus(403);
       } else {
         con.query(
-          "SELECT node_id FROM lights WHERE id = ?",
-          [req.params.id],
+          "SELECT id FROM lights WHERE device_id = ? AND levels_id = ?",
+          [req.params.device_id, req.params.levels_id],
           (err, rows) => res.json(rows)
         );
       }
