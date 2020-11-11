@@ -549,13 +549,13 @@ beforeTest = (requestBody, res, userParam) => {
   con.query(
     "INSERT INTO trial_tests SET ?",
     {
-      lights: requestBody.devices.length,
+      lights: devices.length,
       result: "In Progress",
       set: "Manual",
       type: "Annual",
     },
     (err, result) => {
-      requestBody.devices.forEach((el) => {
+      devices.forEach((el) => {
         con.query(
           "INSERT INTO trial_tests_has_lights SET ?",
           {
@@ -573,10 +573,24 @@ beforeTest = (requestBody, res, userParam) => {
             el.userInput = "";
             el.testid = result.insertId;
 
-            devicesCopy.push(el);
-          }
-        );
-      });
+            con.query("select s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ?",
+            el.id, 
+            (err, result) => {
+              if (err) throw err 
+
+              if (result.length > 0){
+                el.sensors = result.map(r => ({sensor_id: r.node_id, type: r.type}))
+                el.has_sensors = true
+              }
+              else {
+                el.has_sensors = false
+              }
+              devicesCopy.push(el)
+              console.log(devicesLive.devices)
+            })
+          });
+          });
+        
       var testId = result.insertId;
       var user = requestBody.user;
       devicesLive.push({
@@ -588,6 +602,8 @@ beforeTest = (requestBody, res, userParam) => {
         abort_clicked: 0,
         finish_clicked: 0,
       });
+
+      console.log(devicesLive)
 
       res.send("Devices ready, you can start the test");
     }
@@ -879,6 +895,7 @@ router.get("/testinfo/:uid", auth, (req, res) => {
             hasAccess = true;
           }
         }
+        console.log(usersTest)
         res.send([
           {
             isTest: testInProgress,
