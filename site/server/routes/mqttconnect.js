@@ -3,32 +3,31 @@ var path = require("path");
 const { AsyncClient } = require("async-mqtt");
 
 // LIVE CONFIG
-var device = awsIot.device({
-  keyPath: path.join(__dirname, "/certs/livespprivate.pem.key"),
-  certPath: path.join(__dirname, "/certs/livespcertificate.pem.crt"),
-  caPath: path.join(__dirname, "/certs/livespca1.pem"),
-  clientId: process.env.MQTT_UNAME,
-  host: "a2vs8z4dhndn7y-ats.iot.eu-west-1.amazonaws.com",
-  protocol: "mqtts",
-  keepAlive: 0,
-});
-
-device = new AsyncClient(device);
-
-var topic = "LIVESPRSP";
-
-
-// //DEV CONFIG
 // var device = awsIot.device({
-//   keyPath: path.join(__dirname, "/certs/SPBMDEVUI.private.key"),
-//   certPath: path.join(__dirname, "/certs/SPBMDEVUI.cert.pem"),
-//   caPath: path.join(__dirname, "/certs/AmazonRootCA1.pem"),
+//   keyPath: path.join(__dirname, "/certs/livespprivate.pem.key"),
+//   certPath: path.join(__dirname, "/certs/livespcertificate.pem.crt"),
+//   caPath: path.join(__dirname, "/certs/livespca1.pem"),
 //   clientId: process.env.MQTT_UNAME,
 //   host: "a2vs8z4dhndn7y-ats.iot.eu-west-1.amazonaws.com",
 //   protocol: "mqtts",
 //   keepAlive: 0,
 // });
-// var topic = "DEVRSPSP";
+// var topic = "LIVESPRSP";
+
+
+// //DEV CONFIG
+var device = awsIot.device({
+  keyPath: path.join(__dirname, "/certs/SPBMDEVUI.private.key"),
+  certPath: path.join(__dirname, "/certs/SPBMDEVUI.cert.pem"),
+  caPath: path.join(__dirname, "/certs/AmazonRootCA1.pem"),
+  clientId: process.env.MQTT_UNAME,
+  host: "a2vs8z4dhndn7y-ats.iot.eu-west-1.amazonaws.com",
+  protocol: "mqtts",
+  keepAlive: 0,
+});
+var topic = "DEVRSPSP";
+
+device = new AsyncClient(device);
 
 // //HIVEMQ CONFIG
 // var device = mqtt.connect("mqtt://broker.mqttdashboard.com");

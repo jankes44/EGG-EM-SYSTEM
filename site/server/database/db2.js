@@ -42,9 +42,12 @@ con.on("error", function (err) {
   }
 });
 
+let pool
 const getAsyncCon = async () => {
-  pool = await mysql_async.createPool(config);
-  await pool.getConnection()
+  if (!pool){
+    pool = await mysql_async.createPool(config);
+    await pool.getConnection()
+  }
   return pool;
  }
 

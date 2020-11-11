@@ -3,7 +3,7 @@ const users = express.Router();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const con = require("../database/db2");
+const { con } = require("../database/db2");
 
 const User = require("../models/User");
 const Role = require("../models/Role");

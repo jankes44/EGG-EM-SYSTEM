@@ -153,7 +153,9 @@ const startTest = (requestBody, res, userParam) => {
     var devices = requestBody.devices;
     var devicesCopy = [];
     trialTestData = generateTrialTestData(devices.length)
-    async_con.query(trialTestsInsert, trialTestData)
+    async_con
+    .then(con => 
+        con.query(trialTestsInsert, trialTestData))
     .then(result => {
         data = devices.map(d => ({trial_tests_id: result.insertId, lights_id: d.id}))
         return async_con.query(trialsTestsLightsInsert, data) 
