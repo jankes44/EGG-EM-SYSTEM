@@ -899,8 +899,6 @@ router.post("/savetest/:testid", auth, (req, res) => {
           deviceId = usersDevices[counter].node_id;
           var topic = usersDevices[counter].mqtt_topic_out;
           var msgReceived = false;
-
-          checkDeviceState(counter, topic, deviceId, user, "led").then(() => {
             setTimeout(() => {
               device.publish(
                 topic,
@@ -943,7 +941,6 @@ router.post("/savetest/:testid", auth, (req, res) => {
                 1000
               );
             });
-          });
         } else {
           console.log("done", counter, length);
           busy = false;

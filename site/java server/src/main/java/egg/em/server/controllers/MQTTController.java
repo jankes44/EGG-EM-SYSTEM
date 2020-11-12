@@ -10,15 +10,13 @@ import egg.em.server.entities.liveEntities.TestDevice;
 import egg.em.server.entities.requestsBodies.Device;
 import egg.em.server.entities.requestsBodies.StartTestBody;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("mqtt")
 public class MQTTController {
 
     @Autowired
