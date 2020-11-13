@@ -60,30 +60,6 @@ export default function TableList() {
           </Card>
         </GridItem>
       </GridContainer>
-      <GridContainer justify="center">
-        <GridItem xs={12} sm={12} md={12}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitleWhite}>Test history</h4>
-            </CardHeader>
-            <CardBody>
-              <TrialTestsTableSelf />
-            </CardBody>
-          </Card>
-        </GridItem>
-      </GridContainer>
-      {/* <GridContainer justify="center">
-        <GridItem xs={12} sm={12} md={12}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitleWhite}>Draggable test</h4>
-            </CardHeader>
-            <CardBody>
-              <DraggableTest />
-            </CardBody>
-          </Card>
-        </GridItem>
-      </GridContainer> */}
     </div>
   );
 }

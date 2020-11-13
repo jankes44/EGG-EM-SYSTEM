@@ -11,6 +11,7 @@ import Popup from "components/Popup/Popup.js";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import moment from "moment";
 import axios from "axios";
+import { Icon, Fab } from "@material-ui/core";
 
 let columnsGl = [];
 
@@ -25,6 +26,7 @@ class GroupsTable extends Component {
       errors: [],
       errorsFiltered: [],
       errorsCsv: [],
+      backDisabled: true,
     };
   }
 
@@ -99,9 +101,15 @@ class GroupsTable extends Component {
   };
 
   togglePopup = () => {
-    this.setState({
-      showPopup: !this.state.showPopup,
-    });
+    this.setState(
+      {
+        showPopup: !this.state.showPopup,
+      },
+      () =>
+        this.state.showPopup === true
+          ? this.setState({ backDisabled: false })
+          : this.setState({ backDisabled: true })
+    );
   };
 
   render() {
@@ -275,31 +283,51 @@ class GroupsTable extends Component {
 
     return (
       <div style={{ marginTop: 20 }}>
-        <BootstrapTable
-          bootstrap4
-          noDataIndication={"no results found"}
-          ref={(n) => (this.table = n)}
-          wrapperClasses="table-responsive"
-          bordered={true}
-          hover
-          keyField="id"
-          data={this.props.tests}
-          columns={columns}
-          filter={filterFactory()}
-          rowEvents={rowEvents}
-          rowStyle={{ cursor: "pointer" }}
-          pagination={paginationFactory(options)}
-        />
-
-        <Popup
-          showPopup={this.state.showPopup}
-          testsFiltered={this.state.testsFiltered}
-          errorsFiltered={this.state.errorsFiltered}
-          errorsCsv={this.state.errorsCsv}
-          rowId={this.state.rowId}
-          text='Click "Close Button" to hide popup'
-          closePopup={() => this.togglePopup()}
-        />
+        <Fab
+          disabled={this.state.backDisabled}
+          color="primary"
+          style={{ transform: "rotate(-90deg)", margin: "15px" }}
+          onClick={() => {
+            this.setState({ documentGenerated: false });
+            this.togglePopup();
+          }}
+        >
+          <Icon>navigation</Icon>
+        </Fab>
+        <Fab
+          color="primary"
+          style={{ margin: "15px", float: "right" }}
+          onClick={() => this.props.history.push("/admin/test")}
+        >
+          <Icon>add</Icon>
+        </Fab>
+        {!this.state.showPopup ? (
+          <BootstrapTable
+            bootstrap4
+            noDataIndication={"no results found"}
+            ref={(n) => (this.table = n)}
+            wrapperClasses="table-responsive"
+            bordered={true}
+            hover
+            keyField="id"
+            data={this.props.tests}
+            columns={columns}
+            filter={filterFactory()}
+            rowEvents={rowEvents}
+            rowStyle={{ cursor: "pointer" }}
+            pagination={paginationFactory(options)}
+          />
+        ) : (
+          <Popup
+            showPopup={this.state.showPopup}
+            testsFiltered={this.state.testsFiltered}
+            errorsFiltered={this.state.errorsFiltered}
+            errorsCsv={this.state.errorsCsv}
+            rowId={this.state.rowId}
+            text='Click "Close Button" to hide popup'
+            closePopup={() => this.togglePopup()}
+          />
+        )}
       </div>
     );
   }

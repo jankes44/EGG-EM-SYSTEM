@@ -54,7 +54,7 @@ router.get("/generateReport/:test_id", auth, (req, res) => {
           console.log(data);
           data.forEach((el) => {
             switch (el.device_response) {
-              case "Device OK":
+              case "OK":
                 noFault++;
                 break;
               case "Lamp Fault":
@@ -63,7 +63,7 @@ router.get("/generateReport/:test_id", auth, (req, res) => {
               case "Battery Fault":
                 battFault++;
                 break;
-              case "No connection to Mesh":
+              case "Weak connection to mesh":
                 noConnection++;
                 break;
             }
@@ -156,7 +156,7 @@ router.get("/generateOfficialReport/:test_id", auth, (req, res) => {
           console.log(data);
           data.forEach((el) => {
             switch (el.device_response) {
-              case "Device OK":
+              case "OK":
                 noFault++;
                 break;
               case "Lamp Fault":
@@ -165,7 +165,7 @@ router.get("/generateOfficialReport/:test_id", auth, (req, res) => {
               case "Battery Fault":
                 battFault++;
                 break;
-              case "No response from BT module" || "No connection to Mesh":
+              case "Weak connection to mesh":
                 noConnection++;
                 break;
             }

@@ -338,12 +338,10 @@ export default function LiveFloorPlan(props) {
                               Status: {el.status}
                             </DialogContentText>
                             <DialogContentText>
-                              {el.comment ? (
-                                <span>
-                                  Comment: <i>{el.comment}</i>
-                                </span>
+                              {el.battery || el.ldr ? (
+                                <span>{el.battery ? el.battery : el.ldr}</span>
                               ) : (
-                                <i>No comment</i>
+                                <i>No reading</i>
                               )}
                             </DialogContentText>
                             <TextField
@@ -398,12 +396,20 @@ export default function LiveFloorPlan(props) {
                           >
                             <div>
                               <Typography className={classes.typography}>
-                                {`${el.device_id} - ${el.type} - ${el.node_id}`}
+                                {`Type: ${el.sensor_type}`}
+                              </Typography>
+                              <Typography className={classes.typography}>
+                                {`Mesh address: ${el.node_id}`}
                               </Typography>
                             </div>
                             <div>
                               <Typography className={classes.typography}>
-                                Status: {el.status}
+                                {el.battery || el.ldr ? (
+                                  <span>
+                                    Reading:{" "}
+                                    {el.battery ? `${el.battery}v` : el.ldr}
+                                  </span>
+                                ) : null}
                               </Typography>
                             </div>
                           </Popover>

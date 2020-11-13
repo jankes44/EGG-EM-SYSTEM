@@ -354,8 +354,8 @@ class TrialTest extends Component {
               label: "",
             },
             {
-              value: "Device OK",
-              label: "Device OK",
+              value: "OK",
+              label: "OK",
             },
             {
               value: "Lamp Fault",
@@ -1745,7 +1745,7 @@ class TrialTest extends Component {
               onChange={this.handleSelect}
               value={this.state.selectedAction}
             >
-              <MenuItem value={"Device OK"}>Set 'Device OK'</MenuItem>
+              <MenuItem value={"OK"}>Set 'Device OK'</MenuItem>
               <MenuItem value={"No response from BT module"}>
                 Set 'No response from bt'
               </MenuItem>

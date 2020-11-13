@@ -17,23 +17,31 @@ router.get("/level/:level_id", auth, (req, res) =>
       con.query(
         `SELECT 
         sensors.id,
-          sensors.type as sensor_type,
-          sensors.parent_id,
-          sensors.node_id,
-          sensors.levels_id,
-          sensors.is_assigned as sensor_is_assigned,
-          sensors.fp_coordinates_left,
-          sensors.fp_coordinates_bot, 
+        sensors.parent_id,
+        sensors.node_id,
+        sensors.levels_id,
+        sensors.is_assigned as sensor_is_assigned,
+        sensors.fp_coordinates_left,
+        sensors.fp_coordinates_bot, 
+        sensors.type as sensor_type,
         lights.device_id,
         lights.type,
         lights.status,
         lights.levels_id,
-        lights.node_id as light_node_id
-    FROM
+        lights.node_id as light_node_id,
+        Bm.battery,
+        Bm.ldr
+            FROM
         sensors
             LEFT OUTER JOIN
-        lights ON lights.id = sensors.parent_id      
-    WHERE sensors.levels_id = ? AND sensors.is_assigned = 1`,
+        lights ON lights.id = sensors.parent_id
+		LEFT OUTER JOIN ( SELECT MAX(id), battery, ldr, sensor_node_id
+           FROM device_battery_ldr
+         GROUP
+             BY id ) AS Bm
+		ON Bm.sensor_node_id = sensors.node_id
+    WHERE sensors.levels_id = ? AND sensors.is_assigned = 1
+    GROUP BY sensors.id, lights.id`,
         [req.params.level_id],
         (err, rows) => {
           if (err) res.send({ err: err.stack }).status(400);
