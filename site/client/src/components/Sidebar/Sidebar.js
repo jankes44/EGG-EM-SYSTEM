@@ -64,7 +64,7 @@ function Sidebar(props) {
         const whiteFontClasses = classNames({
           [" " + classes.whiteFont]: activeRoute(prop.layout + prop.path),
         });
-        if (prop.access <= user.access) {
+        if (prop.access <= user.access && !prop.hidden) {
           return (
             <NavLink
               to={prop.layout + prop.path}

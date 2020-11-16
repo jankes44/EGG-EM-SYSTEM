@@ -211,7 +211,7 @@ export function PdfDocument(props) {
                   ]}
                 >
                   {props.errorsData.map((a, index) => {
-                    if (a.result !== "Device OK") {
+                    if (a.result !== "OK") {
                       return (
                         <View key={index}>
                           <Text>

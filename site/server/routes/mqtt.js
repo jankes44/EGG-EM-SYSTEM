@@ -7,24 +7,25 @@ const con = require("../database/db2");
 var mqtt = require("mqtt");
 var schedule = require("node-schedule");
 const { on } = require("../database/db2");
+const clonedeep = require("lodash.clonedeep");
 
 // const sendTopic = "irjghjhitj45645654";
 const sendTopic2 = "DEVCOMSP";
 let testInProgress = false;
 
 const testTime = {
-  "Annual": 10800000,
-  "Monthly": 180000
-}
+  Annual: 10800000,
+  Monthly: 180000,
+};
 
 const testCheckpointsTime = {
-  "Annual": [9900000, 3600000, 300000],
-  "Monthly": [150000, 120000, 60000]
-}
+  Annual: [9900000, 3600000, 300000],
+  Monthly: [150000, 120000, 60000],
+};
 
 const cutInterval = 1000;
 // const callInterval = 5000;
-const relayBackOn = 1200000;
+const relayBackOn = 360000;
 var devicesLive = [];
 const noResponseTimeout = 15000;
 // var usersTest;
@@ -144,7 +145,7 @@ const noResponseTimeout = 15000;
 //                               break;
 //                             case "7FFF":
 //                               con.query(
-//                                 "UPDATE lights SET status = 'Battery powered/under test' WHERE id = ?",
+//                                 "UPDATE lights SET status = 'Battery powered' WHERE id = ?",
 //                                 [deviceIndex],
 //                                 (err) => {
 //                                   if (err) throw err;
@@ -197,6 +198,8 @@ const pubHandle = (cmd, deviceId, counter, messages, topic, user, testType) => {
           //if no response from device in X seconds, continue the loop
           console.log(`${deviceId}: NO RES`);
           usersDevices[counter].powercut = 3; //state 3 = no response
+          usersDevices[counter].result.add("Weak connection to mesh");
+          updateDeviceState(usersDevices[counter]);
 
           resolve("NO RES");
         }, noResponseTimeout);
@@ -210,10 +213,9 @@ const pubHandle = (cmd, deviceId, counter, messages, topic, user, testType) => {
             if (!message.includes("hello")) {
               messages.add(message);
               console.log(message, msg_node_id);
-              con.query(
-                "UPDATE lights SET status = 'Battery powered/under test' WHERE id = ?",
-                [usersDevices[counter].id]
-              );
+              console.log(typeof usersDevices[counter].result);
+              usersDevices[counter].result.add("Battery powered");
+              updateDeviceState(usersDevices[counter]);
               usersDevices[counter].powercut = 1; //state 1 = power has been cut
               if (!received) {
                 received = true;
@@ -245,24 +247,45 @@ async function handleMessage() {
   return result;
 }
 
-async function insertMsg(msg) {
+function insertVoltLdrReading(sensor_id, bat = "", ldr = "") {
+  const data = { battery: bat, ldr: ldr, sensor_node_id: sensor_id };
+  con.query("INSERT INTO device_battery_ldr SET ?", data, (err, results) => {
+    if (err) throw err;
+  });
+}
+
+async function insertMsg(msg, type = "cmd", voltage = "", ldr = "") {
   var param_data = msg.slice(21, 25);
   var node_id = msg.slice(13, 17);
   let message_content = msg.slice(13, 25);
+  if (voltage.length) message_content = voltage;
+  else if (ldr.length) message_content = ldr;
   var data = {
     raw_message: msg,
     message_content: message_content,
     node_id: node_id,
     param_data: param_data,
+    type: type,
   };
   con.query("INSERT INTO mqtt_messages SET ?", data, (err, results) => {
     if (err) throw err;
+    insertVoltLdrReading(node_id, voltage, ldr);
   });
 }
 
 updateDeviceState = (device) => {
-  const status = device.result.size > 0 ? Array.from(device.result).join(',') : "OK"
-  console.log("update device state:", status);
+  const status_ = Array.from(device.result).join(", ");
+  let status;
+  if (
+    device.result.size === 0 ||
+    (device.result.size === 1 && device.result.has("Battery powered"))
+  ) {
+    status = status_ + ", OK";
+  } else {
+    status = status_;
+  }
+
+  console.log("update device state:", status, device.result);
 
   con.query(
     `UPDATE lights SET status = ? WHERE id = ?`,
@@ -291,10 +314,8 @@ async function checkDeviceState(counter, topic, deviceId, user, type) {
         var msgTimeout = setTimeout(() => {
           //if no response from device in X seconds, continue the loop
           usersDevices[counter].powercut = 3; //state 3 = no response
-          usersDevices[counter].result.add("Weak connection to mesh")
-          updateDeviceState(
-            usersDevices[counter]
-          );
+          usersDevices[counter].result.add("Weak connection to mesh");
+          updateDeviceState(usersDevices[counter]);
           busy = false;
           resolve("No response");
         }, noResponseTimeout);
@@ -303,19 +324,19 @@ async function checkDeviceState(counter, topic, deviceId, user, type) {
           const msgCut = msg.slice(21, 25).toUpperCase();
           console.log(msg, msgCut, counter);
           switch (msgCut) {
-            case "0CCD": 
+            case "0CCD":
               console.log(usersDevices[counter].result);
-            break;
-            case "6666": 
-              usersDevices[counter].result.add("Battery disconnected")
+              break;
+            case "6666":
+              usersDevices[counter].result.add("Battery disconnected");
               console.log(usersDevices[counter].result);
               break;
             case "7FFF":
-              usersDevices[counter].result.add("Battery powered/under test")
+              usersDevices[counter].result.add("Battery powered");
               console.log(usersDevices[counter].result);
               break;
           }
-          updateDeviceState(usersDevices[counter])
+          updateDeviceState(usersDevices[counter]);
         };
 
         device.handleMessage = (packet, callback) => {
@@ -356,7 +377,7 @@ async function checkDeviceConnectivity(topic, deviceData, type) {
         console.log("state check: " + deviceData.id);
 
         var msgTimeout = setTimeout(() => {
-          deviceData.result.add("Weak connection to Mesh")
+          deviceData.result.add("Weak connection to Mesh");
           updateDeviceState(deviceData);
           busy = false;
           resolve("No response");
@@ -366,19 +387,19 @@ async function checkDeviceConnectivity(topic, deviceData, type) {
           const msgCut = msg.slice(21, 25).toUpperCase();
           console.log(msg, msgCut);
           switch (msgCut) {
-            case "0CCD": 
+            case "0CCD":
               console.log(usersDevices[counter].result);
-            break;
-            case "6666": 
-              usersDevices[counter].result.add("Battery disconnected")
+              break;
+            case "6666":
+              usersDevices[counter].result.add("Battery disconnected");
               console.log(usersDevices[counter].result);
               break;
             case "7FFF":
-              usersDevices[counter].result.add("Battery powered/under test")
+              usersDevices[counter].result.add("Battery powered");
               console.log(usersDevices[counter].result);
               break;
           }
-          updateDeviceState(usersDevices[counter])
+          updateDeviceState(usersDevices[counter]);
         };
 
         device.handleMessage = (packet, callback) => {
@@ -407,19 +428,25 @@ async function checkDeviceConnectivity(topic, deviceData, type) {
 
 durationCounterStart = (counter, topic, user, testType) => {
   var interval = setInterval(() => {
-      if (testInProgress === true) {
-        var usersDevices = findUsersTest(user).devices;
-        usersDevices[counter].duration = usersDevices[counter].duration - 1000;
+    if (testInProgress === true) {
+      var usersDevices = findUsersTest(user).devices;
+      usersDevices[counter].duration = usersDevices[counter].duration - 1000;
 
-        var testedDevice = usersDevices[counter];
-        if (testedDevice.duration === testCheckpointsTime[testType][0] || testedDevice.duration === testCheckpointsTime[testType][1] || testedDevice.duration === testCheckpointsTime[testType][2]) {
-          var messages = new Set()
-          if (testedDevice.has_sensors) {
-            testedDevice.sensors.forEach(s => {
-              switch (s.type) {
-                case "VBAT": {
+      var testedDevice = usersDevices[counter];
+      if (
+        testedDevice.duration === testCheckpointsTime[testType][0] ||
+        testedDevice.duration === testCheckpointsTime[testType][1] ||
+        testedDevice.duration === testCheckpointsTime[testType][2]
+      ) {
+        var messages = new Set();
+        if (testedDevice.has_sensors) {
+          testedDevice.sensors.forEach((s) => {
+            switch (s.type) {
+              case "VBAT":
+                {
                   const sensorId = s.sensor_id;
                   const topic = testedDevice.mqtt_topic_out;
+                  const type = "vbat";
                   publishGetState = () => {
                     device.publish(
                       topic,
@@ -436,22 +463,28 @@ durationCounterStart = (counter, topic, user, testType) => {
                           var msgTimeout = setTimeout(() => {
                             console.log("No response");
                             s.sensor_responded = false;
-                            testedDevice.result.add("Weak connection to mesh")
-                            updateDeviceState(testedDevice)
+                            testedDevice.result.add("Weak connection to mesh");
+                            updateDeviceState(testedDevice);
                           }, 6000);
                           device.handleMessage = (packet, callback) => {
                             clearInterval(msgTimeout);
                             const message = packet.payload.toString("utf8");
-                            const msgSliced = parseInt(`0x${message.slice(21, 25)}`);
+                            const msgSliced = parseInt(
+                              `0x${message.slice(21, 25)}`
+                            );
                             const msg_node_id = message.slice("13", "17");
-                            const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4);
-                            var el = setFind(messages, a => a.includes(msg_node_id));
+                            const voltage = (
+                              msgSliced /
+                              1241.212121 /
+                              0.3
+                            ).toFixed(4);
+                            var el = setFind(messages, (a) =>
+                              a.includes(msg_node_id)
+                            );
 
                             if (!el) {
-                              insertMsg(message);
-                              messages.add(
-                                `${message} voltage: ${voltage}v`
-                              );
+                              insertMsg(message, type, voltage);
+                              messages.add(`${message} voltage: ${voltage}v`);
                               console.log(
                                 message,
                                 msg_node_id,
@@ -460,9 +493,9 @@ durationCounterStart = (counter, topic, user, testType) => {
                               );
                               s.voltage = voltage;
                               s.sensor_responded = true;
-                              if (voltage > 3 || voltage < 2){
-                                testedDevice.result.add("Battery fault")
-                                updateDeviceState(testedDevice)
+                              if (voltage > 3 || voltage < 2) {
+                                testedDevice.result.add("Battery fault");
+                                updateDeviceState(testedDevice);
                               } //TODO check with Nicola
                               callback(packet);
                             } else {
@@ -475,143 +508,150 @@ durationCounterStart = (counter, topic, user, testType) => {
                   };
                   publishGetState();
                 }
-                  break;
-                case "LDR": {
+                break;
+              case "LDR":
+                {
                   sleep(2000).then(() => {
-                  const sensorId = s.sensor_id;
-                  const topic = testedDevice.mqtt_topic_out;
-                  publishGetState = () => {
-                    device.publish(
-                      topic,
-                      `${sensorId}10038205000096`,
-                      { qos: 1 },
-                      (err) => {
-                        if (err) {
-                          setTimeout(() => {
-                            publishGetState();
-                            console.log("retrying in 5s");
-                          }, 5000);
-                        } else {
-                          console.log("published on:", topic);
-                          var msgTimeout = setTimeout(() => {
-                            console.log("No response");
-                            s.sensor_responded = false;
-                            testedDevice.result.add("Weak connection to mesh")
-                            updateDeviceState(testedDevice)
-
-                          }, 6000);
-                          device.handleMessage = (packet, callback) => {
-                            clearInterval(msgTimeout);
-                            const message = packet.payload.toString("utf8");
-                            const ldrReading = parseInt(
-                              `0x${message.slice(21, 25)}`
-                            ).toFixed(4);
-                            const msg_node_id = message.slice("13", "17");
-                            var el = setFind(messages, a => a.includes(msg_node_id));
-                            let onOff
-                            if (ldrReading > 3000){
-                              onOff = "EM Lamp ON"
-                            }
-                            else {
-                              onOff = "EM Lamp OFF"
-                              if (testedDevice.duration === testCheckpointsTime[testType][0]){
-                                testedDevice.result.add("Lamp Fault")
+                    const sensorId = s.sensor_id;
+                    const topic = testedDevice.mqtt_topic_out;
+                    const type = "ldr";
+                    publishGetState = () => {
+                      device.publish(
+                        topic,
+                        `${sensorId}10038205000096`,
+                        { qos: 1 },
+                        (err) => {
+                          if (err) {
+                            setTimeout(() => {
+                              publishGetState();
+                              console.log("retrying in 5s");
+                            }, 5000);
+                          } else {
+                            console.log("published on:", topic);
+                            var msgTimeout = setTimeout(() => {
+                              console.log("No response");
+                              s.sensor_responded = false;
+                              testedDevice.result.add(
+                                "Weak connection to mesh"
+                              );
+                              updateDeviceState(testedDevice);
+                            }, 6000);
+                            device.handleMessage = (packet, callback) => {
+                              clearInterval(msgTimeout);
+                              const message = packet.payload.toString("utf8");
+                              const ldrReading = parseInt(
+                                `0x${message.slice(21, 25)}`
+                              ).toFixed(2);
+                              const msg_node_id = message.slice("13", "17");
+                              var el = setFind(messages, (a) =>
+                                a.includes(msg_node_id)
+                              );
+                              let onOff;
+                              if (ldrReading > 3000) {
+                                onOff = "EM Lamp ON";
+                              } else {
+                                onOff = "EM Lamp OFF";
+                                if (
+                                  testedDevice.duration ===
+                                  testCheckpointsTime[testType][0]
+                                ) {
+                                  testedDevice.result.add("Lamp Fault");
+                                }
+                                testedDevice.result.add("Battery Fault");
                               }
-                              testedDevice.result.add("Battery Fault")
-                            }
-                            
-                            updateDeviceState(testedDevice)
 
-                            if (!el) {
-                              insertMsg(message);
-                              messages.add(`${message} ldr: ${ldrReading} ${onOff}`);
-                              console.log(message, msg_node_id, ldrReading);
-                              s.sensor_responded = true;
-                              s.reading = onOff;
-                              callback(packet);
-                            } else {
-                              callback();
-                            }
-                          };
+                              updateDeviceState(testedDevice);
+
+                              if (!el) {
+                                insertMsg(message, type, "", ldrReading);
+                                messages.add(
+                                  `${message} ldr: ${ldrReading} ${onOff}`
+                                );
+                                console.log(message, msg_node_id, ldrReading);
+                                s.sensor_responded = true;
+                                s.reading = onOff;
+                                callback(packet);
+                              } else {
+                                callback();
+                              }
+                            };
+                          }
                         }
-                      }
-                    );
-                  };
-                  publishGetState();
-                })
-
+                      );
+                    };
+                    publishGetState();
+                  });
                 }
-                  break;
-              }
-            });
-          }
+                break;
+            }
+          });
         }
-        if (usersDevices[counter].duration === 0) {
-          busy = true;
-          var messages = new Set()
-          var timeout = setTimeout(() => {
-            if (testInProgress) {
-              var deviceId = usersDevices[counter].node_id;
-              checkDeviceState(counter, topic, deviceId, user, "led").then(
-                (msg) => {
-                  device.publish(
-                    topic,
-                    `${deviceId}10018202000196`,
-                    { qos: 1 },
-                    (err) => {
-                      console.log(`${deviceId}: MAIN ON`);
-                      var msgTimeout = setTimeout(() => {
-                        console.log(`${deviceId}: NO RES`);
-                        usersDevices[counter].powercut = 3;
-                        con.query(
-                          "UPDATE lights SET status = 'Weak connection to Mesh' WHERE id = ?",
-                          [usersDevices[counter].id]
-                        );
-                        counter++;
-                        busy = false;
-                        setTimeout(loop, 1000);
-                        return counter;
-                      }, noResponseTimeout);
-                      device.handleMessage = (packet, callback) => {
-                        clearInterval(msgTimeout);
-                        var message = packet.payload.toString("utf8");
-                        var arrayContainsMessage = messages.has(message);
-                        var msg_node_id = message.slice("13", "17");
-                        if (!arrayContainsMessage) {
-                          if (!message.includes("hello")) {
-                            messages.add(message);
-                            console.log(message, msg_node_id, "test");
-                            usersDevices[counter].powercut = 2; //POWERCUT 2 = FINISHED
-                            con.query(
-                              "UPDATE lights SET status = 'OK' WHERE id = ?",
-                              [usersDevices[counter].id]
-                            );
-                            busy = false;
-                            callback(packet);
-                          } else
-                            callback(packet);
-                        } else {
-                          console.log(message, arrayContainsMessage);
+      }
+      if (usersDevices[counter].duration === 0) {
+        busy = true;
+        var messages = new Set();
+        var timeout = setTimeout(() => {
+          if (testInProgress) {
+            var deviceId = usersDevices[counter].node_id;
+            checkDeviceState(counter, topic, deviceId, user, "led").then(
+              (msg) => {
+                device.publish(
+                  topic,
+                  `${deviceId}10018202000196`,
+                  { qos: 1 },
+                  (err) => {
+                    console.log(`${deviceId}: MAIN ON`);
+                    var msgTimeout = setTimeout(() => {
+                      console.log(`${deviceId}: NO RES`);
+                      usersDevices[counter].powercut = 3;
+                      usersDevices[counter].result.add(
+                        "Weak connection to mesh"
+                      );
+                      updateDeviceState(usersDevices[counter]);
+                      counter++;
+                      busy = false;
+                      setTimeout(loop, 1000);
+                      return counter;
+                    }, noResponseTimeout);
+                    device.handleMessage = (packet, callback) => {
+                      clearInterval(msgTimeout);
+                      var message = packet.payload.toString("utf8");
+                      var arrayContainsMessage = messages.has(message);
+                      var msg_node_id = message.slice("13", "17");
+                      if (!arrayContainsMessage) {
+                        if (!message.includes("hello")) {
+                          messages.add(message);
+                          console.log(message, msg_node_id, "test");
+                          usersDevices[counter].powercut = 2; //POWERCUT 2 = FINISHED
+                          usersDevices[counter].result.delete(
+                            "Battery powered"
+                          );
+                          updateDeviceState(usersDevices[counter]);
+                          busy = false;
                           callback(packet);
-                        }
-                      };
-                    }
-                  );
-                }
-              );
-            } else
-              clearTimeout(timeout);
-          }, relayBackOn);
-          clearInterval(interval);
-        }
-      } else {
+                        } else callback(packet);
+                      } else {
+                        console.log(message, arrayContainsMessage);
+                        callback(packet);
+                      }
+                    };
+                  }
+                );
+              }
+            );
+          } else clearTimeout(timeout);
+        }, relayBackOn);
         clearInterval(interval);
       }
-    }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+  }, 1000);
 };
 
 cutPowerSingle = (res, req, user) => {
-  const test = findUsersTest(user)
+  const test = findUsersTest(user);
+  console.log(test);
   let usersDevices = test.devices;
   if (usersDevices) {
     let deviceIndex = usersDevices.findIndex((el) => el.id === req.body.device);
@@ -622,7 +662,6 @@ cutPowerSingle = (res, req, user) => {
 
     console.log(`${deviceId}: MAIN OFF`);
     if (usersDevices[deviceIndex].powercut === 0) {
-      res.status(200);
       busy = true;
       pubHandle(
         "10018202000096",
@@ -632,7 +671,9 @@ cutPowerSingle = (res, req, user) => {
         topic,
         user,
         test.type
-      ).then((msg) => {});
+      ).then((msg) => {
+        res.status(200);
+      });
     }
   }
 };
@@ -689,14 +730,14 @@ beforeTest = (requestBody, res, userParam) => {
   testInProgress = true;
   usersTest = userParam.uid;
   var devices = requestBody.devices;
-  const testType = requestBody.test_type
+  const testType = requestBody.test_type;
   var devicesCopy = [];
   con.query(
     "INSERT INTO trial_tests SET ?",
     {
       lights: devices.length,
       result: "In Progress",
-      type: testType
+      type: testType,
     },
     (err, result) => {
       devices.forEach((el) => {
@@ -717,23 +758,28 @@ beforeTest = (requestBody, res, userParam) => {
             el.result = new Set();
             el.testid = result.insertId;
 
-            con.query("select s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ?",
-            el.id, 
-            (err, result) => {
-              if (err) throw err 
+            con.query(
+              "select s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ?",
+              el.id,
+              (err, result) => {
+                if (err) throw err;
 
-              if (result.length > 0){
-                el.sensors = result.map(r => ({sensor_id: r.node_id, type: r.type}))
-                el.has_sensors = true
+                if (result.length > 0) {
+                  el.sensors = result.map((r) => ({
+                    sensor_id: r.node_id,
+                    type: r.type,
+                  }));
+                  el.has_sensors = true;
+                } else {
+                  el.has_sensors = false;
+                }
+                devicesCopy.push(el);
               }
-              else {
-                el.has_sensors = false
-              }
-              devicesCopy.push(el)
-            })
-          });
-          });
-        
+            );
+          }
+        );
+      });
+
       var testId = result.insertId;
       var user = requestBody.user;
       devicesLive.push({
@@ -744,7 +790,7 @@ beforeTest = (requestBody, res, userParam) => {
         cut_all_clicked: 0,
         abort_clicked: 0,
         finish_clicked: 0,
-        type: testType
+        type: testType,
       });
 
       res.send("Devices ready, you can start the test");
@@ -767,7 +813,7 @@ router.post("/dev/checkconnectivity", auth, (req, res) => {
     if (err) {
       res.sendStatus(403);
     } else {
-      checkDeviceConnectivity(req.body.topic, req.body.device, "led").then(
+      checkDeviceConnectivity("DEVCOMSP", req.body.device, "led").then(
         (result) => {
           res.status(200).send(result);
         }
@@ -800,7 +846,7 @@ router.post("/aborttest/:testid", auth, (req, res) => {
           const topic = usersDevices[counter].mqtt_topic_out;
           let msgReceived = false;
 
-          checkDeviceState(counter, topic, deviceId, user, "led").then(
+          checkDeviceState(counter, topic, deviceId, user, "relay").then(
             (msg) => {
               setTimeout(() => {
                 device.publish(
@@ -812,6 +858,10 @@ router.post("/aborttest/:testid", auth, (req, res) => {
                     var msgTimeout = setTimeout(() => {
                       console.log("No response");
                       usersDevices[counter].powercut = 3;
+                      usersDevices[counter].result.add(
+                        "Weak connection to mesh"
+                      );
+                      updateDeviceState(usersDevices[counter]);
                       counter++;
                       setTimeout(loop, 1000);
                       return counter;
@@ -827,6 +877,10 @@ router.post("/aborttest/:testid", auth, (req, res) => {
                           console.log(message, msg_node_id, counter);
                           msgReceived = true;
                           usersDevices[counter].powercut = 2;
+                          usersDevices[counter].result.delete(
+                            "Battery powered"
+                          );
+                          updateDeviceState(usersDevices[counter]);
                           counter++;
                           setTimeout(loop, 1000);
                           callback(packet);
@@ -850,20 +904,24 @@ router.post("/aborttest/:testid", auth, (req, res) => {
             [req.params.testid],
             () => {
               devicesLive.forEach((el) => {
-                con.query(
-                  "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?",
-                  [Array.from(el.result).join(','), req.params.testid, el.id]
-                );
+                console.log(el);
+                if (el.result) {
+                  if (el.result.size < 1) el.result.add("OK");
+                  con.query(
+                    "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?",
+                    [Array.from(el.result).join(","), req.params.testid, el.id]
+                  );
+                }
               });
               setTimeout(() => {
                 var usersTestIndex = devicesLive.findIndex(
                   (el) => el.user_id === req.body.user
                 );
                 devicesLive.splice(usersTestIndex, 1);
-              }, 1000);
-              res.status(200).send("Test cancelled");
-              testInProgress = false;
-              usersTest = 0;
+                res.status(200).send("Test cancelled");
+                testInProgress = false;
+                usersTest = 0;
+              }, 3000);
             }
           );
         }
@@ -900,7 +958,7 @@ router.post("/savetest/:testid", auth, (req, res) => {
           var topic = usersDevices[counter].mqtt_topic_out;
           var msgReceived = false;
 
-          checkDeviceState(counter, topic, deviceId, user, "led").then(() => {
+          checkDeviceState(counter, topic, deviceId, user, "relay").then(() => {
             setTimeout(() => {
               device.publish(
                 topic,
@@ -912,6 +970,10 @@ router.post("/savetest/:testid", auth, (req, res) => {
                     if (usersDevices.length > 0) {
                       console.log("No response");
                       usersDevices[counter].powercut = 3;
+                      usersDevices[counter].result.add(
+                        "Weak connection to mesh"
+                      );
+                      updateDeviceState(usersDevices[counter]);
                     }
                     counter++;
                     setTimeout(loop, 1000);
@@ -929,6 +991,10 @@ router.post("/savetest/:testid", auth, (req, res) => {
                         msgReceived = true;
                         if (usersDevices.length > 0) {
                           usersDevices[counter].powercut = 2;
+                          usersDevices[counter].result.delete(
+                            "Battery powered"
+                          );
+                          updateDeviceState(usersDevices[counter]);
                         }
                         counter++;
                         setTimeout(loop, 1000);
@@ -953,9 +1019,10 @@ router.post("/savetest/:testid", auth, (req, res) => {
             [req.params.testid],
             () => {
               usersDevices.forEach((el) => {
+                if (el.result.size < 1) el.result.add("OK");
                 con.query(
                   "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?",
-                  [Array.from(el.result).join(','), req.params.testid, el.id]
+                  [Array.from(el.result).join(","), req.params.testid, el.id]
                 );
               });
               setTimeout(() => {
@@ -1026,28 +1093,37 @@ router.get("/testinfo/:uid", auth, (req, res) => {
       res.sendStatus(403);
     } else {
       var usersTest = findUsersTest(req.params.uid);
-
-      console.log("1")
       if (usersTest) {
-        console.log("2")
         var hasAccess = false;
         if (typeof usersTest !== "undefined" && testInProgress) {
           if (
             parseInt(usersTest.user_id) === parseInt(req.params.uid) ||
             !testInProgress
           ) {
-            console.log("3")
             hasAccess = true;
           }
         }
-        console.log(usersTest)
-        res.send([
+        const obj_ = [
           {
             isTest: testInProgress,
             hasAccess: hasAccess,
           },
           usersTest,
-        ]);
+        ];
+
+        let obj = clonedeep(obj_);
+
+        obj[1].devices.forEach((el) => {
+          if (
+            el.result.size === 0 ||
+            (el.result.size === 1 && el.result.has("Battery powered"))
+          ) {
+            el.result.add("OK");
+          }
+          el.result = Array.from(el.result);
+        });
+
+        res.send(obj);
       } else res.send([]);
     }
   });
@@ -1063,9 +1139,9 @@ router.post("/result/:id", auth, (req, res) => {
       var deviceIndex = usersDevices.findIndex(
         (x) => parseInt(x.id) === parseInt(req.params.id)
       );
-      if (!usersDevices[deviceIndex].has_sensors){
-      usersDevices[deviceIndex].result = req.body.result;
-      console.log(usersDevices[deviceIndex]);
+      if (!usersDevices[deviceIndex].has_sensors) {
+        usersDevices[deviceIndex].result = req.body.result;
+        console.log(usersDevices[deviceIndex]);
       }
       res.send(usersDevices);
     }
@@ -1708,7 +1784,7 @@ router.post("/dev/ldr", auth, (req, res) => {
                     ).toFixed(4);
                     let arrayContainsMessage = messages.has(message);
                     const msg_node_id = message.slice("13", "17");
-                    var el = setFind(messages, a => a.includes(msg_node_id));
+                    var el = setFind(messages, (a) => a.includes(msg_node_id));
                     let onOff =
                       ldrReading > 2000 ? "EM Lamp ON" : "EM Lamp OFF";
 
@@ -1780,7 +1856,7 @@ router.post("/dev/voltage", auth, (req, res) => {
                     let arrayContainsMessage = messages.has(message);
                     const msg_node_id = message.slice("13", "17");
                     let voltage = msgSliced / 1241.212121 / 0.3;
-                    var el = setFind(messages, a => a.includes(msg_node_id));
+                    var el = setFind(messages, (a) => a.includes(msg_node_id));
 
                     if (!el) {
                       insertMsg(message);
@@ -1844,13 +1920,14 @@ router.post("/dev/manual/cmd", auth, (req, res) => {
   });
 });
 
-
 async function sleep(ms) {
   let promise = new Promise((resolve, reject) => {
-    setTimeout(() => {resolve("")}, ms)
-  })
-  let result = await promise
-  return result
+    setTimeout(() => {
+      resolve("");
+    }, ms);
+  });
+  let result = await promise;
+  return result;
 }
 
 const setFind = (set, cb) => {
@@ -1859,7 +1936,6 @@ const setFind = (set, cb) => {
       return e;
     }
   }
-}
-
+};
 
 module.exports = router;
