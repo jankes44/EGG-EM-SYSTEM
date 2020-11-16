@@ -324,7 +324,7 @@ class TrialTest extends Component {
       {
         dataField: "_",
         text: "Device state",
-        editable: true,
+        editable: false,
         align: "center",
         headerStyle: (colum, colIndex) => {
           return { textAlign: "center" };
@@ -1172,7 +1172,7 @@ class TrialTest extends Component {
                 blurToSave: true,
               })}
             />
-            <InputLabel>Actions</InputLabel>
+            {/* <InputLabel>Actions</InputLabel>
             <Select
               style={{ minWidth: "200px" }}
               onChange={this.handleSelect}
@@ -1184,7 +1184,7 @@ class TrialTest extends Component {
               </MenuItem>
               <MenuItem value={"Lamp Fault"}>Set 'Lamp fault'</MenuItem>
               <MenuItem value={"Battery Fault"}>Set 'Battery fault'</MenuItem>
-            </Select>
+            </Select> */}
             <Button
               disabled={this.state.disabledApply}
               color="primary"
