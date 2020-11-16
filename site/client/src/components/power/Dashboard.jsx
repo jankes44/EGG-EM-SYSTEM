@@ -54,6 +54,7 @@ class Dashboard extends React.Component {
       year_total_line: null,
     },
     loading: true,
+    loadingAgg: true,
   };
 
   datasets_defaults = {
@@ -171,16 +172,16 @@ class Dashboard extends React.Component {
             break;
         }
       });
+  }
 
-    axios
-      .post(
-        this.state.URL + "/aggregate",
-        { measure: "power" },
-        { headers: this.state.headers }
-      )
-      .then((res) => {
-        this.setState({ summary: res.data.summary, loading: false });
-      });
+  async fetchAggregate() {
+    console.log("fetch aggregate");
+    const response = await axios.post(
+      this.state.URL + "/aggregate",
+      { measure: "power" },
+      { headers: this.state.headers }
+    );
+    return response;
   }
 
   mapValues = (data, l) => {
@@ -198,6 +199,10 @@ class Dashboard extends React.Component {
 
   componentDidMount() {
     this.fetchData(false);
+    this.fetchAggregate().then((res) => {
+      this.setState({ summary: res.data.summary, loadingAgg: false });
+      console.log(res);
+    });
     this.interval = setInterval(() => this.fetchData(true), 1000 * 60);
   }
 
@@ -271,21 +276,24 @@ class Dashboard extends React.Component {
           <Grid
             container
             direction="row"
-            justify="center"
+            justify="space-evenly"
             alignItems="center"
-            spacing={4}
+            spacing={2}
           >
             <SummaryCard
+              loading={this.state.loadingAgg}
               title="30 Days"
               total_data={this.state.summary.month}
               line_data={this.state.summary.month_line}
             />
             <SummaryCard
+              loading={this.state.loadingAgg}
               title="3 Months"
               total_data={this.state.summary.three_months}
               line_data={this.state.summary.three_months_line}
             />
             <SummaryCard
+              loading={this.state.loadingAgg}
               title="Year"
               total_data={this.state.summary.year}
               line_data={this.state.summary.year_line}
