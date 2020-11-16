@@ -287,39 +287,47 @@ export default function LiveFloorPlan(props) {
             )}
             {liveDevices_.length > 0 && !floorplanNotFound
               ? liveDevices_.map((el, index) => {
-                  let color;
-
-                  switch (el.status) {
-                    case "OK":
-                      color = "#4fa328";
-                      break;
-                    case "No connection to driver":
-                      color = "orange";
-                      break;
-                    case "Battery powered/under test":
-                      color = "blue";
-                      setInterval(() => {
-                        color = "grey";
-                      }, 1000);
-                      setInterval(() => {
-                        color = "blue";
-                      }, 2000);
-                      break;
-                    case "Weak connection to mesh":
-                      color = "#F50158";
-                      break;
-                    case "Battery disconnected":
-                      color = "purple";
-                      break;
-                    default:
-                      color = "grey";
-                      break;
-                  }
-
-                  let blink =
-                    el.status === "Battery powered/under test"
+                  let color = "grey";
+                  let blink;
+                  if (el.status) {
+                    blink = el.status.includes("Battery powered")
                       ? classes.blink
                       : null;
+                    if (el.status.includes("OK")) color = "#4fa328";
+                    if (el.status.includes("No connection to driver"))
+                      color = "orange";
+                    if (el.status.includes("Weak connection to mesh"))
+                      color = "#F50158";
+                    if (el.status.includes("Battery disconnected"))
+                      color = "purple";
+                  }
+
+                  // switch (el.status) {
+                  //   case "OK":
+                  //     color = "#4fa328";
+                  //     break;
+                  //   case "No connection to driver":
+                  //     color = "orange";
+                  //     break;
+                  //   case "Battery powered/under test":
+                  //     color = "blue";
+                  //     setInterval(() => {
+                  //       color = "grey";
+                  //     }, 1000);
+                  //     setInterval(() => {
+                  //       color = "blue";
+                  //     }, 2000);
+                  //     break;
+                  //   case "Weak connection to mesh":
+                  //     color = "#F50158";
+                  //     break;
+                  //   case "Battery disconnected":
+                  //     color = "purple";
+                  //     break;
+                  //   default:
+                  //     color = "grey";
+                  //     break;
+                  // }
 
                   return (
                     <Draggable
