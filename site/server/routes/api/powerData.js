@@ -115,11 +115,17 @@ const byLines = [true, false]
 
 router.post("/aggregate", auth, (req, res, next) => {
   if (req.body.measure === "power"){
-    let params = []
-    ranges.forEach(range => byLines.forEach(byLine => params.push({range: range, byLine: byLine})))
-    console.log(params, params.length)
+    // let params = []
+    // ranges.forEach(range => byLines.forEach(byLine => params.push({range: range, byLine: byLine})))
+    // console.log(params, params.length)
 
-    const queries = (params.map(p => aggregatePower(p.range, p.byLine))).join(";")
+    // const queries = (params.map(p => aggregatePower(p.range, p.byLine))).join(";")
+    queries = "select * from monthly_consumption_by_line; \
+               select * from monthly_consumption_by; \
+               select * from quarterly_consumption_by_line; \
+               select * from quarterly_consumption; \
+               select * from yearly_consumption_by_line; \
+               select * from yearly_consumption; "
     con.query(queries, (err, result, fields) => {
       if (err) {
         res.sendStatus(400)
