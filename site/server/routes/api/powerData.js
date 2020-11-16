@@ -44,11 +44,13 @@ const rangeQueries = {
             as 'values' from (select DATE_FORMAT((FROM_UNIXTIME(epoch)), '%Y-%m-%d') as date_hour, line, avg(if (${measure} > 0, ${measure} , 0)) as ${measure} \
             from power_data where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -1 MONTH)) group by date_hour, line ) t group by epoch", 
 
-  "three_months":  "select UNIX_TIMESTAMP(date_hour) as epoch, ${values} \
-                    as 'values' from (select DATE_FORMAT((FROM_UNIXTIME(epoch)), '%Y-%m-%d') as date_hour, line, \
-                    avg(if (${measure} > 0, ${measure} , 0)) as ${measure} \
-                    from power_data where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 MONTH)) \
-                    group by date_hour, line ) t group by epoch",
+  "three_months":  "select UNIX_TIMESTAMP(week_start) as epoch, ${values} as 'values' from ( \
+                    SELECT  WEEK(from_unixtime(epoch)) AS week_no, date(from_unixtime(epoch)) as week_start, \
+                    line, avg(if (${measure} > 0, ${measure} , 0)) as ${measure} \
+                    from power_data \
+                    where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL -3 MONTH)) \
+                    GROUP BY WEEK(from_unixtime(epoch)), line \
+                    ORDER BY week_no ) t group by epoch",
   
    "year": "select UNIX_TIMESTAMP(week_start) as epoch, ${values} as 'values' from ( \
             SELECT  WEEK(from_unixtime(epoch)) AS week_no, date(from_unixtime(epoch)) as week_start, \
