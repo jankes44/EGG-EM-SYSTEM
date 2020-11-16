@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../../database/db2");
+const dev_con = require("../../database/db_dev")
 const url = require("url");
 
 const fillTemplate = function (templateString, templateVars) {
@@ -16,8 +17,7 @@ const fillTemplate = function (templateString, templateVars) {
 const insertQuery =
   "INSERT INTO power_data (line, epoch, power, current ,voltage) VALUES ?";
 const getLinesQuery = "select distinct line from power_data order by line";
-const aggregatePowerQuery =
-  "select ${line_} round(sum(kwh),2) as power_consumption from " +
+const aggregatePowerQuery = "select ${line_} round(sum(kwh),2) as power_consumption from " +
   "( select 	DATE_FORMAT((FROM_UNIXTIME(epoch)), '%Y-%m-%d-%H') as date_hour, " +
   "FROM_UNIXTIME(epoch) as date_, line, avg(if(power > 0, power, 0))/1000 as kwh from power_data " +
   "where epoch > UNIX_TIMESTAMP(DATE_ADD(now(), INTERVAL ${timePeriod})) \
@@ -71,17 +71,6 @@ const rangeQueries = {
             ORDER BY week_no ) t group by epoch",
 };
 
-const aggregatePower = (range_, byLine) => {
-  const line = byLine ? "group by line" : "";
-  const line_ = byLine ? "line, " : "";
-  const timePeriod = timePeriods[range_];
-  return fillTemplate(aggregatePowerQuery, {
-    line_: line_,
-    line: line,
-    timePeriod: timePeriod,
-  });
-};
-
 const getValuesInRange = (range_, measure) => {
   const values =
     measure === "voltage"
@@ -97,6 +86,22 @@ router.post("/insert", auth, (req, res, next) => {
   const data_ = req.body;
   const data = data_.map((el) => Object.values(el));
   con.query(insertQuery, [data], (err) => {
+    if (err) {
+      res.json({ status: "Error", data: err.stack });
+    } else {
+      res.json({ status: "ok" });
+    }
+  });
+
+  con.query(insertQuery, [data], (err) => {
+    if (err) {
+      res.json({ status: "Error", data: err.stack });
+    } else {
+      res.json({ status: "ok" });
+    }
+  });
+
+  dev_con.query(insertQuery, [data], (err) => {
     if (err) {
       res.json({ status: "Error", data: err.stack });
     } else {
@@ -127,9 +132,6 @@ router.post("/values", auth, (req, res, next) => {
   });
 });
 
-const ranges = ["month", "three_months", "year"];
-const byLines = [true, false];
-
 router.post("/aggregate", auth, (req, res, next) => {
   if (req.body.measure === "power"){
     // let params = []
@@ -137,7 +139,7 @@ router.post("/aggregate", auth, (req, res, next) => {
     // console.log(params, params.length)
 
     // const queries = (params.map(p => aggregatePower(p.range, p.byLine))).join(";")
-    queries = "select * from monthly_consumption_by_line; \
+    const queries = "select * from monthly_consumption_by_line; \
                select * from monthly_consumption; \
                select * from quarterly_consumption_by_line; \
                select * from quarterly_consumption; \
