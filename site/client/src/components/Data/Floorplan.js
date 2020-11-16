@@ -93,7 +93,6 @@ class Floorplan extends Component {
       this.setState(
         {
           selectedFile: event.target.files[0],
-          loaded: 0,
         },
         () => {
           const data = new FormData();

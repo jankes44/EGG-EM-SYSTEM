@@ -89,20 +89,30 @@ h5 {
 
 .infoContainer {
   border-radius: 2px;
-  padding: 15px;
   margin-top: 50px;
   background: whitesmoke;
   color: whitesmoke;
 }
 
+.containerDetails {
+  background-color: whitesmoke;
+  border-radius: 5px;
+  padding: 15px;
+  padding-top: 15px;
+  width: 100%;
+  box-shadow: 4px 4px 26px -10px rgba(0, 0, 0, 0.75);
+  margin: auto;
+}
+
 .datagrid table {
   border-collapse: collapse;
   text-align: left;
-  width: 60vw;
+  width: 100%;
 }
 .datagrid {
   font: normal 0.8em/150% Arial, Helvetica, sans-serif;
   overflow: hidden;
+  width: 100%;
 }
 .datagrid table td,
 .datagrid table th {
@@ -129,7 +139,7 @@ h5 {
 .datagrid table tbody td {
   color: #252525;
   font-size: 1.5em;
-  border-top: 1px solid #e1eef4;
+  border-top: 1px solid lightslategrey;
   font-weight: lighter;
 }
 .datagrid table tbody tr:last-child td {

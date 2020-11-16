@@ -1,11 +1,15 @@
 import React from "react";
-import OverwatchFloorplan from "components/Test/OverwatchFloorplan";
+import LiveLights from "components/Test/LiveLights";
+import LiveSensors from "components/Test/LiveSensors";
 import axios from "axios";
 import Skeleton from "@material-ui/lab/Skeleton";
+import { Button } from "@material-ui/core";
 
 export default function Overwatch(props) {
   const [lights, setLights] = React.useState([]);
   const [response, setResponse] = React.useState(false);
+  const [mode, setMode] = React.useState("EM");
+  const [sensors, setSensors] = React.useState([]);
 
   const callLightsFloorplans = () => {
     axios
@@ -17,30 +21,32 @@ export default function Overwatch(props) {
       })
       .then((response) => {
         if (response.data.length > 0) {
-          setTimeout(() => {
-            setLights(response.data);
-            props.setClickedGroup(response.data[0].lgt_groups_id);
-            setResponse(true);
-          }, 500);
+          setLights(response.data);
+          props.setClickedGroup(response.data[0].lgt_groups_id);
+          setResponse(true);
         } else {
-          console.log("ELSE");
-          axios
-            .get(
-              global.BASE_URL + "/api/lights/nodevices/" + props.clickedLevel,
-              {
-                headers: {
-                  "Content-Type": "application/json;charset=UTF-8",
-                  Authorization: "Bearer " + localStorage.usertoken,
-                },
-              }
-            )
-            .then((response) => {
-              console.log(response.data);
-              setLights([]);
-              if (response.data.length)
-                props.setClickedGroup(response.data[0].id);
-              setResponse(true);
-            });
+          setLights([]);
+          setResponse(true);
+        }
+      });
+  };
+
+  const callSensorsFloorplans = () => {
+    axios
+      .get(global.BASE_URL + "/api/sensors/level/" + props.clickedLevel, {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      })
+      .then((response) => {
+        console.log(response);
+        if (response.data.length > 0) {
+          setSensors(response.data);
+          setResponse(true);
+        } else {
+          setSensors([]);
+          setResponse(true);
         }
       });
   };
@@ -52,7 +58,27 @@ export default function Overwatch(props) {
       //route to lights of group id = this.state.rowId
       .post(
         global.BASE_URL + "/api/lights/edit/" + light.id,
-        { lgt_groups_id: props.clickedGroup },
+        { levels_id: props.clickedLevel },
+        {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            Authorization: "Bearer " + localStorage.usertoken,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response);
+      });
+  };
+
+  const assignSensor = (sensor) => {
+    console.log(sensor);
+    setSensors((prevSensors) => [...prevSensors, sensor]);
+    axios
+      //route to lights of group id = this.state.rowId
+      .post(
+        global.BASE_URL + "/api/sensors/assign/" + sensor.id,
+        { levels_id: props.clickedLevel },
         {
           headers: {
             "Content-Type": "application/json;charset=UTF-8",
@@ -67,18 +93,47 @@ export default function Overwatch(props) {
 
   React.useEffect(() => {
     callLightsFloorplans();
+    callSensorsFloorplans();
     //eslint-disable-next-line
   }, []);
   return (
     <div>
+      <Button
+        color="primary"
+        variant="outlined"
+        style={{ display: "inline-block", margin: "5px" }}
+        onClick={() => setMode("EM")}
+      >
+        Em fittings
+      </Button>
+      <Button
+        color="primary"
+        variant="outlined"
+        style={{ display: "inline-block", margin: "5px" }}
+        onClick={() => setMode("SE")}
+      >
+        Sensors
+      </Button>
       {response ? (
-        <OverwatchFloorplan
-          clickedBuilding={props.clickedBuilding}
-          clickedLevel={props.clickedLevel}
-          liveDevices={lights}
-          clickedGroup={props.clickedGroup}
-          assignLight={assignLight}
-        />
+        mode === "EM" ? (
+          <LiveLights
+            clickedBuilding={props.clickedBuilding}
+            clickedLevel={props.clickedLevel}
+            liveDevices={lights}
+            clickedGroup={props.clickedGroup}
+            assignLight={assignLight}
+            refreshData={callLightsFloorplans}
+          />
+        ) : (
+          <LiveSensors
+            clickedBuilding={props.clickedBuilding}
+            clickedLevel={props.clickedLevel}
+            liveDevices={sensors}
+            clickedGroup={props.clickedGroup}
+            assignSensor={assignSensor}
+            refreshData={callSensorsFloorplans}
+          />
+        )
       ) : (
         <div>
           <Skeleton variant="text" height="100px" />

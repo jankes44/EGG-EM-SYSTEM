@@ -13,7 +13,7 @@ export default function UnassignedDevices(props) {
 
   const callDevices = async () => {
     const data = await axios.get(
-      global.BASE_URL + "/api/lights/unassigned/" + user,
+      global.BASE_URL + "/api/sensors/unassigned/" + user,
       {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
@@ -40,26 +40,18 @@ export default function UnassignedDevices(props) {
     },
     {
       field: "device_id",
-      title: "Device",
+      title: "Parent device ID",
     },
     {
-      field: "type",
-      title: "Fitting type",
-      lookup: {
-        "EX-58": "EX-58",
-        "F-51E": "F-51E",
-        "SA-25E": "SA-25E",
-        "S-25AE": "S-25AE",
-        "E-51": "E-51",
-        "EX-51E": "EX-51E",
-      },
+      field: "sensor_type",
+      title: "Sensor type",
     },
     {
       field: "node_id",
       title: "Mesh Address",
     },
     {
-      field: "is_assigned",
+      field: "sensor_is_assigned",
       title: "Battery",
       editable: "never",
     },
@@ -76,11 +68,11 @@ export default function UnassignedDevices(props) {
       onRowClick={(event, rowData) => {
         const row = devices[devices.indexOf(rowData)];
         console.log(row);
-        props.assignLight(row);
+        props.assignSensor(row);
         setDevices(devices.filter((el) => el.id !== row.id));
       }}
       data={devices}
-      title="Unassigned devices"
+      title="Unassigned sensors"
     />
   );
 }

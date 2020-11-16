@@ -2,7 +2,7 @@ var awsIot = require("aws-iot-device-sdk");
 var path = require("path");
 var mqtt = require("mqtt");
 
-// // LIVE CONFIG
+// LIVE CONFIG
 // var device = awsIot.device({
 //   keyPath: path.join(__dirname, "/certs/livespprivate.pem.key"),
 //   certPath: path.join(__dirname, "/certs/livespcertificate.pem.crt"),
@@ -14,7 +14,7 @@ var mqtt = require("mqtt");
 // });
 // var topic = "LIVESPRSP";
 
-//DEV CONFIG
+// //DEV CONFIG
 var device = awsIot.device({
   keyPath: path.join(__dirname, "/certs/SPBMDEVUI.private.key"),
   certPath: path.join(__dirname, "/certs/SPBMDEVUI.cert.pem"),

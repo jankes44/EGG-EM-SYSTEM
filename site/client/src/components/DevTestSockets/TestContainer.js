@@ -110,8 +110,8 @@ export default function TestContainer(props) {
             label: "",
           },
           {
-            value: "Device OK",
-            label: "Device OK",
+            value: "OK",
+            label: "OK",
           },
           {
             value: "Lamp Fault",

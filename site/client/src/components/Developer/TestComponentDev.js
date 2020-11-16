@@ -45,6 +45,8 @@ const NoDataIndication = () => (
   ></div>
 );
 
+const topic = "DEVSPCOM";
+
 class TrialTest extends Component {
   timer = 0;
   state = {
@@ -352,8 +354,8 @@ class TrialTest extends Component {
               label: "",
             },
             {
-              value: "Device OK",
-              label: "Device OK",
+              value: "OK",
+              label: "OK",
             },
             {
               value: "Lamp Fault",
@@ -593,7 +595,7 @@ class TrialTest extends Component {
       data: {
         //data object sent in request's body
         device: device,
-        topic: this.state.liveDevices[0].mqtt_topic,
+        topic: topic,
         user: user,
       },
       timeout: 0,
@@ -629,7 +631,7 @@ class TrialTest extends Component {
         message: this.state.step,
         devices: this.state.selectedDevices,
         user: user,
-        topic: this.state.liveDevices[0].mqtt_topic,
+        topic: topic,
       },
       timeout: 0,
     })
@@ -689,7 +691,7 @@ class TrialTest extends Component {
       },
       url: global.BASE_URL + "/mqtt/savetest/" + this.state.testid,
       timeout: 0,
-      data: { user: user, topic: this.state.liveDevices[0].mqtt_topic },
+      data: { user: user, topic: topic },
     })
       .then((res) => {
         this.setState({ message: res.data, step: 4, disabledBackBtn: false });
@@ -740,7 +742,7 @@ class TrialTest extends Component {
         },
         url: global.BASE_URL + "/mqtt/aborttest/" + this.state.testid,
         timeout: 0,
-        data: { user: user, topic: this.state.liveDevices[0].mqtt_topic },
+        data: { user: user, topic: topic },
       })
         .then((res) => {
           console.log(res);
@@ -817,7 +819,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/relay/on",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
@@ -874,7 +876,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/relay/off",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
@@ -900,7 +902,7 @@ class TrialTest extends Component {
         url: global.BASE_URL + "/mqtt/dev/relay/state",
         data: {
           devices: this.state.deviceManual,
-          topic: "DEVCOMSP",
+          topic: topic,
         },
         timeout: 0,
       })
@@ -931,11 +933,12 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/relay/state",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
           .then((res) => {
+            console.log(topic);
             if (res.data.length === 0) {
               this.setState({
                 responses: [
@@ -997,7 +1000,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/led/state",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
@@ -1022,7 +1025,7 @@ class TrialTest extends Component {
         },
         url: global.BASE_URL + "/mqtt/dev/gateway/state",
         data: {
-          topic: this.state.selectedDevices[0].mqtt_topic_out,
+          topic: topic,
         },
         timeout: 0,
       })
@@ -1100,7 +1103,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/light/on",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
@@ -1157,7 +1160,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/light/off",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
@@ -1214,7 +1217,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/ldr",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
@@ -1272,7 +1275,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/voltage",
           data: {
             devices: this.state.selectedDevices,
-            topic: this.state.selectedDevices[0].mqtt_topic,
+            topic: topic,
           },
           timeout: 0,
         })
@@ -1742,7 +1745,7 @@ class TrialTest extends Component {
               onChange={this.handleSelect}
               value={this.state.selectedAction}
             >
-              <MenuItem value={"Device OK"}>Set 'Device OK'</MenuItem>
+              <MenuItem value={"OK"}>Set 'Device OK'</MenuItem>
               <MenuItem value={"No response from BT module"}>
                 Set 'No response from bt'
               </MenuItem>

@@ -6,8 +6,7 @@ import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import CardHeader from "components/Card/CardHeader.js";
 import GridContainer from "components/Grid/GridContainer.js";
-import Schedule from "components/Schedule/Schedule";
-import Test from "components/Test/Test";
+import Power from "components/power/Dashboard";
 import { makeStyles } from "@material-ui/core/styles";
 
 const styles = {
@@ -57,33 +56,14 @@ export default function Reports() {
 
   return (
     <div>
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={12} style={{ textAlign: "center" }}>
-          <h2 className={classes.lightText}>Site testing configuration</h2>
-        </GridItem>
-      </GridContainer>
       <GridContainer justify="center">
         <GridItem xs={12} sm={12} md={12}>
           <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitleWhite}>
-                Configuration & schedule
-              </h4>
+            <CardHeader color="success">
+              <h4 className={classes.cardTitleWhite}>Energy overview</h4>
             </CardHeader>
             <CardBody>
-              <Schedule />
-            </CardBody>
-          </Card>
-        </GridItem>
-      </GridContainer>
-      <GridContainer justify="center">
-        <GridItem xs={12} sm={12} md={12}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitleWhite}>Manual test</h4>
-            </CardHeader>
-            <CardBody>
-              <Test />
+              <Power />
             </CardBody>
           </Card>
         </GridItem>

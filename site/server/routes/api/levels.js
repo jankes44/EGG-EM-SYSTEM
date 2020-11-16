@@ -30,16 +30,12 @@ router.get("/", auth, (req, res) =>
       con.query(
         `select
         levels.*,
-          GROUP_CONCAT(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name,
           count(lights.id) as lights_count, 
-          GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
-          MIN(lgt_groups.id) as group_id
+          GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
       from
         levels
-          LEFT OUTER JOIN 
-          lgt_groups on lgt_groups.levels_id = levels.id
           LEFT OUTER JOIN
-          lights on lights.lgt_groups_id = lgt_groups.id
+          lights on lights.levels_id = levels.id
       GROUP BY levels.id`,
         (err, rows) => res.json(rows)
       );
@@ -54,20 +50,16 @@ router.get("/", auth, (req, res) =>
         con.query(
           `select
       levels.*,
-        GROUP_CONCAT(DISTINCT lgt_groups.group_name SEPARATOR ', ') as group_name,
         count(lights.id) as lights_count, 
-        GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
-        MIN(lgt_groups.id) as group_id
+        GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
     from
       levels
   LEFT OUTER JOIN
   buildings ON buildings.id = levels.buildings_id
         LEFT OUTER JOIN
         sites ON sites.id = buildings.sites_id
-        LEFT OUTER JOIN 
-        lgt_groups on lgt_groups.levels_id = levels.id
         LEFT OUTER JOIN
-        lights on lights.lgt_groups_id = lgt_groups.id
+        lights on lights.levels_id = levels.id
       WHERE sites.id = ${req.params.sites_id}
     GROUP BY levels.id`,
           (err, rows) => res.json(rows)
@@ -85,18 +77,15 @@ router.get("/", auth, (req, res) =>
           `select
           levels.*,
             count(lights.id) as lights_count, 
-            GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices, 
-            MIN(lgt_groups.id) as group_id
+            GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
         from
           levels
       LEFT OUTER JOIN
       buildings ON buildings.id = levels.buildings_id
             LEFT OUTER JOIN
             sites ON sites.id = buildings.sites_id
-            LEFT OUTER JOIN 
-            lgt_groups on lgt_groups.levels_id = levels.id
             LEFT OUTER JOIN
-            lights on lights.lgt_groups_id = lgt_groups.id
+            lights on lights.levels_id = levels.id
           WHERE buildings.id = ${req.params.building_id}
         GROUP BY levels.id`,
           [req.params.building_id],
@@ -105,33 +94,40 @@ router.get("/", auth, (req, res) =>
       }
     })
   ),
-  // Create new group
-  router.post("/", auth, function (req, res) {
+  // Create new level
+  router.post("/add", auth, function (req, res) {
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {
         res.sendStatus(403);
       } else {
         con.query(
-          "INSERT INTO levels SET `buildings_id`=?, `level`=?",
-          [req.body.buildings_id, req.body.level],
-          function (error, results, fields) {
+          "INSERT INTO levels SET `buildings_id`=?, `level`=?, `description`=?",
+          [req.body.buildings_id, req.body.level, req.body.description],
+          (error, results, fields) => {
             if (error) throw error;
-            res.end(JSON.stringify(results));
+            con.query(
+              "INSERT INTO lights SET levels_id=?",
+              [results.insertId],
+              (err, resultsdevices) => {
+                console.log(resultsdevices);
+                res.end(JSON.stringify(resultsdevices));
+              }
+            );
           }
         );
       }
     });
   });
 
-// Update chosen light
+// Update chosen level
 router.post("/edit/:id", auth, function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
       res.sendStatus(403);
     } else {
       con.query(
-        "UPDATE `levels` SET ??=? where `id`=(?)",
-        [req.body.colName, req.body.level, req.params.id],
+        "UPDATE `levels` SET `level`=?, `description`=? where `id`=(?)",
+        [req.body.level_name, req.body.description, req.params.id],
         function (error, results, fields) {
           if (error) throw error;
           res.end(JSON.stringify(results));
@@ -183,6 +179,7 @@ router.post("/floorplan/upload/:id", auth, function (req, res) {
 router.post("/testUpload", function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     upload(req, res, function (err) {
+      console.log(req.body);
       if (err instanceof multer.MulterError) {
         console.log(err);
         return res.status(500).json(err);
@@ -207,7 +204,6 @@ router.delete("/:id", auth, function (req, res) {
     if (err) {
       res.sendStatus(403);
     } else {
-      console.log(req.body);
       con.query("DELETE FROM `levels` WHERE `id`=?", [req.params.id], function (
         error,
         results,
