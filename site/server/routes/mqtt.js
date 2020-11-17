@@ -1938,4 +1938,9 @@ const setFind = (set, cb) => {
   }
 };
 
+router.post("/manualset/", (req, res) => {
+  device = req.body
+  updateDeviceState(device)
+})
+
 module.exports = router;
