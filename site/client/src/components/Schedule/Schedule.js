@@ -12,18 +12,22 @@ import Devices from "components/SiteSetup/Devices";
 import MaterialTable from "material-table";
 import Buildings from "components/SiteSetup/Buildings";
 import Levels from "components/SiteSetup/Levels";
+import DateTime from "components/Schedule/DateTime";
+import Card from "components/Card/Card";
+import CardBody from "components/Card/CardBody";
+import ChooseType from "components/Test/ChooseTestType";
 
-function NoDataIndication() {
-  return (
-    <div>
-      <Typography variant="h3">
-        <Skeleton />
-        <Skeleton />
-        <Skeleton />
-      </Typography>
-    </div>
-  );
-}
+// function NoDataIndication() {
+//   return (
+//     <div>
+//       <Typography variant="h3">
+//         <Skeleton />
+//         <Skeleton />
+//         <Skeleton />
+//       </Typography>
+//     </div>
+//   );
+// }
 
 export default function Schedule() {
   const [sites, setSites] = React.useState([]);
@@ -40,6 +44,10 @@ export default function Schedule() {
   const [clickedLevel, setClickedLevel] = React.useState(null);
   const [clickedBuilding, setClickedBuilding] = React.useState(null);
   const [clickedGroup, setClickedGroup] = React.useState(null);
+  const [date, setDate] = React.useState(new Date());
+  const [schedulerOpen, setSchedulerOpen] = React.useState(false);
+  const [selectedDevices, setSelectedDevices] = React.useState([]);
+  const [type, setType] = React.useState("Monthly");
 
   //material table columns
   const columns = [
@@ -92,7 +100,6 @@ export default function Schedule() {
     setLevels([]);
     setClickedBuilding(row.buildings_id);
     callLevels(row.buildings_id).then((res) => {
-      console.log(res);
       setLevels(res.data);
       setBackDisabled(false);
     });
@@ -181,8 +188,29 @@ export default function Schedule() {
   };
 
   const handleScheduleTest = (levels) => {
-    console.log(levels);
+    setSchedulerOpen(true);
+
+    let devices_id = [];
+    let finished = 0;
+    //user id, date, device_ids, test_type
+
+    levels.forEach((el) => {
+      callDevices(el.id).then((res) => {
+        res.data.forEach((d) => devices_id.push(d.id));
+        console.log(res.data);
+        finished++;
+        if (finished === levels.length) {
+          setSelectedDevices(devices_id);
+        }
+      });
+    });
   };
+
+  const changeType = (e) => {
+    setType(e.target.value);
+  };
+
+  const scheduleTest = () => {};
 
   useEffect(() => {
     callSites();
@@ -337,16 +365,30 @@ export default function Schedule() {
         />
       ) : null}
       {stage === 2 ? (
-        <Levels
-          levels={levels}
-          callLevels={callLevels}
-          handleClickLevel={handleClickLevel}
-          clickedLevel={clickedLevel}
-          handleEditLevel={() => {}}
-          clickedBuilding={clickedBuilding}
-          handleSchedule={handleScheduleTest}
-          editable={false}
-        />
+        <div>
+          {schedulerOpen ? (
+            <Card>
+              <CardBody>
+                <div style={{ display: "inline-block" }}>
+                  <ChooseType handleChange={changeType} value={type} />
+                </div>
+                <div style={{ margin: "15px", display: "inline-block" }}>
+                  <DateTime />
+                </div>
+              </CardBody>
+            </Card>
+          ) : null}
+          <Levels
+            levels={levels}
+            callLevels={callLevels}
+            handleClickLevel={handleClickLevel}
+            clickedLevel={clickedLevel}
+            handleEditLevel={() => {}}
+            clickedBuilding={clickedBuilding}
+            handleSchedule={handleScheduleTest}
+            editable={false}
+          />
+        </div>
       ) : null}
       {stage === 3 && clickedLevel ? (
         <Devices level={clickedLevel} devices={devices} editable={false} />

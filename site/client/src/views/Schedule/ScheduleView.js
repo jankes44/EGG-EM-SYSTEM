@@ -52,7 +52,7 @@ const lightText = {
 
 const useStyles = makeStyles(styles);
 
-export default function TableList() {
+export default function ScheduleView() {
   const classes = useStyles();
 
   return (

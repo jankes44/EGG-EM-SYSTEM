@@ -17,7 +17,7 @@ import LiveEmStatus from "views/LiveEmStatus/LiveEmStatus";
 import SiteSetup from "views/SiteSetup/SiteSetup";
 import Energy from "views/Energy/Energy";
 import SiteTest from "views/TrialTest/TrialTest";
-import Schedule from "views/Schedule/Schedule";
+import Schedule from "views/Schedule/ScheduleView";
 
 const dashboardRoutes = [
   {
