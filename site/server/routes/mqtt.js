@@ -1939,8 +1939,13 @@ const setFind = (set, cb) => {
 };
 
 router.post("/manualset/", (req, res) => {
-  device = req.body
-  updateDeviceState(device)
-})
+  const { user, device, result } = req.body;
+  const usersDevices = findUsersTest(user).devices;
+  const index = usersDevices.findIndex((el) => el.id === device);
+  usersDevices[index].result.add(result);
+  console.log(usersDevices[index]);
+  updateDeviceState(usersDevices[index]);
+  res.status(200);
+});
 
 module.exports = router;

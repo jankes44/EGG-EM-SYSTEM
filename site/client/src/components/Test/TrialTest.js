@@ -345,63 +345,56 @@ class TrialTest extends Component {
         },
       },
       {
-        dataField: "bat",
+        dataField: "has_sensors",
         text: "Battery",
-        editable: false,
+        editor: {
+          type: Type.SELECT,
+          options: [
+            {
+              value: "OK",
+              label: "OK",
+            },
+            {
+              value: "Battery fault",
+              label: "Battery fault",
+            },
+            {
+              value: "Battery disconnected",
+              label: "Battery disconnected",
+            },
+          ],
+        },
         formatter: (cellContent, row) => {
-          console.log(row.has_sensors);
-          if (row.has_sensors) {
-            const result = row.result.length
-              ? Array.from(row.result).join(",")
-              : "";
+          const result = row.result.length
+            ? Array.from(row.result).join(",")
+            : "";
 
-            if (result.includes("Battery fault")) {
-              return <span>Faulty</span>;
-            } else if (row.powercut !== 3) return <span>OK</span>;
-            else return null;
-          } else
-            return (
-              <Select
-                labelId="demo-mutiple-name-label"
-                id="demo-mutiple-name"
-                multiple
-                value={this.state.resultBat}
-                onChange={this.handleChangeBatRes}
-                input={<Input />}
-              >
-                {[
-                  {
-                    name: "OK",
-                    value: "OK",
-                  },
-                  { name: "Faulty", value: "Battery fault" },
-                  { name: "Disconnected", value: "Battery disconnected" },
-                ].map((el) => (
-                  <MenuItem key={el.name} value={el.value}>
-                    {el.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              // <SelectCustom
-              //   label="Battery state"
-              //   value={this.state.resultBat}
-              //   handleChange={this.handleChangeBatRes}
-              //   items={[
-              //     {
-              //       name: "OK",
-              //       value: "OK",
-              //     },
-              //     { name: "Faulty", value: "Battery fault" },
-              //     { name: "Disconnected", value: "Battery disconnected" },
-              //   ]}
-              // />
-            );
+          if (
+            result.includes("Battery fault") ||
+            result.includes("Battery disconnected")
+          ) {
+            return <span>Faulty</span>;
+          } else if (row.powercut !== 3 && row.powercut > 0)
+            return <span>OK</span>;
+          else return null;
         },
       },
       {
-        dataField: "lamp",
+        dataField: "is_assigned",
         text: "Lamp",
-        editable: false,
+        editor: {
+          type: Type.SELECT,
+          options: [
+            {
+              value: "OK",
+              label: "OK",
+            },
+            {
+              value: "Lamp fault",
+              label: "Lamp fault",
+            },
+          ],
+        },
         formatter: (cellContent, row) => {
           const result = row.result.length
             ? Array.from(row.result).join(",")
@@ -415,6 +408,7 @@ class TrialTest extends Component {
       {
         dataField: "mesh",
         text: "Bluetooth mesh",
+        editable: false,
         formatter: (cellContent, row) => {
           const result = row.result.length
             ? Array.from(row.result).join(",")
@@ -709,11 +703,12 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/mqtt/userinput/" + deviceId,
+      url: global.BASE_URL + "/mqtt/manualset/",
       data: {
         //data object sent in request's body
-        userInput: input,
+        result: input,
         user: user,
+        device: deviceId,
       },
     })
       .then((res) => {
@@ -721,7 +716,6 @@ class TrialTest extends Component {
       })
       .catch((error) => {
         console.log(error.response);
-        this.setState({ errorMessage: error.response.data });
       });
   };
 
@@ -1064,7 +1058,7 @@ class TrialTest extends Component {
 
     const afterSaveCell = (oldValue, newValue, row, column) => {
       console.log(row.id, newValue);
-      this.userInput(row.id, newValue);
+      if (newValue !== oldValue) this.userInput(row.id, newValue);
     };
 
     const { classes } = this.props;
@@ -1221,6 +1215,14 @@ class TrialTest extends Component {
                 mode: "click",
                 afterSaveCell: afterSaveCell,
                 blurToSave: true,
+                nonEditableRows: () => {
+                  const devices = this.state.liveDevices;
+                  let array = [];
+                  devices.forEach((el) => {
+                    if (el.has_sensors) array.push(el.id);
+                  });
+                  return array;
+                },
               })}
             />
             {/* <InputLabel>Actions</InputLabel>

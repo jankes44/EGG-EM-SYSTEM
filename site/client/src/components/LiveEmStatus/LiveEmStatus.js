@@ -285,9 +285,13 @@ export default function LiveEmStatus() {
           onClick={() => {
             if (stage > 1) {
               setStage(stage - 1);
-              if (stage > 1) setBackDisabled(true);
-              else setBackDisabled(false);
+              setBackDisabled(false);
             } else setBackDisabled(true);
+            // if (stage >= 0) {
+            //   setStage(stage - 1);
+            //   if (stage === 0) setBackDisabled(true);
+            //   else setBackDisabled(false);
+            // } else setBackDisabled(true);
           }}
         >
           <Icon style={{ transform: "rotate(-90deg)" }}>navigation</Icon>
