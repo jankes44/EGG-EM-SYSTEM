@@ -17,6 +17,7 @@ import LiveEmStatus from "views/LiveEmStatus/LiveEmStatus";
 import SiteSetup from "views/SiteSetup/SiteSetup";
 import Energy from "views/Energy/Energy";
 import SiteTest from "views/TrialTest/TrialTest";
+import Schedule from "views/Schedule/Schedule";
 
 const dashboardRoutes = [
   {
@@ -50,6 +51,15 @@ const dashboardRoutes = [
     name: "Site Test",
     icon: "developer_mode",
     component: SiteTest,
+    layout: "/admin",
+    access: 3,
+    hidden: true,
+  },
+  {
+    path: "/schedule",
+    name: "Test schedule",
+    icon: "schedule",
+    component: Schedule,
     layout: "/admin",
     access: 3,
     hidden: true,

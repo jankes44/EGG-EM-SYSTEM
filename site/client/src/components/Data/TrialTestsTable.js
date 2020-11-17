@@ -356,12 +356,20 @@ class GroupsTable extends Component {
         >
           <Icon>navigation</Icon>
         </Fab>
+
         <Fab
           color="primary"
           style={{ margin: "15px", float: "right" }}
           onClick={() => this.props.history.push("/admin/test")}
         >
           New
+        </Fab>
+        <Fab
+          color="primary"
+          style={{ margin: "15px", float: "right" }}
+          onClick={() => this.props.history.push("/admin/schedule")}
+        >
+          <Icon>schedule</Icon>
         </Fab>
         {!this.state.showPopup ? (
           <BootstrapTable
