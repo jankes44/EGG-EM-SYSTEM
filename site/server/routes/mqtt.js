@@ -8,6 +8,7 @@ var mqtt = require("mqtt");
 var schedule = require("node-schedule");
 const { on } = require("../database/db2");
 const clonedeep = require("lodash.clonedeep");
+const nodemailer = require('nodemailer'); 
 
 // const sendTopic = "irjghjhitj45645654";
 const sendTopic2 = "DEVCOMSP";
@@ -29,156 +30,13 @@ const relayBackOn = 360000;
 var devicesLive = [];
 const noResponseTimeout = 15000;
 // var usersTest;
+const QOS_1 = {qos: 1}
 
-// var event = schedule.scheduleJob("*/1 * * * *", function () {
-//   checkSiteState = () => {
-//     if (testInProgress) {
-//       const time = 30000;
-//       console.log(
-//         "MQTT BUSY:",
-//         testInProgress,
-//         "RETRYING IN:",
-//         time / 1000,
-//         "seconds"
-//       );
-//       const timeout = setTimeout(() => {
-//         clearTimeout(timeout);
-//         checkSiteState();
-//       }, time);
-//     } else {
-//       testInProgress = true;
-//       con.query(
-//         `SELECT
-//     lights.*,
-//     lgt_groups.group_name,
-//     levels.id as levels_id,
-//     levels.level,
-//     buildings.building,
-//     sites.mqtt_topic_out,
-//     sites.mqtt_topic_in,
-//     sites.id as sites_id,
-//     sites.name as sites_name
-//   FROM
-//     lights
-//       LEFT OUTER JOIN
-//     lgt_groups ON lights.lgt_groups_id = lgt_groups.id
-//       LEFT OUTER JOIN
-//     levels ON levels.id = lgt_groups.levels_id
-//       LEFT OUTER JOIN
-//     buildings ON buildings.id = levels.buildings_id
-//       LEFT OUTER JOIN
-//     sites ON sites.id = buildings.sites_id
-//       LEFT OUTER JOIN
-//     users_has_sites ON users_has_sites.sites_id = sites.id
-//       LEFT OUTER JOIN
-//     users ON users.id = users_has_sites.users_id
-//   WHERE sites.id = 1
-//   group by sites.id, id`,
-//         (err, rows) => {
-//           if (err) throw err;
-//           var deviceData = rows;
-//           let counter = 0;
-//           const length = deviceData.length;
-//           var messages = new Set();
-
-//           loop = () => {
-//             if (counter < length) {
-//               const deviceId = deviceData[counter].node_id;
-//               const deviceIndex = deviceData[counter].id;
-//               var topic = deviceData[counter].mqtt_topic_out;
-//               console.log(deviceData[counter].node_id);
-//               console.log(topic);
-//               publishGetState = () => {
-//                 device.publish(
-//                   topic,
-//                   `${deviceId}10038205000096`,
-//                   { qos: 1 },
-//                   (err) => {
-//                     if (err) {
-//                       setTimeout(() => {
-//                         publishGetState();
-//                         console.log("retrying in 5s");
-//                       }, 5000);
-//                     } else {
-//                       console.log("published on:", topic);
-//                       var msgTimeout = setTimeout(() => {
-//                         con.query(
-//                           "UPDATE lights SET status = 'No connection to bt module' WHERE id = ?",
-//                           [deviceIndex],
-//                           (err) => {
-//                             if (err) throw err;
-//                           }
-//                         );
-//                         console.log("No response");
-//                         counter++;
-//                         loop();
-//                       }, 6000);
-//                       device.handleMessage = (packet, callback) => {
-//                         clearInterval(msgTimeout);
-//                         const message = packet.payload.toString("utf8");
-//                         const arrayContainsMessage = messages.has(message);
-//                         const msg_node_id = message.slice("13", "17");
-//                         const msg_code = message
-//                           .slice("21", "25")
-//                           .toUpperCase();
-//                         if (!arrayContainsMessage) {
-//                           insertMsg(message);
-//                           messages.add(message);
-//                           switch (msg_code) {
-//                             case "0CCD":
-//                               con.query(
-//                                 "UPDATE lights SET status = 'OK' WHERE id = ?",
-//                                 [deviceIndex],
-//                                 (err) => {
-//                                   if (err) throw err;
-//                                 }
-//                               );
-//                               break;
-//                             case "6666":
-//                               con.query(
-//                                 "UPDATE lights SET status = 'No connection to driver' WHERE id = ?",
-//                                 [deviceIndex],
-//                                 (err) => {
-//                                   if (err) throw err;
-//                                 }
-//                               );
-//                               break;
-//                             case "7FFF":
-//                               con.query(
-//                                 "UPDATE lights SET status = 'Battery powered' WHERE id = ?",
-//                                 [deviceIndex],
-//                                 (err) => {
-//                                   if (err) throw err;
-//                                 }
-//                               );
-//                               break;
-//                           }
-//                           console.log(message, msg_node_id, msg_code);
-//                           counter++;
-//                           setTimeout(loop, 1000);
-//                           callback(packet);
-//                         } else {
-//                           callback();
-//                         }
-//                       };
-//                     }
-//                   }
-//                 );
-//               };
-//               publishGetState();
-//             } else {
-//               testInProgress = false;
-//               console.log("done", counter, length);
-//               counter = 0;
-//             }
-//           };
-//           loop();
-//         }
-//       );
-//     }
-//   };
-//   checkSiteState();
-// });
+const errorMessages = {
+  "0CCD": "",
+  "6666": "No connection to driver",
+  "7FFF": "Battery powered"
+}
 
 const pubHandle = (cmd, deviceId, counter, messages, topic, user, testType) => {
   return new Promise((resolve, reject) => {
@@ -189,7 +47,7 @@ const pubHandle = (cmd, deviceId, counter, messages, topic, user, testType) => {
       //Publish command to user defined topic
       topic,
       `${deviceId}${cmd}`,
-      { qos: 1 },
+      QOS_1,
       () => {
         console.log("published on: " + topic);
 
@@ -280,7 +138,7 @@ updateDeviceState = (device) => {
     device.result.size === 0 ||
     (device.result.size === 1 && device.result.has("Battery powered"))
   ) {
-    status = status_ + ", OK";
+    status = status_.length === 0 ? "OK" : [status_ , "OK"].join(", ")
   } else {
     status = status_;
   }
@@ -306,7 +164,7 @@ async function checkDeviceState(counter, topic, deviceId, user, type) {
       //publish cut power command
       topic,
       `${deviceId}${command}`,
-      { qos: 1 },
+      QOS_1,
       () => {
         busy = true;
         console.log("state check: " + deviceId);
@@ -451,7 +309,7 @@ durationCounterStart = (counter, topic, user, testType) => {
                     device.publish(
                       topic,
                       `${sensorId}10038205000096`,
-                      { qos: 1 },
+                      QOS_1,
                       (err) => {
                         if (err) {
                           setTimeout(() => {
@@ -519,7 +377,7 @@ durationCounterStart = (counter, topic, user, testType) => {
                       device.publish(
                         topic,
                         `${sensorId}10038205000096`,
-                        { qos: 1 },
+                        QOS_1,
                         (err) => {
                           if (err) {
                             setTimeout(() => {
@@ -598,7 +456,7 @@ durationCounterStart = (counter, topic, user, testType) => {
                 device.publish(
                   topic,
                   `${deviceId}10018202000196`,
-                  { qos: 1 },
+                  QOS_1,
                   (err) => {
                     console.log(`${deviceId}: MAIN ON`);
                     var msgTimeout = setTimeout(() => {
@@ -649,7 +507,7 @@ durationCounterStart = (counter, topic, user, testType) => {
   }, 1000);
 };
 
-cutPowerSingle = (res, req, user) => {
+const cutPowerSingle = (res, req, user) => {
   const test = findUsersTest(user);
   console.log(test);
   let usersDevices = test.devices;
@@ -678,7 +536,7 @@ cutPowerSingle = (res, req, user) => {
   }
 };
 
-cutPowerAll = (res, user) => {
+const cutPowerAll = (res, user) => {
   console.log("MAIN OFF ALL");
   busy = true;
   let counter = 0;
@@ -720,7 +578,10 @@ cutPowerAll = (res, user) => {
       busy = false;
       usersTest.abort_clicked = 0;
       counter = 0;
-      res.sendStatus(200);
+      if (res){
+        res.sendStatus(200);
+      }
+      
     }
   };
   loop();
@@ -852,7 +713,7 @@ router.post("/aborttest/:testid", auth, (req, res) => {
                 device.publish(
                   topic,
                   `${deviceId}10018202000196`,
-                  { qos: 1 },
+                  QOS_1,
                   (err) => {
                     console.log("published");
                     var msgTimeout = setTimeout(() => {
@@ -963,7 +824,7 @@ router.post("/savetest/:testid", auth, (req, res) => {
               device.publish(
                 topic,
                 `${deviceId}10018202000196`,
-                { qos: 1 },
+                QOS_1,
                 (err) => {
                   console.log("published", deviceId);
                   var msgTimeout = setTimeout(() => {
@@ -1183,7 +1044,7 @@ router.post("/app/relay/on", auth, (req, res) => {
       device.publish(
         sendTopic2,
         `${nodeID}10018202000196`,
-        { qos: 1 },
+        QOS_1,
         (err) => {
           if (err) {
             var errTimeout = setTimeout(() => {
@@ -1229,7 +1090,7 @@ router.post("/app/relay/off", auth, (req, res) => {
       device.publish(
         sendTopic2,
         `${nodeID}10018202000096`,
-        { qos: 1 },
+        QOS_1,
         (err) => {
           if (err) {
             var errTimeout = setTimeout(() => {
@@ -1275,7 +1136,7 @@ router.post("/app/relay/state", auth, (req, res) => {
       device.publish(
         sendTopic2,
         `${nodeID}10018201000096`,
-        { qos: 1 },
+        QOS_1,
         (err) => {
           if (err) {
             var errTimeout = setTimeout(() => {
@@ -1339,7 +1200,7 @@ router.post("/dev/relay/on", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10018202000196`,
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   var errTimeout = setTimeout(() => {
@@ -1402,7 +1263,7 @@ router.post("/dev/relay/off", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10018202000096`,
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   var errTimeout = setTimeout(() => {
@@ -1466,7 +1327,7 @@ router.post("/dev/relay/state", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10018201000096`,
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   var errTimeout = setTimeout(() => {
@@ -1534,7 +1395,7 @@ router.post("/dev/led/state", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10038205000096`,
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   setTimeout(() => {
@@ -1601,7 +1462,7 @@ router.post("/dev/light/on", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10018202000095`,
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   setTimeout(() => {
@@ -1667,7 +1528,7 @@ router.post("/dev/light/off", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10018202000194`,
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   setTimeout(() => {
@@ -1722,7 +1583,7 @@ router.post("/dev/gateway/state", auth, (req, res) => {
       var received = 0;
 
       console.log(topic);
-      device.publish(topic, `XchkX`, { qos: 1 }, (err) => {
+      device.publish(topic, `XchkX`, QOS_1, (err) => {
         let timeout = setTimeout(() => {
           received = 1;
           res.send(`${topic}: NO RES`);
@@ -1762,7 +1623,7 @@ router.post("/dev/ldr", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10038205000096`, //cmd to read ldr sensor
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   setTimeout(() => {
@@ -1835,7 +1696,7 @@ router.post("/dev/voltage", auth, (req, res) => {
             device.publish(
               topic,
               `${deviceId}10038205000096`,
-              { qos: 1 },
+              QOS_1,
               (err) => {
                 if (err) {
                   setTimeout(() => {
@@ -1901,7 +1762,7 @@ router.post("/dev/manual/cmd", auth, (req, res) => {
       var received = 0;
 
       console.log(topic);
-      device.publish(topic, req.body.command, { qos: 1 }, (err) => {
+      device.publish(topic, req.body.command, QOS_1, (err) => {
         var msgTimeout = setTimeout(() => {
           res.send({ message: `NO RES: ${req.body.command}` });
         }, 6000);
@@ -1947,5 +1808,425 @@ router.post("/manualset/", (req, res) => {
   updateDeviceState(usersDevices[index]);
   res.status(200);
 });
+
+
+const checkSiteStateQuery = `select lg.id as light_id, lg.device_id, lg.node_id, l.id as level_id, 
+                            l.level, b.building, s.mqtt_topic_out, s.mqtt_topic_in, s.id as site_id, 
+                            s.name  as site_name
+                            from lights lg 
+                            left join levels l on lg.levels_id = l.id 
+                            left join buildings b on l.buildings_id = b.id 
+                            left join sites s on b.sites_id = s.id 
+                            where s.id = ?`
+
+const noAnswerFromDeviceQuery = "UPDATE lights SET status = 'No connection to bt module' WHERE id = ?"
+
+const retry = (fun, interval) => {
+  setTimeout(() => {
+    fun()
+    console.log("Retrying...")
+  }, interval)
+}
+
+const noAnswerFromDevice = (deviceIndex, loop) => {
+  setTimeout(() => {
+    con.query(noAnswerFromDeviceQuery, [deviceIndex], (err) => {
+      if (err) throw err 
+      console.log("No response");
+      counter++
+      loop()
+    })
+    
+  }, 6000);
+}
+
+const checkSiteState = (siteId) => {
+  const params = [siteId]
+  var faultyDevices = []
+  con.query(checkSiteStateQuery, params, (err, rows) => {
+    if (err) throw err
+
+    const length = rows.length
+    let counter = 0
+    var messages = new Set()
+    var gatewayTopic
+
+    const loop = () => {    
+      if (counter < length){
+        var deviceData = rows[counter]
+        const deviceId = deviceData.node_id;
+        const deviceIndex = deviceData.id;
+        const topic = deviceData.mqtt_topic_out;
+        gatewayTopic = topic 
+        deviceData.result = Set()
+        const publishGetState = () => {
+          device.publish(topic, `${deviceId}10038205000096`, QOS_1, (err) => {
+            if (err) {
+              retry(publishGetState, 5000)
+            }
+            else {
+              console.log("published on:", topic)
+              const msgTimeout = noAnswerFromDevice(deviceIndex, loop)
+              
+              device.handleMessage = (packet, callback) => {
+                clearInterval(msgTimeout);
+                const message = packet.payload.toString("utf8");
+                const arrayContainsMessage = messages.has(message);
+                const msg_node_id = message.slice("13", "17");
+                const msg_code = message.slice("21", "25").toUpperCase();
+
+                if (!arrayContainsMessage) {
+                  insertMsg(message);
+                  messages.add(message);
+                  const errorMessage = errorMessages[msg_code]
+                  if (errorMessage.length > 0){
+                    // deviceData.result.add(errorMessage)
+                    // updateDeviceState(deviceData)
+                    faultyDevices.push(deviceData)
+                  }
+                  counter++
+                  setTimeout(loop, 1000);
+                  callback(packet);
+                } else {
+                  callback();                           
+              }
+            }
+          }
+        })
+        }
+        publishGetState()
+      }
+      else {
+        checkGatewayState(gatewayTopic, faultyDevices)
+        testInProgress = false 
+      }
+    }
+    loop()
+  })
+}
+
+const event = schedule.scheduleJob("*/1 * * * *", () => {
+  const scheduledCheck = () => {
+  if (testInProgress){
+    const time = 30000;
+    console.log("MQTT BUSY:",testInProgress, "RETRYING IN:", time / 1000,"seconds")
+    const timeout = setTimeout(() => {
+      clearTimeout(timeout);
+      scheduledCheck();
+      }, time)
+    }
+    else {
+      testInProgress = true
+      checkSiteState(1) 
+    }
+  }
+})
+
+const checkGatewayState = (topic, faultyDevices) => {
+  var received = 0
+  device.publish(topic, `XchkX`, QOS_1, () => {
+    const timeout = setTimeout(() => {
+      received = -1
+      actOnGatewayState(received, faultyDevices)
+    }, 8000)
+    device.handleMessage = (packet, callback) => {
+      const message = packet.payload.toString("utf8")
+      if (received === 0){
+        clearTimeout(timeout);
+        received = 1
+        actOnGatewayState(received, faultyDevices)
+      }
+      else {
+        callback()
+      }
+    }
+  })
+}
+
+const actOnGatewayState = (state, faultyDevices) => {
+  var transporter = nodemailer.createTransport({
+    service: "gmail",
+      auth: {
+        user: "platform.notifications2020@gmail.com",
+        pass: "Jarek543",
+      },
+  });
+  
+  var mailOptions = {
+    from: 'automaticTester@egglighting.com',
+    to: 'jack@egglighting.com, cesare@egglighting.com',
+  };
+
+  if (state < 0){
+    mailOptions.subject = "Automatic check - Faulty gateway"
+    mailOptions.text = "Faulty gateway, it did not respond"
+  } 
+  else if (faultyDevices.length > 0){
+    mailOptions.subject = "Automatic check - Faulty devices"
+    var text = "Gateway OK,\nFaulty devices:\n" 
+    faultyDevices.forEach(device => {
+      text = text + `Device: ${device.node_id} 
+      reported error: ${Array.from(device.result).join(", ")}\n`
+    })
+    mailOptions.text = text
+  }
+  
+  if (mailOptions.hasOwnProperty("text")){
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    }); 
+  }
+}
+
+// Scheduling
+
+const scheduleQuery = `select s.user_id, s.schedule_id, s.test_type, s.date, GROUP_CONCAT(l.id) as device_id, 
+GROUP_CONCAT(l.node_id) as node_id, GROUP_CONCAT(DISTINCT s2.mqtt_topic_in) as topic_in,
+GROUP_CONCAT(DISTINCT s2.mqtt_topic_out) as topic_out 
+from schedule s 
+join schedule_has_devices shd on s.schedule_id = shd.schedule_id 
+join lights l on l.id = shd.device_id 
+join levels l2 on l.levels_id = l2.id 
+join buildings b on l2.buildings_id = b.id 
+join sites s2 on b.sites_id = s2.id`
+
+const singleScheduleQuery = `select s.user_id, s.schedule_id, s.test_type, s.date, GROUP_CONCAT(l.id) as device_id, 
+GROUP_CONCAT(l.node_id) as node_id, GROUP_CONCAT(DISTINCT s2.mqtt_topic_in) as topic_in,
+GROUP_CONCAT(DISTINCT s2.mqtt_topic_out) as topic_out 
+from schedule s 
+join schedule_has_devices shd on s.schedule_id = shd.schedule_id 
+join lights l on l.id = shd.device_id 
+join levels l2 on l.levels_id = l2.id 
+join buildings b on l2.buildings_id = b.id 
+join sites s2 on b.sites_id = s2.id
+where s.schedule_id = ?`
+
+const scheduleFromDB = () => {
+  con.query(scheduleQuery, (err, rows) => {
+    scheduleJobs(rows)
+  })
+}
+
+const scheduleJobs = (schedules) => {
+  console.log("Jobs to schedule:");
+  if (schedules.length) {
+    schedules.forEach((a) => {
+      const date = new Date(a.date.toString());
+      const name = `job${a.id}`;
+      const dateNow = new Date();
+      if (date >= dateNow) {
+        console.log(name);
+        console.log(a);
+
+        schedule.scheduleJob(name, date, () => runTest(a));
+      }
+    });
+  } else console.log("Nothing to schedule");
+};
+  
+
+const runTest = (test) => {
+  beforeScheduledTest(test)
+  cutPowerAll(null, test.user_id)
+  const testDuration = testTime[devicesLive[0].test_type] + 1000 *60 * 5
+  setTimeout(() => {
+    saveScheduledTest(test.user_id)
+  }, testDuration); 
+}
+
+const insertTrial = `INSERT INTO trial_tests SET ?`
+const insertTrialLight = "INSERT INTO trial_tests_has_lights SET ?"
+const selectSensors = "select s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ?",
+
+const beforeScheduledTest = (test) => {
+  const userId = test.user_id 
+  const device_ids = test.device_id.split(",")
+  const node_ids = test.node_id.split(",")
+  const testType = test.test_type
+  
+  var devices = []
+  var devicesCopy = []
+  for (let index = 0; index < device_ids.length; index++) {
+    const deviceId = device_ids[index];
+    const nodeId = node_ids[index]
+    devices.push({id: deviceId, nodeId: nodeId})
+  }
+
+  testInProgress = true 
+  const data = {
+    lights: devices.length,
+    result: "In Progress",
+    type: testType
+  }
+
+  con.query(insertTrial, data, (err, result) => {
+    const testId = result.insertId;
+    devices.forEach(el => {
+      const params = {trial_tests_id: result.insertId, lights_id: el.id}
+      con.query(insertTrialLight, params, err => {
+        if (err) throw err 
+
+        el.powercut = 0;
+        el.clicked = 0;
+        el.duration = testTime[testType];
+        el.durationStart = testTime[testType];
+        el.user = userId
+        el.result = new Set();
+        el.testid = testId
+
+        con.query(selectSensors, el.id, (err, result) => {
+          if (result.length > 0) {
+            el.sensors = result.map((r) => ({
+              sensor_id: r.node_id,
+              type: r.type,
+            }));
+            el.has_sensors = true;
+          } else {
+            el.has_sensors = false;
+          }
+          devicesCopy.push(el)
+        })
+
+      })
+    })
+    
+    devicesLive.push({
+        test_id: testId,
+        status: "In progress",
+        user_id: userId,
+        devices: devicesCopy,
+        cut_all_clicked: 0,
+        abort_clicked: 0,
+        finish_clicked: 0,
+        type: testType,
+      });
+  })
+}
+
+const saveScheduledTest = (user) => {
+  let counter = 0;
+  let deviceId;
+  var messages = new Set();
+  var usersTest = findUsersTest(user);
+  var usersDevices = usersTest.devices;
+  const length = usersDevices.length;
+  usersTest.finish_clicked = 1;
+
+      busy = true;
+
+      loop = () => {
+        if (counter < length && testInProgress) {
+          deviceId = usersDevices[counter].node_id;
+          var topic = usersDevices[counter].mqtt_topic_out;
+          var msgReceived = false;
+
+          checkDeviceState(counter, topic, deviceId, user, "relay").then(() => {
+            setTimeout(() => {
+              device.publish(
+                topic,
+                `${deviceId}10018202000196`,
+                QOS_1,
+                (err) => {
+                  console.log("published", deviceId);
+                  var msgTimeout = setTimeout(() => {
+                    if (usersDevices.length > 0) {
+                      console.log("No response");
+                      usersDevices[counter].powercut = 3;
+                      usersDevices[counter].result.add(
+                        "Weak connection to mesh"
+                      );
+                      updateDeviceState(usersDevices[counter]);
+                    }
+                    counter++;
+                    setTimeout(loop, 1000);
+                  }, noResponseTimeout);
+                  device.handleMessage = (packet, callback) => {
+                    clearInterval(msgTimeout);
+                    var message = packet.payload.toString("utf8");
+                    var arrayContainsMessage = messages.has(message);
+                    var msg_node_id = message.slice("13", "17");
+
+                    if (!arrayContainsMessage && !msgReceived) {
+                      if (!message.includes("hello")) {
+                        messages.add(message);
+                        console.log(message, msg_node_id);
+                        msgReceived = true;
+                        if (usersDevices.length > 0) {
+                          usersDevices[counter].powercut = 2;
+                          usersDevices[counter].result.delete(
+                            "Battery powered"
+                          );
+                          updateDeviceState(usersDevices[counter]);
+                        }
+                        counter++;
+                        setTimeout(loop, 1000);
+                        callback(packet);
+                      }
+                    } else {
+                      console.log(message, arrayContainsMessage, msgReceived);
+                      callback(packet);
+                    }
+                  };
+                },
+                1000
+              );
+            });
+          });
+        } else {
+          console.log("done", counter, length);
+          busy = false;
+          counter = 0;
+          con.query(
+            "UPDATE trial_tests SET result='Finished' WHERE id=?",
+            [usersTest.test_id],
+            () => {
+              usersDevices.forEach((el) => {
+                if (el.result.size < 1) el.result.add("OK");
+                con.query(
+                  "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?",
+                  [Array.from(el.result).join(","), usersTest.test_id, el.id]
+                );
+              });
+              setTimeout(() => {
+                var usersTestIndex = devicesLive.findIndex(
+                  (el) => el.user_id === user
+                );
+                devicesLive.splice(usersTestIndex, 1);
+              }, 1000);
+              console.log("Saved successfuly");
+              testInProgress = false;
+              usersTest = 0;
+            }
+          );
+        }
+      };
+      loop();
+    }
+
+const insertSchedule = "insert into schedule (date, test_type, user_id) values (?, ?, ?)"
+const insertScheduleDevices = "insert into schedule_has_devices (schedule_id, device_id) values ?"
+
+router.post("/scheduletest/:uid", auth, (req, res) => {
+  con.query(insertSchedule, [], (err, result) => {
+    if (err) throw err 
+
+    const scheduleId = result.insertId;
+    const deviceIds = req.body.ids.map(id => ({schedule_id: scheduleId, device_id: id}))
+    con.query(insertScheduleDevices, [deviceIds], (err) => {
+      if (err) throw err 
+
+      con.query(singleScheduleQuery, [scheduleId], (err, result) => {
+        if (err) throw err 
+        scheduleJobs(result)
+      })
+    })
+  })
+})
+  
+scheduleFromDB()
 
 module.exports = router;
