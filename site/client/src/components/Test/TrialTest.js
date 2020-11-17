@@ -14,6 +14,7 @@ import CircularProgressWithLabel from "components/CircularProgress/CircularProgr
 import Typography from "@material-ui/core/Typography";
 import withStyles from "@material-ui/styles/withStyles";
 import Select from "@material-ui/core/Select";
+import Input from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import InputLabel from "@material-ui/core/InputLabel";
 import LiveFloorplanWrapper from "components/Test/LiveFloorplanWrapper";
@@ -346,6 +347,7 @@ class TrialTest extends Component {
       {
         dataField: "bat",
         text: "Battery",
+        editable: false,
         formatter: (cellContent, row) => {
           console.log(row.has_sensors);
           if (row.has_sensors) {
@@ -357,12 +359,49 @@ class TrialTest extends Component {
               return <span>Faulty</span>;
             } else if (row.powercut !== 3) return <span>OK</span>;
             else return null;
-          } else return;
+          } else
+            return (
+              <Select
+                labelId="demo-mutiple-name-label"
+                id="demo-mutiple-name"
+                multiple
+                value={this.state.resultBat}
+                onChange={this.handleChangeBatRes}
+                input={<Input />}
+              >
+                {[
+                  {
+                    name: "OK",
+                    value: "OK",
+                  },
+                  { name: "Faulty", value: "Battery fault" },
+                  { name: "Disconnected", value: "Battery disconnected" },
+                ].map((el) => (
+                  <MenuItem key={el.name} value={el.value}>
+                    {el.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              // <SelectCustom
+              //   label="Battery state"
+              //   value={this.state.resultBat}
+              //   handleChange={this.handleChangeBatRes}
+              //   items={[
+              //     {
+              //       name: "OK",
+              //       value: "OK",
+              //     },
+              //     { name: "Faulty", value: "Battery fault" },
+              //     { name: "Disconnected", value: "Battery disconnected" },
+              //   ]}
+              // />
+            );
         },
       },
       {
         dataField: "lamp",
         text: "Lamp",
+        editable: false,
         formatter: (cellContent, row) => {
           const result = row.result.length
             ? Array.from(row.result).join(",")
@@ -900,10 +939,11 @@ class TrialTest extends Component {
 
   handleChangeBatRes = (e) => {
     this.setState({ resultBat: e.target.value });
+    console.log(this.state.resultBat);
   };
 
   handleChangeLampRes = (e) => {
-    this.setState({ resultLamp: e.target.value });
+    this.setState({ resultLamp: [...this.state.resultLamp, e.target.value] });
   };
 
   componentWillUnmount() {
@@ -1196,13 +1236,13 @@ class TrialTest extends Component {
               <MenuItem value={"Lamp Fault"}>Set 'Lamp fault'</MenuItem>
               <MenuItem value={"Battery Fault"}>Set 'Battery fault'</MenuItem>
             </Select> */}
-            <Button
+            {/* <Button
               disabled={this.state.disabledApply}
               color="primary"
               onClick={this.handleSelectAction}
             >
               Apply
-            </Button>
+            </Button> */}
           </div>
         ) : null}
         {this.state.step === 4 ? (
