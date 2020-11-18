@@ -47,14 +47,14 @@ const floorplansDir = path.join(__dirname, "../../public/img");
 
 router.get("/", auth, (req, res) => {
   con.query(getLightsInLevels, (err, rows) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.json(rows);
   });
 });
 
 router.get("/site/:sites_id", auth, (req, res) => {
   con.query(getLightsInLevelsBySite, req.params, sites_id, (err, rows) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.json(rows);
   });
 });
@@ -64,7 +64,7 @@ router.get("/building/:building_id", auth, (req, res) => {
     getLightsInLevelsByBuilding,
     req.params.building_id,
     (err, rows) => {
-      if (err) throw err;
+      if (err) res.sendStatus(400);
       res.json(rows);
     }
   );
@@ -74,7 +74,7 @@ router.get("/building/:building_id", auth, (req, res) => {
 router.post("/add", auth, (req, res) => {
   const params = [req.body.buildings_id, req.body.level, req.body.description];
   con.query(createLevel, params, (err) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.sendStatus(200);
   });
 });
@@ -83,7 +83,7 @@ router.post("/add", auth, (req, res) => {
 router.post("/edit/:id", auth, function (req, res) {
   const params = [req.body.level_name, req.body.description, req.params.id];
   con.query(updateLevel, params, (err, result) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.json(result);
   });
 });
@@ -117,7 +117,7 @@ router.post("/floorplan/upload/:id", auth, (req, res) => {
 // Delete chosen level
 router.delete("/:id", auth, function (req, res) {
   con.query(deleteLevel, [req.params.id], (err) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.sendStatus(200);
   });
 });

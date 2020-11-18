@@ -26,21 +26,21 @@ const updateUser = "UPDATE users SET ?? = ? WHERE id = ?"
 //gets all groups
 router.get("/:access", auth, (req, res) => {
   con.query(getAccessRoles, req.params.access, (err, rows) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.json(rows)
   })
 })
 
 router.get("/users/:uid", auth, (req, res) => {
   con.query(getUserFromSameSite, req.params.uid, (err, rows) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.json(rows)
   })
 })
 
 router.delete("/users/delete/:id", auth, (req, res) => {
   con.query(deleteUser, req.params.uid, (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })
@@ -48,7 +48,7 @@ router.delete("/users/delete/:id", auth, (req, res) => {
 router.post("/edit/:id", auth, (req, res) => {
   const params = [req.body.column, req.body.value, req.params.id]
   con.query(updateUser, params, (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })
