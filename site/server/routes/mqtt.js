@@ -537,7 +537,6 @@ const cutPowerSingle = (res, req, user) => {
 };
 
 const cutPowerAll = (res, user) => {
-  console.log(devicesLive);
   console.log("MAIN OFF ALL");
   busy = true;
   let counter = 0;
