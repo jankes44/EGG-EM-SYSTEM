@@ -38,7 +38,6 @@ app.use("/mqtt", require("./routes/mqtt"));
 
 // api routes
 app.use("/api/lights", require("./routes/api/lights"));
-app.use("/api/groups", require("./routes/api/groups"));
 app.use("/api/tests", require("./routes/api/tests"));
 app.use("/api/levels", require("./routes/api/levels"));
 app.use("/api/buildings", require("./routes/api/buildings"));
