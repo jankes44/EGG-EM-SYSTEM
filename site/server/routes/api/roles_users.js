@@ -7,92 +7,50 @@ const auth = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../../database/db2");
 
-//gets all groups
-router.get("/:access", auth, (req, res) =>
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(
-        "SELECT * FROM roles WHERE access <= ?",
-        [req.params.access],
-        (err, rows) => res.json(rows)
-      );
-    }
-  })
-);
+const getAccessRoles = "SELECT * FROM roles WHERE access <= ?"
+const getUserFromSameSite = `SELECT u.*, GROUP_CONCAT(s.id) as sites, GROUP_CONCAT(s.name) as site_names, 
+                            r.name as role_name, r.access
+                            FROM users u 
+                            LEFT JOIN users_has_sites uhs ON uhs.users_id = u.id
+                            LEFT JOIN sites s on uhs.sites_id = s.id 
+                            LEFT JOIN roles r on r.id = u.roles_id 
+                            WHERE s.id in (
+                              SELECT uhs2.sites_id 	
+                              FROM users_has_sites uhs2
+                              WHERE uhs2.users_id = 4
+                            )
+                            group by u.id`
+const deleteUser = "DELETE FROM users WHERE id = ?"
+const updateUser = "UPDATE users SET ?? = ? WHERE id = ?"
 
 //gets all groups
-router.get("/users/:uid", auth, (req, res) =>
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      var sitesArr = [];
-      con.query(
-        `SELECT * FROM users_has_sites WHERE users_id=?`,
-        [req.params.uid],
-        (err, rows) => {
-          rows.forEach((el) => {
-            sitesArr.push(el.sites_id);
-          });
-
-          con.query(
-            `SELECT 
-            users.*, GROUP_CONCAT(users_has_sites.sites_id) as sites, GROUP_CONCAT(sites.name) as site_names, roles.name as role_name, roles.access
-        FROM
-            users
-                LEFT OUTER JOIN
-            users_has_sites ON users_has_sites.users_id = users.id
-				LEFT OUTER JOIN
-			sites ON sites.id = users_has_sites.sites_id
-                LEFT OUTER JOIN
-            roles ON roles.id = users.roles_id
-            WHERE sites_id IN (?)
-            GROUP BY users.id`,
-            [sitesArr],
-            (err, rows) => res.json(rows)
-          );
-        }
-      );
-    }
+router.get("/:access", auth, (req, res) => {
+  con.query(getAccessRoles, req.params.access, (err, rows) => {
+    if (err) throw err 
+    res.json(rows)
   })
-);
+})
 
-router.delete("/users/delete/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query("DELETE FROM `users` WHERE `id`=?", [req.params.id], function (
-        error,
-        results,
-        fields,
-        rows,
-        id
-      ) {
-        if (error) throw error;
-        res.end(`Record deleted succesfully`);
-      });
-    }
-  });
-});
+router.get("/users/:uid", auth, (req, res) => {
+  con.query(getUserFromSameSite, req.params.uid, (err, rows) => {
+    if (err) throw err 
+    res.json(rows)
+  })
+})
 
-router.post("/edit/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(
-        "UPDATE `users` SET ??=? WHERE `id`=?",
-        [req.body.column, req.body.value, req.params.id],
-        function (error, results, fields, rows, id) {
-          if (error) throw error;
-          res.end(`User edited successfuly`);
-        }
-      );
-    }
-  });
-});
+router.delete("/users/delete/:id", auth, (req, res) => {
+  con.query(deleteUser, req.params.uid, (err) => {
+    if (err) throw err 
+    res.sendStatus(200)
+  })
+})
+
+router.post("/edit/:id", auth, (req, res) => {
+  const params = [req.body.column, req.body.value, req.params.id]
+  con.query(updateUser, params, (err) => {
+    if (err) throw err 
+    res.sendStatus(200)
+  })
+})
 
 module.exports = router;
