@@ -2,7 +2,6 @@ import React from "react";
 import axios from "axios";
 import GridItem from "components/Grid/GridItem.js";
 import Icon from "@material-ui/core/Icon";
-// import GroupsTable from "components/Data/GroupsTable.js";
 // import Button from "@material-ui/core/Button";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";

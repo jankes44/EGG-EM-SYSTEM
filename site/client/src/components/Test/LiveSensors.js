@@ -430,7 +430,6 @@ export default function LiveFloorPlan(props) {
       <UnassignedSensors
         clickedBuilding={props.clickedBuilding}
         clickedLevel={props.clickedLevel}
-        clickedGroup={props.clickedGroup}
         assignSensor={props.assignSensor}
       />
     </div>

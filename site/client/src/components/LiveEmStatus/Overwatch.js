@@ -22,7 +22,6 @@ export default function Overwatch(props) {
       .then((response) => {
         if (response.data.length > 0) {
           setLights(response.data);
-          props.setClickedGroup(response.data[0].lgt_groups_id);
           setResponse(true);
         } else {
           setLights([]);
@@ -120,7 +119,6 @@ export default function Overwatch(props) {
             clickedBuilding={props.clickedBuilding}
             clickedLevel={props.clickedLevel}
             liveDevices={lights}
-            clickedGroup={props.clickedGroup}
             assignLight={assignLight}
             refreshData={callLightsFloorplans}
           />
@@ -129,7 +127,6 @@ export default function Overwatch(props) {
             clickedBuilding={props.clickedBuilding}
             clickedLevel={props.clickedLevel}
             liveDevices={sensors}
-            clickedGroup={props.clickedGroup}
             assignSensor={assignSensor}
             refreshData={callSensorsFloorplans}
           />
