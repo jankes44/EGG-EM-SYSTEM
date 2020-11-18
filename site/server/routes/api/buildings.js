@@ -110,7 +110,7 @@ router.post("/:id", auth, function (req, res) {
 router.delete("/:id", auth, function (req, res) {
   con.query(deleteBuilding, [req.params.id], (err, result) => {
     if (err) throw err;
-    res.send("Record deleted succesfully");
+    res.sendStatus(200)
   });
 });
 
