@@ -10,212 +10,114 @@ const path = require("path");
 var multer = require("multer");
 var fs = require("fs");
 
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/img");
-  },
-  filename: function (req, file, cb) {
-    cb(null, `floorplan${req.body.level}.jpg`);
-  },
+const getLightsInLevels = `select l.*, count(lg.id) as lights_count, 
+                          GROUP_CONCAT(DISTINCT lg.device_id, '-', lg.type SEPARATOR ', ') as devices
+                          from levels l
+                          LEFT OUTER JOIN lights lg on lg.levels_id = l.id
+                          GROUP BY l.id`
+
+const getLightsInLevelsBySite =  `select l.*, count(lg.id) as lights_count, 
+                          GROUP_CONCAT(DISTINCT lg.device_id, '-', lg.type SEPARATOR ', ') as devices
+                          from levels l
+                          LEFT OUTER JOIN buildings b ON b.id = l.buildings_id
+                          LEFT OUTER JOIN sites s ON s.id = b.sites_id
+                          LEFT OUTER JOIN lights lg on lg.levels_id = l.id
+                          WHERE s.id = ?
+                          GROUP BY l.id`
+
+const getLightsInLevelsByBuilding = `select l.*, count(lg.id) as lights_count, 
+                            GROUP_CONCAT(DISTINCT lg.device_id, '-', lg.type SEPARATOR ', ') as devices
+                            from levels l
+                            LEFT OUTER JOIN buildings b ON b.id = l.buildings_id
+                            LEFT OUTER JOIN lights lg on lg.levels_id = l.id
+                            WHERE b.id = ?
+                            GROUP BY l.id`
+
+const createLevel = "INSERT INTO levels (buildings_id, level, description) VALUES (?, ?, ?)"
+const updateLevel = "UPDATE levels SET level=?, description=? where id=?"
+const deleteLevel = "DELETE FROM levels WHERE id=?"
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "public/img"),
+  filename: (req, file, cb) => cb(null, `floorplan${req.body.level}.jpg`)
 });
+const upload = multer({ storage: storage }).single("file");
+const floorplansDir = path.join(__dirname, "../../public/img")
 
-var upload = multer({ storage: storage }).single("file");
-
-//gets all groups
-router.get("/", auth, (req, res) =>
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(
-        `select
-        levels.*,
-          count(lights.id) as lights_count, 
-          GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
-      from
-        levels
-          LEFT OUTER JOIN
-          lights on lights.levels_id = levels.id
-      GROUP BY levels.id`,
-        (err, rows) => res.json(rows)
-      );
-    }
+router.get("/", auth, (req, res) => {
+  con.query(getLightsInLevels, (err, rows) => {
+    if (err) throw err
+    res.json(rows)
   })
-),
-  router.get("/site/:sites_id", auth, (req, res) =>
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          `select
-      levels.*,
-        count(lights.id) as lights_count, 
-        GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
-    from
-      levels
-  LEFT OUTER JOIN
-  buildings ON buildings.id = levels.buildings_id
-        LEFT OUTER JOIN
-        sites ON sites.id = buildings.sites_id
-        LEFT OUTER JOIN
-        lights on lights.levels_id = levels.id
-      WHERE sites.id = ${req.params.sites_id}
-    GROUP BY levels.id`,
-          (err, rows) => res.json(rows)
-        );
-      }
-    })
-  ),
-  //get group by param: id
-  router.get("/building/:building_id", auth, (req, res) =>
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          `select
-          levels.*,
-            count(lights.id) as lights_count, 
-            GROUP_CONCAT(DISTINCT lights.device_id, '-', lights.type SEPARATOR ', ') as devices
-        from
-          levels
-      LEFT OUTER JOIN
-      buildings ON buildings.id = levels.buildings_id
-            LEFT OUTER JOIN
-            sites ON sites.id = buildings.sites_id
-            LEFT OUTER JOIN
-            lights on lights.levels_id = levels.id
-          WHERE buildings.id = ${req.params.building_id}
-        GROUP BY levels.id`,
-          [req.params.building_id],
-          (err, rows) => res.json(rows)
-        );
-      }
-    })
-  ),
-  // Create new level
-  router.post("/add", auth, function (req, res) {
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          "INSERT INTO levels SET `buildings_id`=?, `level`=?, `description`=?",
-          [req.body.buildings_id, req.body.level, req.body.description],
-          (error, results, fields) => {
-            if (error) throw error;
-            con.query(
-              "INSERT INTO lights SET levels_id=?",
-              [results.insertId],
-              (err, resultsdevices) => {
-                console.log(resultsdevices);
-                res.end(JSON.stringify(resultsdevices));
-              }
-            );
-          }
-        );
-      }
-    });
-  });
+})
+
+router.get("/site/:sites_id", auth, (req, res) => {
+  con.query(getLightsInLevelsBySite, req.params,sites_id, (err, rows) => {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+router.get("/building/:building_id", auth, (req, res) => {
+  con.query(getLightsInLevelsByBuilding, req.params,building_id, (err, rows) => {
+    if (err) throw err
+    res.json(rows)
+  })
+})
+
+// Create new level
+router.post("/add", auth, (req, res) => {
+  const params = [req.body.buildings_id, req.body.level, req.body.description]
+  con.query(createLevel, params, (err) => {
+    if (err) throw err 
+    res.sendStatus(200)
+  })
+})
 
 // Update chosen level
 router.post("/edit/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(
-        "UPDATE `levels` SET `level`=?, `description`=? where `id`=(?)",
-        [req.body.level_name, req.body.description, req.params.id],
-        function (error, results, fields) {
-          if (error) throw error;
-          res.end(JSON.stringify(results));
-        }
-      );
-    }
-  });
-});
+  const params = [req.body.level_name, req.body.description, req.params.id]
+  con.query(updateLevel, params, (err, result) => {
+    if (err) throw err 
+    res.json(result)
+  })
+})
 
 // Get floorplan by level id
 router.get("/floorplan/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      if (
-        fs.existsSync(
-          path.join(
-            __dirname,
-            "../../public/img",
-            `floorplan${req.params.id}.jpg`
-          )
-        )
-      ) {
-        res.sendFile(
-          path.join(
-            __dirname,
-            "../../public/img",
-            `floorplan${req.params.id}.jpg`
-          )
-        );
-      } else {
-        res.status(404).send("File doesn't exist");
-      }
-    }
-  });
-});
+  const floorplan = path.join(floorplansDir, `floorplan${req.params.id}.jpg`)
+  if (fs.existsSync(floorplan)){
+    res.sendFile(floorplan)
+  }
+  else {
+    res.sendStatus(404)
+  }
+})
 
 //upload floorplan and assign id to it
-router.post("/floorplan/upload/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
+router.post("/floorplan/upload/:id", auth, (req, res) => {
+  const floorplan = path.join(floorplansDir, `floorplan${req.body.level}.jpg`)
+  upload(req, res, (err) => {
+    console.log(req.body);
+    if (err instanceof multer.MulterError) {
+      console.log(err);
+      return res.status(500).json(err);
     }
-  });
-});
-
-router.post("/testUpload", function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    upload(req, res, function (err) {
-      console.log(req.body);
-      if (err instanceof multer.MulterError) {
-        console.log(err);
-        return res.status(500).json(err);
-      } else if (err) {
-        console.log(err);
-        return res.status(500).json(err);
-      }
-      return res.sendFile(
-        path.join(
-          __dirname,
-          "../../public/img",
-          `floorplan${req.body.level}.jpg`
-        )
-      );
-    });
-  });
-});
+    else if (err) {
+      console.log(err);
+      return res.status(500).json(err);
+    }
+    return res.sendFile(floorplan)
+  })
+})
 
 // Delete chosen level
 router.delete("/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query("DELETE FROM `levels` WHERE `id`=?", [req.params.id], function (
-        error,
-        results,
-        fields,
-        rows,
-        id
-      ) {
-        if (error) throw error;
-        res.end(`Record deleted succesfully`);
-      });
-    }
-  });
-});
+  con.query(deleteLevel, [req.params.id], (err) => {
+    if (err) throw err 
+    res.sendStatus(200)
+  })
+})
 
 module.exports = router;
