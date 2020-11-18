@@ -237,6 +237,14 @@ export default function LiveFloorPlan(props) {
 
   return (
     <div>
+      <Button
+        color="primary"
+        variant="outlined"
+        style={{ float: "right" }}
+        onClick={handleSavePositions}
+      >
+        save device positions
+      </Button>
       <div className={classes.card}>
         <Typography variant="h4" style={{ marginTop: "5px" }}>
           Level {liveDevices_.length > 0 ? liveDevices_[0].level : null}{" "}
@@ -300,6 +308,7 @@ export default function LiveFloorPlan(props) {
                       color = "#F50158";
                     if (el.status.includes("Battery disconnected"))
                       color = "purple";
+                    if (el.status.includes("Lamp Fault")) color = "yellow";
                   }
 
                   // switch (el.status) {
@@ -459,9 +468,7 @@ export default function LiveFloorPlan(props) {
           </div>
         </div>
       </div>
-      <Button color="primary" onClick={handleSavePositions}>
-        save device positions
-      </Button>
+
       {success ? <h5>Device positions saved.</h5> : null}
 
       <UnassignedDevices

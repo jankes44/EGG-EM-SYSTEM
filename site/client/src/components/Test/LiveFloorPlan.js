@@ -75,7 +75,6 @@ export default function LiveFloorPlan(props) {
         {props.liveDevices.length > 0
           ? props.liveDevices.map((el) => {
               var color;
-              console.log(el);
               if (el.powercut === 1 || el.powercut === 2) {
                 color = "primary";
               }
@@ -154,21 +153,25 @@ export default function LiveFloorPlan(props) {
                       </div>
                       <div>
                         {el.sensors ? (
-                          el.sensors.map((el) => (
-                            <span>
+                          el.sensors.map((s, index) => (
+                            <span key={index}>
                               <Typography className={classes.typography}>
-                                {typeof el.reading !== "undefined" ||
-                                typeof el.voltage !== "undefined"
-                                  ? el.reading
-                                    ? `${el.type}: ${el.reading}`
-                                    : `${el.type}: ${el.voltage}v`
-                                  : null}
+                                {s.type}:{" "}
+                                {s.reading !== "undefined" ||
+                                  s.voltage !== "undefined"}
+                                {s.reading ? s.reading : s.voltage}
+                                {/* {typeof s.reading !== "undefined" ||
+                                typeof s.voltage !== "undefined"
+                                  ? s.reading
+                                    ? `${s.type}: ${s.reading}`
+                                    : `${s.type}: ${s.voltage}v`
+                                  : null} */}
                               </Typography>
                             </span>
                           ))
                         ) : (
                           <Typography className={classes.typography}>
-                            No sensors
+                            No sensors - manual
                           </Typography>
                         )}
                       </div>

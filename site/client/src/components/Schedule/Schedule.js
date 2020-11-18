@@ -12,20 +12,25 @@ import Devices from "components/SiteSetup/Devices";
 import MaterialTable from "material-table";
 import Buildings from "components/SiteSetup/Buildings";
 import Levels from "components/SiteSetup/Levels";
+import DateTime from "components/Schedule/DateTime";
+import Card from "components/Card/Card";
+import CardBody from "components/Card/CardBody";
+import ChooseType from "components/Test/ChooseTestType";
+import Button from "@material-ui/core/Button";
 
-function NoDataIndication() {
-  return (
-    <div>
-      <Typography variant="h3">
-        <Skeleton />
-        <Skeleton />
-        <Skeleton />
-      </Typography>
-    </div>
-  );
-}
+// function NoDataIndication() {
+//   return (
+//     <div>
+//       <Typography variant="h3">
+//         <Skeleton />
+//         <Skeleton />
+//         <Skeleton />
+//       </Typography>
+//     </div>
+//   );
+// }
 
-export default function LiveEmStatus() {
+export default function Schedule() {
   const [sites, setSites] = React.useState([]);
   const [buildings, setBuildings] = React.useState([]);
   const [levels, setLevels] = React.useState([]);
@@ -40,6 +45,10 @@ export default function LiveEmStatus() {
   const [clickedLevel, setClickedLevel] = React.useState(null);
   const [clickedBuilding, setClickedBuilding] = React.useState(null);
   const [clickedGroup, setClickedGroup] = React.useState(null);
+  const [date, setDate] = React.useState(new Date());
+  const [schedulerOpen, setSchedulerOpen] = React.useState(false);
+  const [selectedDevices, setSelectedDevices] = React.useState([]);
+  const [type, setType] = React.useState("Monthly");
 
   //material table columns
   const columns = [
@@ -92,7 +101,6 @@ export default function LiveEmStatus() {
     setLevels([]);
     setClickedBuilding(row.buildings_id);
     callLevels(row.buildings_id).then((res) => {
-      console.log(res);
       setLevels(res.data);
       setBackDisabled(false);
     });
@@ -178,6 +186,33 @@ export default function LiveEmStatus() {
     );
 
     return data;
+  };
+
+  const handleScheduleTest = (levels) => {
+    setSchedulerOpen(true);
+
+    let devices_id = [];
+    let finished = 0;
+    //user id, date, device_ids, test_type
+
+    levels.forEach((el) => {
+      callDevices(el.id).then((res) => {
+        res.data.forEach((d) => devices_id.push(d.id));
+        console.log(res.data);
+        finished++;
+        if (finished === levels.length) {
+          setSelectedDevices(devices_id);
+        }
+      });
+    });
+  };
+
+  const changeType = (e) => {
+    setType(e.target.value);
+  };
+
+  const scheduleTest = () => {
+    console.log(date, selectedDevices, type);
   };
 
   useEffect(() => {
@@ -297,6 +332,31 @@ export default function LiveEmStatus() {
           <Icon style={{ transform: "rotate(-90deg)" }}>navigation</Icon>
         </Fab>
       </GridItem>
+      {/* {stage === 1 ? (
+        <ToolkitProvider
+          keyField="buildings_id"
+          data={buildings}
+          columns={columns}
+          search
+        >
+          {(props) => (
+            <div style={{ margin: "20px" }}>
+              <SearchBar
+                {...props.searchProps}
+                style={{ width: "300px", float: "right" }}
+              />
+              <hr />
+              <BootstrapTable
+                {...props.baseProps}
+                expandRow={expandRow}
+                noDataIndication={() => <NoDataIndication />}
+                hover
+                rowStyle={{ cursor: "pointer" }}
+              />
+            </div>
+          )}
+        </ToolkitProvider>
+      ) : null} */}
       {stage === 1 ? (
         <Buildings
           buildings={buildings}
@@ -308,29 +368,43 @@ export default function LiveEmStatus() {
         />
       ) : null}
       {stage === 2 ? (
-        <Levels
-          levels={levels}
-          callLevels={callLevels}
-          handleClickLevel={handleClickLevel}
-          clickedLevel={clickedLevel}
-          handleEditLevel={() => {}}
-          clickedBuilding={clickedBuilding}
-          editable={false}
-          schedule={false}
-        />
+        <div>
+          {schedulerOpen ? (
+            <Card>
+              <CardBody>
+                <div style={{ display: "inline-block" }}>
+                  <ChooseType handleChange={changeType} value={type} />
+                </div>
+                <div style={{ margin: "15px", display: "inline-block" }}>
+                  <DateTime />
+                </div>
+                <div>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={scheduleTest}
+                  >
+                    schedule em test
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+          ) : null}
+          <Levels
+            levels={levels}
+            callLevels={callLevels}
+            handleClickLevel={handleClickLevel}
+            clickedLevel={clickedLevel}
+            handleEditLevel={() => {}}
+            clickedBuilding={clickedBuilding}
+            handleSchedule={handleScheduleTest}
+            editable={false}
+            schedule
+          />
+        </div>
       ) : null}
       {stage === 3 && clickedLevel ? (
-        <div>
-          <div style={{ margin: "15px" }}>
-            <Overwatch
-              clickedBuilding={clickedBuilding}
-              clickedLevel={clickedLevel}
-              clickedGroup={clickedGroup}
-              setClickedGroup={setClickedLgtGroup}
-            />
-          </div>
-          <Devices level={clickedLevel} devices={devices} editable={false} />
-        </div>
+        <Devices level={clickedLevel} devices={devices} editable={false} />
       ) : null}
     </div>
   );

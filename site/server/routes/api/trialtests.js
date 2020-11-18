@@ -126,8 +126,8 @@ router.get("/lightsresponses/csv/:id", auth, (req, res) =>
           trial_tests.type,
           trial_tests.set,
           trial_tests.created_at,
-          FLOOR(SUM(errors.error != 'OK') / trial_tests.lights) AS errors,
-          FLOOR(SUM(errors.error = 'OK') / trial_tests.lights) AS responseok,
+          FLOOR(SUM(trial_tests_has_lights.result LIKE '%OK%')) AS responseok,
+          FLOOR(SUM(trial_tests_has_lights.result NOT LIKE '%OK%')) AS errors,
           GROUP_CONCAT(DISTINCT levels.level
               SEPARATOR ', ') AS level,
           GROUP_CONCAT(DISTINCT buildings.building

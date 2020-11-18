@@ -40,7 +40,7 @@ export default class TrialTestsTableSelf extends Component {
           trialTests: res.data,
         });
       });
-    }, 7000);
+    }, 30000);
   }
 
   componentWillUnmount() {

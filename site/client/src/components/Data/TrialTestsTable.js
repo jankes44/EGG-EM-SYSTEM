@@ -11,7 +11,7 @@ import Popup from "components/Popup/Popup.js";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import moment from "moment";
 import axios from "axios";
-import { Icon, Fab } from "@material-ui/core";
+import { Icon, Fab, Button } from "@material-ui/core";
 
 let columnsGl = [];
 
@@ -89,6 +89,34 @@ class GroupsTable extends Component {
 
   handleSort = () => {
     this.table.sortContext.handleSort(columnsGl[0]);
+  };
+
+  downloadPDF = (id) => {
+    console.log(this.props.tests, id);
+    const testsIndex = this.props.tests.findIndex((el) => el.id === id);
+    console.log(testsIndex);
+    const tests = this.props.tests[testsIndex];
+
+    axios({
+      url:
+        global.BASE_URL + "/api/generatepdf/generateOfficialReport/" + tests.id,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      method: "GET",
+      responseType: "blob", // important
+    }).then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `test${moment(tests.created_at).format("YYYY-MM-DD-kmmss")}.pdf`
+      );
+      document.body.appendChild(link);
+      link.click();
+    });
   };
 
   locationFormatter = (column, colIndex, { sortElement, filterElement }) => {
@@ -205,6 +233,20 @@ class GroupsTable extends Component {
         dataField: "lights",
         text: "Devices",
         sort: true,
+        formatter: (cell, row) => {
+          if (row.responseok === cell) {
+            return (
+              <span style={{ color: "green" }}>
+                {row.responseok}/{cell}
+              </span>
+            );
+          } else
+            return (
+              <span style={{ color: "red" }}>
+                {row.responseok}/{cell}
+              </span>
+            );
+        },
         headerStyle: (colum, colIndex) => {
           return { width: "60px" };
         },
@@ -253,6 +295,26 @@ class GroupsTable extends Component {
           return { width: "140px" };
         },
       },
+      {
+        dataField: "",
+        text: "Actions",
+        sort: false,
+        headerStyle: (colum, colIndex) => {
+          return { width: "80px" };
+        },
+        formatter: (cell, row) => (
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={(e) => {
+              e.stopPropagation();
+              this.downloadPDF(row.id);
+            }}
+          >
+            PDF
+          </Button>
+        ),
+      },
     ];
 
     columnsGl = columns;
@@ -294,12 +356,20 @@ class GroupsTable extends Component {
         >
           <Icon>navigation</Icon>
         </Fab>
+
         <Fab
           color="primary"
           style={{ margin: "15px", float: "right" }}
           onClick={() => this.props.history.push("/admin/test")}
         >
-          <Icon>add</Icon>
+          New
+        </Fab>
+        <Fab
+          color="primary"
+          style={{ margin: "15px", float: "right" }}
+          onClick={() => this.props.history.push("/admin/schedule")}
+        >
+          <Icon>schedule</Icon>
         </Fab>
         {!this.state.showPopup ? (
           <BootstrapTable

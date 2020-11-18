@@ -130,29 +130,20 @@ export default function Levels(props) {
       data={props.levels}
       title="Levels"
       editable={editable}
+      options={{
+        selection: props.schedule ? true : false,
+      }}
+      actions={
+        props.schedule
+          ? [
+              {
+                tooltip: "Schedule selected",
+                icon: "schedule",
+                onClick: (evt, data) => props.handleSchedule(data),
+              },
+            ]
+          : null
+      }
     />
-    // <div>
-    //   <ToolkitProvider
-    //     keyField="id"
-    //     data={props.levels}
-    //     columns={columns}
-    //     search
-    //   >
-    //     {(props) => (
-    //       <div>
-    //         <SearchBar {...props.searchProps} />
-    //         <hr />
-    //         <BootstrapTable
-    //           {...props.baseProps}
-    //           noDataIndication={() => <NoDataIndication />}
-    //           rowStyle={{ cursor: "pointer" }}
-    //           rowEvents={rowEvents}
-    //           hover
-    //           wrapperClasses="table-responsive"
-    //         />
-    //       </div>
-    //     )}
-    //   </ToolkitProvider>
-    // </div>
   );
 }

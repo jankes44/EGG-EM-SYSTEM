@@ -14,6 +14,7 @@ import CircularProgressWithLabel from "components/CircularProgress/CircularProgr
 import Typography from "@material-ui/core/Typography";
 import withStyles from "@material-ui/styles/withStyles";
 import Select from "@material-ui/core/Select";
+import Input from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import InputLabel from "@material-ui/core/InputLabel";
 import LiveFloorplanWrapper from "components/Test/LiveFloorplanWrapper";
@@ -71,6 +72,8 @@ class TrialTest extends Component {
     sites: [],
     clickedSite: null,
     testType: "Monthly",
+    resultBat: [],
+    resultLamp: [],
     devices: [],
     deviceColumns: [
       {
@@ -330,7 +333,6 @@ class TrialTest extends Component {
           return { textAlign: "center" };
         },
         formatter: (cellContent, row) => {
-          console.log(row, this.state.liveDevices);
           return (
             <div>
               {row.powercut === 0
@@ -343,35 +345,71 @@ class TrialTest extends Component {
         },
       },
       {
-        dataField: "bat",
+        dataField: "has_sensors",
         text: "Battery",
+        editor: {
+          type: Type.SELECT,
+          options: [
+            {
+              value: "OK",
+              label: "OK",
+            },
+            {
+              value: "Battery fault",
+              label: "Battery fault",
+            },
+            {
+              value: "Battery disconnected",
+              label: "Battery disconnected",
+            },
+          ],
+        },
         formatter: (cellContent, row) => {
           const result = row.result.length
             ? Array.from(row.result).join(",")
             : "";
 
-          if (result.includes("Battery fault")) {
+          if (
+            result.includes("Battery Fault") ||
+            result.includes("Battery disconnected")
+          ) {
             return <span>Faulty</span>;
-          } else if (row.powercut !== 3) return <span>OK</span>;
+          } else if (row.powercut !== 3 && row.powercut > 0)
+            return <span>OK</span>;
           else return null;
         },
       },
       {
-        dataField: "lamp",
+        dataField: "is_assigned",
         text: "Lamp",
+        editor: {
+          type: Type.SELECT,
+          options: [
+            {
+              value: "OK",
+              label: "OK",
+            },
+            {
+              value: "Lamp fault",
+              label: "Lamp fault",
+            },
+          ],
+        },
         formatter: (cellContent, row) => {
           const result = row.result.length
             ? Array.from(row.result).join(",")
             : "";
-          if (result.includes("Lamp fault")) {
+          if (result.includes("Lamp Fault")) {
             return <span>Faulty</span>;
-          } else if (row.powercut !== 3) return <span>OK</span>;
+          } else if (row.powercut !== 3 && row.powercut > 0)
+            return <span>OK</span>;
           else return null;
         },
       },
       {
         dataField: "mesh",
         text: "Bluetooth mesh",
+        editable: false,
         formatter: (cellContent, row) => {
           const result = row.result.length
             ? Array.from(row.result).join(",")
@@ -451,13 +489,13 @@ class TrialTest extends Component {
                 if (!this.state.testData.finish_clicked === 0)
                   this.setState({ finishClicked: false });
 
-                if (
-                  !userInput ||
-                  (this.state.testData.finish_clicked === 1 &&
-                    this.state.finishClicked)
-                ) {
-                  this.setState({ disabledFinish: true });
-                } else this.setState({ disabledFinish: false });
+                // if (
+                //   !userInput ||
+                //   (this.state.testData.finish_clicked === 1 &&
+                //     this.state.finishClicked)
+                // ) {
+                //   this.setState({ disabledFinish: true });
+                // } else this.setState({ disabledFinish: false });
 
                 if (this.state.testData.abort_clicked === 1) {
                   this.setState({ disabledAbort: true });
@@ -498,7 +536,7 @@ class TrialTest extends Component {
       url: global.BASE_URL + "/mqtt/testinfo/" + user,
     }).then((res) => {
       if (res.data.length) {
-        console.log(res.data[0].hasAccess, res.data[0].isTest, res.data[1]);
+        // console.log(res.data[0].hasAccess, res.data[0].isTest, res.data[1]);
         if (res.data[0].hasAccess && !res.data[0].isTest) {
           this.setState({ step: 1 });
         }
@@ -588,11 +626,6 @@ class TrialTest extends Component {
         alert(err.response.data);
         this.setState({ errorMessage: err.response.data });
       });
-
-    // .catch((error) => {
-    //   console.log(error.response);
-    //   this.setState({ errorMessage: error.response.data });
-    // });
   };
 
   cutPowerSingle = (device) => {
@@ -652,6 +685,9 @@ class TrialTest extends Component {
     })
       .then((res) => {
         this.setState({ step: 3 });
+        setTimeout(() => {
+          this.setState({ disabledFinish: false });
+        }, 180000);
       })
       .catch((error) => {
         console.log(error.response);
@@ -671,11 +707,12 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/mqtt/userinput/" + deviceId,
+      url: global.BASE_URL + "/mqtt/manualset/",
       data: {
         //data object sent in request's body
-        userInput: input,
+        result: input,
         user: user,
+        device: deviceId,
       },
     })
       .then((res) => {
@@ -683,8 +720,11 @@ class TrialTest extends Component {
       })
       .catch((error) => {
         console.log(error.response);
-        this.setState({ errorMessage: error.response.data });
       });
+  };
+
+  handleInputChange = (e) => {
+    this.setState({});
   };
 
   saveTest = () => {
@@ -895,6 +935,15 @@ class TrialTest extends Component {
     }
   };
 
+  handleChangeBatRes = (e) => {
+    this.setState({ resultBat: e.target.value });
+    console.log(this.state.resultBat);
+  };
+
+  handleChangeLampRes = (e) => {
+    this.setState({ resultLamp: [...this.state.resultLamp, e.target.value] });
+  };
+
   componentWillUnmount() {
     clearInterval(this.timer);
   }
@@ -1013,7 +1062,7 @@ class TrialTest extends Component {
 
     const afterSaveCell = (oldValue, newValue, row, column) => {
       console.log(row.id, newValue);
-      this.userInput(row.id, newValue);
+      if (newValue !== oldValue) this.userInput(row.id, newValue);
     };
 
     const { classes } = this.props;
@@ -1170,25 +1219,31 @@ class TrialTest extends Component {
                 mode: "click",
                 afterSaveCell: afterSaveCell,
                 blurToSave: true,
+                nonEditableRows: () => {
+                  const devices = this.state.liveDevices;
+                  let array = [];
+                  devices.forEach((el) => {
+                    if (el.has_sensors) array.push(el.id);
+                  });
+                  return array;
+                },
               })}
             />
-            {/* <InputLabel>Actions</InputLabel>
+            <InputLabel>Actions</InputLabel>
             <Select
               style={{ minWidth: "200px" }}
               onChange={this.handleSelect}
               value={this.state.selectedAction}
             >
-              <MenuItem value={"OK"}>Set 'Device OK'</MenuItem>
-              <MenuItem value={"No response from BT module"}>
-                Set 'No response from bt'
-              </MenuItem>
+              <MenuItem value={"OK"}>Set 'Battery OK'</MenuItem>
+              <MenuItem value={"OK"}>Set 'Lamp OK'</MenuItem>
               <MenuItem value={"Lamp Fault"}>Set 'Lamp fault'</MenuItem>
               <MenuItem value={"Battery Fault"}>Set 'Battery fault'</MenuItem>
-            </Select> */}
+            </Select>
             <Button
               disabled={this.state.disabledApply}
               color="primary"
-              onClick={this.handleSelectAction}
+              onClick={() => {}}
             >
               Apply
             </Button>
