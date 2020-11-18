@@ -526,6 +526,10 @@ class TrialTest extends Component {
     const decoded = jwt_decode(token);
     const user = decoded.id;
 
+    setTimeout(() => {
+      this.setState({ disabledFinish: false, finishClicked: false });
+    }, 240000);
+
     axios({
       //Axios GET request
       method: "get",
@@ -685,9 +689,6 @@ class TrialTest extends Component {
     })
       .then((res) => {
         this.setState({ step: 3 });
-        setTimeout(() => {
-          this.setState({ disabledFinish: false });
-        }, 180000);
       })
       .catch((error) => {
         console.log(error.response);
