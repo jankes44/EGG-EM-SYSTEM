@@ -45,6 +45,7 @@ app.use("/api/sites", require("./routes/api/sites"));
 app.use("/api/trialtests", require("./routes/api/trialtests"));
 app.use("/api/rolesusers", require("./routes/api/roles_users"));
 app.use("/api/generatepdf", require("./routes/api/PdfGenerate"));
+app.use("/api/sensors", require("./routes/api/sensors"))
 app.use("/sockets", require("./routes/socketsControl"));
 app.use("/api/power", require("./routes/api/powerData"));
 
