@@ -4,7 +4,6 @@ import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js"
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import CardHeader from "components/Card/CardHeader.js";
-// import TestsTableSelf from "components/Data/TestsTableSelf.js";
 import TrialTestsTableSelf from "components/Data/TrialTestsTableSelf.js";
 import GridContainer from "components/Grid/GridContainer.js";
 import GridItem from "components/Grid/GridItem.js";
