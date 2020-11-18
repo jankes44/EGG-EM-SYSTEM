@@ -169,7 +169,7 @@ export default function LiveFloorPlan(props) {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/api/lights/edit/many",
+      url: global.BASE_URL + "/api/lights/edit/position",
       data: { devices: devices },
     }).then((res) => {
       console.log(res);
