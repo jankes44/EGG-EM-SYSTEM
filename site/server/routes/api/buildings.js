@@ -85,10 +85,7 @@ router.post("/new-empty", auth, function (req, res) {
 
     con.query(insertOneLevel, resultBuilding.insertId, (err, resultLevel) => {
       if (err) throw err 
-      con.query(insertLevelInLghts, resultLevel.insertId, (err, result) => {
-        if (err) throw err 
-        res.json(result)
-      })
+      res.sendStatus(200)
     })
   })
 })
