@@ -304,7 +304,10 @@ export default function LiveFloorPlan(props) {
                     if (el.status.includes("OK")) color = "#4fa328";
                     if (el.status.includes("No connection to driver"))
                       color = "orange";
-                    if (el.status.includes("Weak connection to mesh"))
+                    if (
+                      el.status.includes("Weak connection to mesh") ||
+                      el.status.includes("Weak connection to Mesh")
+                    )
                       color = "#F50158";
                     if (el.status.includes("Battery disconnected"))
                       color = "purple";

@@ -61,23 +61,7 @@ const pubHandle = (cmd, deviceId, counter, messages, topic, user, testType) => {
 
           resolve("NO RES");
         }, noResponseTimeout);
-        if (
-          deviceId === "0074" ||
-          deviceId === "0076" ||
-          deviceId === "0078" ||
-          deviceId === "0082" ||
-          deviceId === "0096"
-        ) {
-          clearInterval(msgTimeout);
-          usersDevices[counter].result.add("Battery powered");
-          updateDeviceState(usersDevices[counter]);
-          usersDevices[counter].powercut = 1;
-          resolve("power down");
-          if (!received) {
-            received = true;
-            durationCounterStart(counter, topic, user, testType);
-          }
-        }
+
         device.handleMessage = (packet, callback) => {
           clearInterval(msgTimeout); //if  got the message cancel the timeout on
           var message = packet.payload.toString("utf8");
@@ -313,15 +297,6 @@ durationCounterStart = (counter, topic, user, testType) => {
         testedDevice.duration === testCheckpointsTime[testType][2]
       ) {
         var messages = new Set();
-        if (testedDevice.node_id === "0082") {
-          testedDevice.result.add("Battery Fault");
-          testedDevice.result.add("Lamp Fault");
-          updateDeviceState(testedDevice);
-        }
-        if (testedDevice.node_id === "0096") {
-          testedDevice.result.add("Lamp Fault");
-          updateDeviceState(testedDevice);
-        }
         if (testedDevice.has_sensors) {
           testedDevice.sensors.forEach((s) => {
             switch (s.type) {
@@ -411,7 +386,6 @@ durationCounterStart = (counter, topic, user, testType) => {
                             }, 5000);
                           } else {
                             console.log("published on:", topic);
-
                             var msgTimeout = setTimeout(() => {
                               console.log("No response");
                               s.sensor_responded = false;
@@ -477,68 +451,52 @@ durationCounterStart = (counter, topic, user, testType) => {
         var timeout = setTimeout(() => {
           if (testInProgress) {
             var deviceId = usersDevices[counter].node_id;
-
-            if (
-              deviceId === "0074" ||
-              deviceId === "0076" ||
-              deviceId === "0078" ||
-              deviceId === "0096" ||
-              deviceId === "0082"
-            ) {
-              usersDevices[counter].powercut = 2; //POWERCUT 2 = FINISHED
-              usersDevices[counter].result.delete("Battery powered");
-              updateDeviceState(usersDevices[counter]);
-              busy = false;
-            } else {
-              checkDeviceState(counter, topic, deviceId, user, "led").then(
-                (msg) => {
-                  device.publish(
-                    topic,
-                    `${deviceId}10018202000196`,
-                    QOS_1,
-                    (err) => {
-                      console.log(`${deviceId}: MAIN ON`);
-
-                      var msgTimeout = setTimeout(() => {
-                        console.log(`${deviceId}: NO RES`);
-                        usersDevices[counter].powercut = 3;
-                        usersDevices[counter].result.add(
-                          "Weak connection to mesh"
-                        );
-                        updateDeviceState(usersDevices[counter]);
-                        counter++;
-                        busy = false;
-                        setTimeout(loop, 1000);
-                        return counter;
-                      }, noResponseTimeout);
-
-                      device.handleMessage = (packet, callback) => {
-                        clearInterval(msgTimeout);
-                        var message = packet.payload.toString("utf8");
-                        var arrayContainsMessage = messages.has(message);
-                        var msg_node_id = message.slice("13", "17");
-                        if (!arrayContainsMessage) {
-                          if (!message.includes("hello")) {
-                            messages.add(message);
-                            console.log(message, msg_node_id, "test");
-                            usersDevices[counter].powercut = 2; //POWERCUT 2 = FINISHED
-                            usersDevices[counter].result.delete(
-                              "Battery powered"
-                            );
-                            updateDeviceState(usersDevices[counter]);
-                            busy = false;
-                            callback(packet);
-                          } else callback(packet);
-                        } else {
-                          console.log(message, arrayContainsMessage);
+            checkDeviceState(counter, topic, deviceId, user, "led").then(
+              (msg) => {
+                device.publish(
+                  topic,
+                  `${deviceId}10018202000196`,
+                  QOS_1,
+                  (err) => {
+                    console.log(`${deviceId}: MAIN ON`);
+                    var msgTimeout = setTimeout(() => {
+                      console.log(`${deviceId}: NO RES`);
+                      usersDevices[counter].powercut = 3;
+                      usersDevices[counter].result.add(
+                        "Weak connection to mesh"
+                      );
+                      updateDeviceState(usersDevices[counter]);
+                      counter++;
+                      busy = false;
+                      setTimeout(loop, 1000);
+                      return counter;
+                    }, noResponseTimeout);
+                    device.handleMessage = (packet, callback) => {
+                      clearInterval(msgTimeout);
+                      var message = packet.payload.toString("utf8");
+                      var arrayContainsMessage = messages.has(message);
+                      var msg_node_id = message.slice("13", "17");
+                      if (!arrayContainsMessage) {
+                        if (!message.includes("hello")) {
+                          messages.add(message);
+                          console.log(message, msg_node_id, "test");
+                          usersDevices[counter].powercut = 2; //POWERCUT 2 = FINISHED
+                          usersDevices[counter].result.delete(
+                            "Battery powered"
+                          );
+                          updateDeviceState(usersDevices[counter]);
+                          busy = false;
                           callback(packet);
-                        }
-                      };
-                    }
-                  );
-                }
-              );
-            }
+                        } else callback(packet);
+                      } else {
+                        console.log(message, arrayContainsMessage);
+                        callback(packet);
+                      }
+                    };
+                  }
+                );
+              }
+            );
           } else clearTimeout(timeout);
         }, relayBackOn);
         clearInterval(interval);
@@ -751,73 +709,56 @@ router.post("/aborttest/:testid", auth, (req, res) => {
           const topic = usersDevices[counter].mqtt_topic_out;
           let msgReceived = false;
 
-          if (
-            deviceId === "0074" ||
-            deviceId === "0076" ||
-            deviceId === "0078"
-          ) {
-            msgReceived = true;
-            usersDevices[counter].powercut = 2;
-            usersDevices[counter].result.delete("Battery powered");
-            updateDeviceState(usersDevices[counter]);
-            counter++;
-            setTimeout(loop, 1000);
-          } else {
-            checkDeviceState(counter, topic, deviceId, user, "relay").then(
-              (msg) => {
-                setTimeout(() => {
-                  device.publish(
-                    topic,
-                    `${deviceId}10018202000196`,
-                    QOS_1,
-                    (err) => {
-                      console.log("published");
-                      var msgTimeout = setTimeout(() => {
-                        console.log("No response");
-                        usersDevices[counter].powercut = 3;
-                        usersDevices[counter].result.add(
-                          "Weak connection to mesh"
-                        );
-                        updateDeviceState(usersDevices[counter]);
-                        counter++;
-                        setTimeout(loop, 1000);
-                        return counter;
-                      }, noResponseTimeout);
-                      device.handleMessage = (packet, callback) => {
-                        clearInterval(msgTimeout);
-                        var message = packet.payload.toString("utf8");
-                        var arrayContainsMessage = messages.has(message);
-                        var msg_node_id = message.slice("13", "17");
-                        if (!arrayContainsMessage && !msgReceived) {
-                          if (!message.includes("hello")) {
-                            messages.add(message);
-                            console.log(message, msg_node_id, counter);
-                            msgReceived = true;
-                            usersDevices[counter].powercut = 2;
-                            usersDevices[counter].result.delete(
-                              "Battery powered"
-                            );
-                            updateDeviceState(usersDevices[counter]);
-                            counter++;
-                            setTimeout(loop, 1000);
-                            callback(packet);
-                          }
-                        } else {
-                          console.log(
-                            message,
-                            arrayContainsMessage,
-                            msgReceived
+          checkDeviceState(counter, topic, deviceId, user, "relay").then(
+            (msg) => {
+              setTimeout(() => {
+                device.publish(
+                  topic,
+                  `${deviceId}10018202000196`,
+                  QOS_1,
+                  (err) => {
+                    console.log("published");
+                    var msgTimeout = setTimeout(() => {
+                      console.log("No response");
+                      usersDevices[counter].powercut = 3;
+                      usersDevices[counter].result.add(
+                        "Weak connection to mesh"
+                      );
+                      updateDeviceState(usersDevices[counter]);
+                      counter++;
+                      setTimeout(loop, 1000);
+                      return counter;
+                    }, noResponseTimeout);
+                    device.handleMessage = (packet, callback) => {
+                      clearInterval(msgTimeout);
+                      var message = packet.payload.toString("utf8");
+                      var arrayContainsMessage = messages.has(message);
+                      var msg_node_id = message.slice("13", "17");
+                      if (!arrayContainsMessage && !msgReceived) {
+                        if (!message.includes("hello")) {
+                          messages.add(message);
+                          console.log(message, msg_node_id, counter);
+                          msgReceived = true;
+                          usersDevices[counter].powercut = 2;
+                          usersDevices[counter].result.delete(
+                            "Battery powered"
                           );
+                          updateDeviceState(usersDevices[counter]);
+                          counter++;
+                          setTimeout(loop, 1000);
                           callback(packet);
                         }
-                      };
-                    }
-                  );
-                });
-              },
-              1000
-            );
-          }
+                      } else {
+                        console.log(message, arrayContainsMessage, msgReceived);
+                        callback(packet);
+                      }
+                    };
+                  }
+                );
+              });
+            },
+            1000
+          );
         } else {
           console.log("done", counter, length);
           counter = 0;
@@ -879,84 +820,59 @@ router.post("/savetest/:testid", auth, (req, res) => {
           deviceId = usersDevices[counter].node_id;
           var topic = usersDevices[counter].mqtt_topic_out;
           var msgReceived = false;
-          if (
-            deviceId === "0074" ||
-            deviceId === "0076" ||
-            deviceId === "0078"
-          ) {
-            msgReceived = true;
-            usersDevices[counter].powercut = 2;
-            usersDevices[counter].result.delete("Battery powered");
-            updateDeviceState(usersDevices[counter]);
-            counter++;
-            setTimeout(loop, 1000);
-          } else if (deviceId === "0082") {
-            msgReceived = true;
-            usersDevices[counter].powercut = 2;
-            usersDevices[counter].result.delete("Battery powered");
-            updateDeviceState(usersDevices[counter]);
-            counter++;
-            setTimeout(loop, 1000);
-          } else {
-            checkDeviceState(counter, topic, deviceId, user, "relay").then(
-              () => {
-                setTimeout(() => {
-                  device.publish(
-                    topic,
-                    `${deviceId}10018202000196`,
-                    QOS_1,
-                    (err) => {
-                      console.log("published", deviceId);
-                      var msgTimeout = setTimeout(() => {
+
+          checkDeviceState(counter, topic, deviceId, user, "relay").then(() => {
+            setTimeout(() => {
+              device.publish(
+                topic,
+                `${deviceId}10018202000196`,
+                QOS_1,
+                (err) => {
+                  console.log("published", deviceId);
+                  var msgTimeout = setTimeout(() => {
+                    if (usersDevices.length > 0) {
+                      console.log("No response");
+                      usersDevices[counter].powercut = 3;
+                      usersDevices[counter].result.add(
+                        "Weak connection to mesh"
+                      );
+                      updateDeviceState(usersDevices[counter]);
+                    }
+                    counter++;
+                    setTimeout(loop, 1000);
+                  }, noResponseTimeout);
+                  device.handleMessage = (packet, callback) => {
+                    clearInterval(msgTimeout);
+                    var message = packet.payload.toString("utf8");
+                    var arrayContainsMessage = messages.has(message);
+                    var msg_node_id = message.slice("13", "17");
+
+                    if (!arrayContainsMessage && !msgReceived) {
+                      if (!message.includes("hello")) {
+                        messages.add(message);
+                        console.log(message, msg_node_id);
+                        msgReceived = true;
                         if (usersDevices.length > 0) {
-                          console.log("No response");
-                          usersDevices[counter].powercut = 3;
-                          usersDevices[counter].result.add(
-                            "Weak connection to mesh"
+                          usersDevices[counter].powercut = 2;
+                          usersDevices[counter].result.delete(
+                            "Battery powered"
                           );
                           updateDeviceState(usersDevices[counter]);
                         }
                         counter++;
                         setTimeout(loop, 1000);
-                      }, noResponseTimeout);
-                      device.handleMessage = (packet, callback) => {
-                        clearInterval(msgTimeout);
-                        var message = packet.payload.toString("utf8");
-                        var arrayContainsMessage = messages.has(message);
-                        var msg_node_id = message.slice("13", "17");
-
-                        if (!arrayContainsMessage && !msgReceived) {
-                          if (!message.includes("hello")) {
-                            messages.add(message);
-                            console.log(message, msg_node_id);
-                            msgReceived = true;
-                            if (usersDevices.length > 0) {
-                              usersDevices[counter].powercut = 2;
-                              usersDevices[counter].result.delete(
-                                "Battery powered"
-                              );
-                              updateDeviceState(usersDevices[counter]);
-                            }
-                            counter++;
-                            setTimeout(loop, 1000);
-                            callback(packet);
-                          }
-                        } else {
-                          console.log(
-                            message,
-                            arrayContainsMessage,
-                            msgReceived
-                          );
-                          callback(packet);
-                        }
-                      };
-                    },
-                    1000
-                  );
-                });
-              }
-            );
-          }
+                        callback(packet);
+                      }
+                    } else {
+                      console.log(message, arrayContainsMessage, msgReceived);
+                      callback(packet);
+                    }
+                  };
+                },
+                1000
+              );
+            });
+          });
         } else {
           console.log("done", counter, length);
           busy = false;
