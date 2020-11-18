@@ -7,6 +7,7 @@ import { CSVLink } from "react-csv";
 import moment from "moment";
 import Fade from "@material-ui/core/Fade";
 import axios from "axios";
+import Checkbox from "@material-ui/core/Checkbox";
 
 class Popup extends React.Component {
   state = {
@@ -126,7 +127,8 @@ class Popup extends React.Component {
                       if (item.result) {
                         item.error = item.result;
                       }
-                      if (item.result !== "OK") color = "salmon";
+                      if (item.result !== "OK")
+                        color = "rgba(255, 26, 26, 0.6)";
                       return (
                         <tr key={index} style={{ backgroundColor: color }}>
                           <td
@@ -161,6 +163,13 @@ class Popup extends React.Component {
                           >
                             {item.error}
                           </td>
+                          <td>
+                            <Checkbox
+                              inputProps={{
+                                "aria-label": "uncontrolled-checkbox",
+                              }}
+                            />
+                          </td>
                         </tr>
                       );
                     })}
@@ -194,6 +203,31 @@ class Popup extends React.Component {
                 className="btn btn-primary m-3 mb-5"
               >
                 Download PDF
+              </button>
+            </div>
+            <div
+              className="btn-group"
+              role="group"
+              aria-label="CSV PDF buttons group"
+              style={{ marginTop: "20px", float: "right" }}
+            >
+              {/* <CSVLink
+                    data={csvReportArray}
+                    target=""
+                    className="btn btn-primary"
+                  >
+                    Download CSV
+                  </CSVLink>
+
+                  <button
+                    onClick={this.downloadReport}
+                    className="btn btn-success"
+                  >
+                    Download PDF
+                  </button> */}
+              <button className="btn btn-primary mt-3 mb-5">Retest all</button>
+              <button className="btn btn-success mt-3 mb-5">
+                Retest selected
               </button>
             </div>
           </div>

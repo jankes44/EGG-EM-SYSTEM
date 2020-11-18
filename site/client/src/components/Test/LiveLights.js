@@ -308,6 +308,7 @@ export default function LiveFloorPlan(props) {
                       color = "#F50158";
                     if (el.status.includes("Battery disconnected"))
                       color = "purple";
+                    if (el.status.includes("Lamp Fault")) color = "yellow";
                   }
 
                   // switch (el.status) {

@@ -370,7 +370,7 @@ class TrialTest extends Component {
             : "";
 
           if (
-            result.includes("Battery fault") ||
+            result.includes("Battery Fault") ||
             result.includes("Battery disconnected")
           ) {
             return <span>Faulty</span>;
@@ -399,9 +399,10 @@ class TrialTest extends Component {
           const result = row.result.length
             ? Array.from(row.result).join(",")
             : "";
-          if (result.includes("Lamp fault")) {
+          if (result.includes("Lamp Fault")) {
             return <span>Faulty</span>;
-          } else if (row.powercut !== 3) return <span>OK</span>;
+          } else if (row.powercut !== 3 && row.powercut > 0)
+            return <span>OK</span>;
           else return null;
         },
       },
@@ -488,13 +489,13 @@ class TrialTest extends Component {
                 if (!this.state.testData.finish_clicked === 0)
                   this.setState({ finishClicked: false });
 
-                if (
-                  !userInput ||
-                  (this.state.testData.finish_clicked === 1 &&
-                    this.state.finishClicked)
-                ) {
-                  this.setState({ disabledFinish: true });
-                } else this.setState({ disabledFinish: false });
+                // if (
+                //   !userInput ||
+                //   (this.state.testData.finish_clicked === 1 &&
+                //     this.state.finishClicked)
+                // ) {
+                //   this.setState({ disabledFinish: true });
+                // } else this.setState({ disabledFinish: false });
 
                 if (this.state.testData.abort_clicked === 1) {
                   this.setState({ disabledAbort: true });
@@ -684,6 +685,9 @@ class TrialTest extends Component {
     })
       .then((res) => {
         this.setState({ step: 3 });
+        setTimeout(() => {
+          this.setState({ disabledFinish: false });
+        }, 180000);
       })
       .catch((error) => {
         console.log(error.response);
@@ -1225,26 +1229,24 @@ class TrialTest extends Component {
                 },
               })}
             />
-            {/* <InputLabel>Actions</InputLabel>
+            <InputLabel>Actions</InputLabel>
             <Select
               style={{ minWidth: "200px" }}
               onChange={this.handleSelect}
               value={this.state.selectedAction}
             >
-              <MenuItem value={"OK"}>Set 'Device OK'</MenuItem>
-              <MenuItem value={"No response from BT module"}>
-                Set 'No response from bt'
-              </MenuItem>
+              <MenuItem value={"OK"}>Set 'Battery OK'</MenuItem>
+              <MenuItem value={"OK"}>Set 'Lamp OK'</MenuItem>
               <MenuItem value={"Lamp Fault"}>Set 'Lamp fault'</MenuItem>
               <MenuItem value={"Battery Fault"}>Set 'Battery fault'</MenuItem>
-            </Select> */}
-            {/* <Button
+            </Select>
+            <Button
               disabled={this.state.disabledApply}
               color="primary"
-              onClick={this.handleSelectAction}
+              onClick={() => {}}
             >
               Apply
-            </Button> */}
+            </Button>
           </div>
         ) : null}
         {this.state.step === 4 ? (

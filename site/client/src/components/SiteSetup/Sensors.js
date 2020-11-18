@@ -21,16 +21,6 @@ export default function buildings(props) {
       field: "node_id",
       title: "Mesh Address",
     },
-    {
-      field: "sensor_is_assigned",
-      title: "Battery",
-      editable: "never",
-    },
-    {
-      field: "building",
-      title: "Luminance",
-      editable: "never",
-    },
   ];
 
   //   const bulkEdit = async (updateData) => {

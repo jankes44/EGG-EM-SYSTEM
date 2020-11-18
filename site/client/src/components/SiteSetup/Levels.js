@@ -131,15 +131,19 @@ export default function Levels(props) {
       title="Levels"
       editable={editable}
       options={{
-        selection: true,
+        selection: props.schedule ? true : false,
       }}
-      actions={[
-        {
-          tooltip: "Schedule selected",
-          icon: "schedule",
-          onClick: (evt, data) => props.handleSchedule(data),
-        },
-      ]}
+      actions={
+        props.schedule
+          ? [
+              {
+                tooltip: "Schedule selected",
+                icon: "schedule",
+                onClick: (evt, data) => props.handleSchedule(data),
+              },
+            ]
+          : null
+      }
     />
   );
 }

@@ -297,31 +297,6 @@ export default function LiveEmStatus() {
           <Icon style={{ transform: "rotate(-90deg)" }}>navigation</Icon>
         </Fab>
       </GridItem>
-      {/* {stage === 1 ? (
-        <ToolkitProvider
-          keyField="buildings_id"
-          data={buildings}
-          columns={columns}
-          search
-        >
-          {(props) => (
-            <div style={{ margin: "20px" }}>
-              <SearchBar
-                {...props.searchProps}
-                style={{ width: "300px", float: "right" }}
-              />
-              <hr />
-              <BootstrapTable
-                {...props.baseProps}
-                expandRow={expandRow}
-                noDataIndication={() => <NoDataIndication />}
-                hover
-                rowStyle={{ cursor: "pointer" }}
-              />
-            </div>
-          )}
-        </ToolkitProvider>
-      ) : null} */}
       {stage === 1 ? (
         <Buildings
           buildings={buildings}
@@ -341,6 +316,7 @@ export default function LiveEmStatus() {
           handleEditLevel={() => {}}
           clickedBuilding={clickedBuilding}
           editable={false}
+          schedule={false}
         />
       ) : null}
       {stage === 3 && clickedLevel ? (

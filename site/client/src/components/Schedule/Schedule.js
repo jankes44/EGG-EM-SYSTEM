@@ -16,6 +16,7 @@ import DateTime from "components/Schedule/DateTime";
 import Card from "components/Card/Card";
 import CardBody from "components/Card/CardBody";
 import ChooseType from "components/Test/ChooseTestType";
+import Button from "@material-ui/core/Button";
 
 // function NoDataIndication() {
 //   return (
@@ -210,7 +211,9 @@ export default function Schedule() {
     setType(e.target.value);
   };
 
-  const scheduleTest = () => {};
+  const scheduleTest = () => {
+    console.log(date, selectedDevices, type);
+  };
 
   useEffect(() => {
     callSites();
@@ -375,6 +378,15 @@ export default function Schedule() {
                 <div style={{ margin: "15px", display: "inline-block" }}>
                   <DateTime />
                 </div>
+                <div>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={scheduleTest}
+                  >
+                    schedule em test
+                  </Button>
+                </div>
               </CardBody>
             </Card>
           ) : null}
@@ -387,6 +399,7 @@ export default function Schedule() {
             clickedBuilding={clickedBuilding}
             handleSchedule={handleScheduleTest}
             editable={false}
+            schedule
           />
         </div>
       ) : null}
