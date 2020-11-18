@@ -7,8 +7,6 @@ import GridContainer from "components/Grid/GridContainer.js";
 // core components
 import GridItem from "components/Grid/GridItem.js";
 import TrialTestContainer from "components/Test/TrialTestContainer";
-import TrialTestsTableSelf from "components/Data/TrialTestsTableSelf";
-// import DraggableTest from "components/Data/DraggableTest";
 import React from "react";
 
 const styles = {

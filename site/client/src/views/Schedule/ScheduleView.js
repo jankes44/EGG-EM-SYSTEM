@@ -2,7 +2,7 @@
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 import CardHeader from "components/Card/CardHeader.js";
-import ScheduleComp from "components/Schedule/Schedule.js";
+import ScheduleComp from "components/TestSchedule/Schedule.js";
 import GridContainer from "components/Grid/GridContainer.js";
 // core components
 import GridItem from "components/Grid/GridItem.js";

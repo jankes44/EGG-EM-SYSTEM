@@ -1,6 +1,6 @@
 import React from "react";
-import LiveLights from "components/Test/LiveLights";
-import LiveSensors from "components/Test/LiveSensors";
+import LiveLights from "components/LiveFloorplans/LiveLights";
+import LiveSensors from "components/LiveFloorplans/LiveSensors";
 import axios from "axios";
 import Skeleton from "@material-ui/lab/Skeleton";
 import { Button } from "@material-ui/core";
@@ -39,7 +39,6 @@ export default function Overwatch(props) {
         },
       })
       .then((response) => {
-        console.log(response);
         if (response.data.length > 0) {
           setSensors(response.data);
           setResponse(true);
@@ -93,6 +92,11 @@ export default function Overwatch(props) {
   React.useEffect(() => {
     callLightsFloorplans();
     callSensorsFloorplans();
+    const interval = setInterval(() => {
+      callLightsFloorplans();
+      callSensorsFloorplans();
+    }, 10000);
+    return () => clearInterval(interval);
     //eslint-disable-next-line
   }, []);
   return (

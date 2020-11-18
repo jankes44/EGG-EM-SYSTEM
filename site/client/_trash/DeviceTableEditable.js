@@ -27,7 +27,6 @@ import Modal from "@material-ui/core/Modal";
 import TextField from "@material-ui/core/TextField";
 import Slider from "@material-ui/core/Slider";
 import InputLabel from "@material-ui/core/InputLabel";
-// import Maps from "components/Maps/Maps";
 
 // import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 

@@ -7,7 +7,7 @@ import { CSVLink } from "react-csv";
 import moment from "moment";
 import Fade from "@material-ui/core/Fade";
 import axios from "axios";
-import Checkbox from "@material-ui/core/Checkbox";
+import { Checkbox, Icon } from "@material-ui/core";
 
 class Popup extends React.Component {
   state = {
@@ -116,6 +116,7 @@ class Popup extends React.Component {
                 <table>
                   <tbody>
                     <tr style={{ textAlign: "left" }}>
+                      <th></th>
                       <th>ID</th>
                       <th>Type</th>
                       <th>Location</th>
@@ -127,10 +128,17 @@ class Popup extends React.Component {
                       if (item.result) {
                         item.error = item.result;
                       }
-                      if (item.result !== "OK")
-                        color = "rgba(255, 26, 26, 0.6)";
                       return (
                         <tr key={index} style={{ backgroundColor: color }}>
+                          <td>
+                            {item.result !== "OK" ? (
+                              <Icon style={{ color: "#FF786A" }}>cancel</Icon>
+                            ) : (
+                              <Icon style={{ color: "#92d737" }}>
+                                check_circle
+                              </Icon>
+                            )}
+                          </td>
                           <td
                             style={{
                               fontWeight: "lighter",

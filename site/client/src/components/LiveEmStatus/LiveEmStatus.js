@@ -12,6 +12,8 @@ import Devices from "components/SiteSetup/Devices";
 import MaterialTable from "material-table";
 import Buildings from "components/SiteSetup/Buildings";
 import Levels from "components/SiteSetup/Levels";
+import Button from "components/CustomButtons/Button";
+import Input from "components/CustomInput/CustomInput";
 
 function NoDataIndication() {
   return (

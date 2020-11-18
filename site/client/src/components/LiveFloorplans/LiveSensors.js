@@ -4,7 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Popover from "@material-ui/core/Popover";
 import Draggable from "react-draggable";
 import axios from "axios";
-import UnassignedDevices from "components/LiveEmStatus/UnassignedDevices";
+import UnassignedSensors from "components/LiveEmStatus/UnassignedSensors";
 import jwt_decode from "jwt-decode";
 import {
   IconButton,
@@ -169,7 +169,7 @@ export default function LiveFloorPlan(props) {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/api/lights/edit/many",
+      url: global.BASE_URL + "/api/sensors/edit-position",
       data: { devices: devices },
     }).then((res) => {
       console.log(res);
@@ -181,6 +181,7 @@ export default function LiveFloorPlan(props) {
 
   const handleDrag = (e, ui, index, id) => {
     let { liveDevices } = props;
+    console.log(liveDevices);
     liveDevices[index].fp_coordinates_bot =
       liveDevices[index].fp_coordinates_bot + ui.deltaY;
     liveDevices[index].fp_coordinates_left =
@@ -213,7 +214,7 @@ export default function LiveFloorPlan(props) {
       data.append("file", event.target.files[0]);
 
       axios
-        .post(global.BASE_URL + "/api/levels/testUpload", data, {
+        .post(global.BASE_URL + "/api/levels/floorplan/upload/", data, {
           headers: {
             "Content-Type": "application/json;charset=UTF-8",
             Authorization: "Bearer " + localStorage.usertoken,
@@ -237,18 +238,9 @@ export default function LiveFloorPlan(props) {
 
   return (
     <div>
-      <Button
-        color="primary"
-        variant="outlined"
-        style={{ float: "right" }}
-        onClick={handleSavePositions}
-      >
-        save device positions
-      </Button>
       <div className={classes.card}>
         <Typography variant="h4" style={{ marginTop: "5px" }}>
-          Level {liveDevices_.length > 0 ? liveDevices_[0].level : null}{" "}
-          Luminaires: {liveDevices_.length > 1 ? liveDevices_.length : 0}
+          Sensors: {liveDevices_.length > 1 ? liveDevices_.length : 0}
           <p style={{ float: "right" }}></p>
         </Typography>
       </div>
@@ -295,49 +287,6 @@ export default function LiveFloorPlan(props) {
             )}
             {liveDevices_.length > 0 && !floorplanNotFound
               ? liveDevices_.map((el, index) => {
-                  let color = "grey";
-                  let blink;
-                  if (el.status) {
-                    blink = el.status.includes("Battery powered")
-                      ? classes.blink
-                      : null;
-                    if (el.status.includes("OK")) color = "#4fa328";
-                    if (el.status.includes("No connection to driver"))
-                      color = "orange";
-                    if (el.status.includes("Weak connection to mesh"))
-                      color = "#F50158";
-                    if (el.status.includes("Battery disconnected"))
-                      color = "purple";
-                    if (el.status.includes("Lamp Fault")) color = "yellow";
-                  }
-
-                  // switch (el.status) {
-                  //   case "OK":
-                  //     color = "#4fa328";
-                  //     break;
-                  //   case "No connection to driver":
-                  //     color = "orange";
-                  //     break;
-                  //   case "Battery powered/under test":
-                  //     color = "blue";
-                  //     setInterval(() => {
-                  //       color = "grey";
-                  //     }, 1000);
-                  //     setInterval(() => {
-                  //       color = "blue";
-                  //     }, 2000);
-                  //     break;
-                  //   case "Weak connection to mesh":
-                  //     color = "#F50158";
-                  //     break;
-                  //   case "Battery disconnected":
-                  //     color = "purple";
-                  //     break;
-                  //   default:
-                  //     color = "grey";
-                  //     break;
-                  // }
-
                   return (
                     <Draggable
                       key={el.id}
@@ -360,12 +309,11 @@ export default function LiveFloorPlan(props) {
                         }}
                       >
                         <Icon
-                          className={blink}
+                          color="primary"
                           style={{
                             fontSize: "4em",
                             position: "absolute",
                             cursor: "move",
-                            color: color,
                           }}
                           onClick={(e) => openContextMenu(e, el.id)}
                           onMouseEnter={(e) => handleHover(e, el.id)}
@@ -390,12 +338,10 @@ export default function LiveFloorPlan(props) {
                               Status: {el.status}
                             </DialogContentText>
                             <DialogContentText>
-                              {el.comment ? (
-                                <span>
-                                  Comment: <i>{el.comment}</i>
-                                </span>
+                              {el.battery || el.ldr ? (
+                                <span>{el.battery ? el.battery : el.ldr}</span>
                               ) : (
-                                <i>No comment</i>
+                                <i>No reading</i>
                               )}
                             </DialogContentText>
                             <TextField
@@ -450,12 +396,20 @@ export default function LiveFloorPlan(props) {
                           >
                             <div>
                               <Typography className={classes.typography}>
-                                {`${el.device_id} - ${el.type} - ${el.node_id}`}
+                                {`Type: ${el.sensor_type}`}
+                              </Typography>
+                              <Typography className={classes.typography}>
+                                {`Mesh address: ${el.node_id}`}
                               </Typography>
                             </div>
                             <div>
                               <Typography className={classes.typography}>
-                                Status: {el.status}
+                                {el.battery || el.ldr ? (
+                                  <span>
+                                    Reading:{" "}
+                                    {el.battery ? `${el.battery}v` : el.ldr}
+                                  </span>
+                                ) : null}
                               </Typography>
                             </div>
                           </Popover>
@@ -468,13 +422,15 @@ export default function LiveFloorPlan(props) {
           </div>
         </div>
       </div>
-
+      <Button color="primary" onClick={handleSavePositions}>
+        save device positions
+      </Button>
       {success ? <h5>Device positions saved.</h5> : null}
 
-      <UnassignedDevices
+      <UnassignedSensors
         clickedBuilding={props.clickedBuilding}
         clickedLevel={props.clickedLevel}
-        assignLight={props.assignLight}
+        assignSensor={props.assignSensor}
       />
     </div>
   );
