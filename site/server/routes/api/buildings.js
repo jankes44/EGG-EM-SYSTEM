@@ -3,173 +3,112 @@ const router = express.Router();
 const auth = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../../database/db2");
+const { values } = require("lodash");
+
+const selectBuildings = "SELECT * FROM buildings"
+const selectSite = `SELECT s.id as sites_id, b.building, b.id as buildings_id,
+                    b.address, l.id AS levels_id, l.level, 
+                    sum(case when lg.is_assigned = 1 then 1 else 0 end) as devices
+                    FROM sites s 
+                    LEFT JOIN buildings b on s.id = b.sites_id 
+                    LEFT JOIN levels l on l.buildings_id = b.id 
+                    LEFT JOIN lights lg on lg.levels_id = l.id 
+                    WHERE s.id = ?
+                    GROUP BY b.id, l.id`
+
+const selectSiteJoinLevels = `SELECT s.id as sites_id, b.id as buildings_id, b.building, b.address,
+                              group_concat(DISTINCT l.level SEPARATOR ', ') as levels,
+                              sum(case when lg.is_assigned = 1 then 1 else 0 end) as devices
+                              FROM sites s 
+                              LEFT JOIN buildings b on s.id = b.sites_id 
+                              LEFT JOIN levels l on l.buildings_id = b.id 
+                              LEFT JOIN lights lg on lg.levels_id = l.id 
+                              WHERE s.id = 1
+                              GROUP BY b.id`
+
+const insertNewBuilding = "INSERT INTO buildings SET building = ?, sites_id = ?"
+const insertNewLevels = "INSERT INTO levels (level, building_id) VALUES ?"
+const insertNewEmptyBuilding = "INSERT INTO buildings SET building = ?, address = ?, sites_id = ?"
+const insertOneLevel = "INSERT INTO levels SET level = '1', buildings_id = ?"
+const insertLevelInLghts = "INSERT INTO lights SET levels_id=?"
+const updateBuilding = "UPDATE buildings SET building=?, address=? where id=?"
+const deleteBuilding = "DELETE FROM buildings WHERE id=?",
 
 //gets all groups
-router.get("/", auth, (req, res) =>
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query("SELECT * FROM buildings", (err, rows) => res.json(rows));
-    }
+router.get("/", auth, (req, res) => {
+  con.query(selectBuildings, (err, rows) => {
+    if (err) throw err 
+    res.json(rows)
   })
-),
-  //get group by param: id
-  router.get("/:sites_id", auth, (req, res) =>
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          `SELECT
-          s.id as sites_id,
-            buildings.building,
-            buildings.id as buildings_id,
-            buildings.address,
-            levels.id AS levels_id,
-            levels.level,
-            sum(case when lights.is_assigned = 1 then 1 else 0 end) as devices
-        FROM
-          sites as s
-            LEFT OUTER JOIN
-          buildings ON s.id = buildings.sites_id
-                LEFT OUTER JOIN
-            levels ON levels.buildings_id = buildings.id
-                LEFT OUTER JOIN
-            lights ON lights.levels_id = levels.id
-        WHERE s.id = ${req.params.sites_id}
-        GROUP BY buildings.id, levels.id
-        `,
-          (err, rows) => res.json(rows)
-        );
-      }
-    })
-  ),
-  //get group by param: id
-  router.get("/joinlevels/:sites_id", auth, (req, res) =>
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          `SELECT
-          s.id as sites_id,
-           buildings.id as buildings_id,
-            buildings.building,
-            buildings.address,
-            group_concat(DISTINCT levels.level SEPARATOR ', ') as levels,
-            sum(case when lights.is_assigned = 1 then 1 else 0 end) as devices
-        FROM
-          sites as s
-            LEFT OUTER JOIN
-          buildings ON s.id = buildings.sites_id
-                LEFT OUTER JOIN
-            levels ON levels.buildings_id = buildings.id
-                LEFT OUTER JOIN
-            lights ON lights.levels_id = levels.id
-        WHERE s.id = ${req.params.sites_id}
-        GROUP BY buildings.id
-        `,
-          (err, rows) => res.json(rows)
-        );
-      }
-    })
-  ),
-  // Create new building and floors
-  router.post("/new", auth, function (req, res) {
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          "INSERT INTO buildings SET building = ?, sites_id = ?",
-          [req.body.name, req.body.sites_id],
-          function (error, results, fields) {
-            if (error) throw error;
+})
 
-            let counter = 1;
-            const length = req.body.levels_count + 1;
-            console.log(results.insertId, "New building");
-            loop = () => {
-              if (counter < length) {
-                con.query(
-                  "INSERT INTO levels SET level = ?, buildings_id = ?",
-                  [counter, results.insertId]
-                );
-              } else {
-                res.status(200).send("Building created");
-                counter = 0;
-              }
-            };
-            loop();
-          }
-        );
-      }
-    });
-  });
+//get group by param: id
+router.get("/:sites_id", auth, (req, res) => {
+  con.query(selectSite, req.params.sites_id, (err, rows) => {
+    if (err) throw err 
+    res.json(rows)
+  })
+})
+
+//get group by param: id
+router.get("/joinlevels/:sites_id", auth, (req, res) => {
+  con.query(selectSiteJoinLevels, req.params.sites_id, (err, rows) => {
+    if (err) throw err 
+    res.json(rows)
+  })
+})
+
+// Create new building and floors
+router.post("/new", auth, function (req, res) {
+  con.query(insertNewBuilding, [req.body.name, req.body.sites_id], (err, result) => {
+    if (err) throw err 
+    const length = req.body.levels_count;
+    const newBuildingId = result.insertId
+    console.log(newBuildingId, "New building");
+
+    values = []
+
+    for (let i = 1; i <= length; i++) {
+      values.push([i, newBuildingId])
+    }
+    
+    con.query(insertNewLevels, [values], (err) => {
+      if (err) throw err 
+      res.status(200).send("Building created")
+    })
+  })
+})
 
 router.post("/new-empty", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(
-        "INSERT INTO buildings SET building = ?, address = ?, sites_id = ?",
-        [req.body.building, req.body.address, req.body.sites_id],
-        function (error, resultsbldng, fields) {
-          if (error) throw error;
-          con.query(
-            "INSERT INTO levels SET level = '1', buildings_id = ?",
-            [resultsbldng.insertId],
-            (err, resultslvls) => {
-              if (err) throw err;
-              con.query(
-                "INSERT INTO lights SET levels_id=?",
-                [resultslvls.insertId],
-                (err, resultsdevices) => res.end(JSON.stringify(resultsdevices))
-              );
-            }
-          );
-        }
-      );
-    }
-  });
-});
+  const params = [req.body.building, req.body.address, req.body.sites_id]
+  con.query(insertNewEmptyBuilding, params, (err, resultBuilding) => {
+    if (err) throw err 
 
-// Update chosen
+    con.query(insertOneLevel, resultBuilding.insertId, (err, resultLevel) => {
+      if (err) throw err 
+      con.query(insertLevelInLghts, resultLevel.insertId, (err, result) => {
+        if (err) throw err 
+        res.json(result)
+      })
+    })
+  })
+})
+
+// Update chosen building
 router.post("/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(
-        "UPDATE `buildings` SET `building`=?, `address`=? where `id`=(?)",
-        [req.body.building, req.body.address, req.params.id],
-        function (error, results, fields) {
-          if (error) throw error;
-          res.end(JSON.stringify(results));
-        }
-      );
-    }
-  });
-});
+  const params = [req.body.building, req.body.address, req.params.id]
+  con.query(updateBuilding, params, (err, result) => {
+    if (err) throw err 
+    res.json(result)
+  })
+})
 
-// Delete chosen light
+// Delete chosen building
 router.delete("/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(
-        "DELETE FROM `buildings` WHERE `id`=?",
-        [req.params.id],
-        function (error, results, fields, rows, id) {
-          if (error) throw error;
-          res.end(`Record deleted succesfully`);
-        }
-      );
-    }
-  });
-});
+  con.query(deleteBuilding, [req.params.id], (err, result) => {
+    if (err) throw err 
+    res.send("Record deleted succesfully")
+  })
+})
 
 module.exports = router;
