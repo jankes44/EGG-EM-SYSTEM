@@ -7,7 +7,6 @@ import PersonIcon from "@material-ui/icons/Person";
 // import Dev from "views/Dev/Dev.js";
 // import DashboardPage from "views/Dashboard/Dashboard.js";
 // core components/views for RTL layout
-// import SiteManagementDev from "views/SiteManagement/SiteManagementDev.js";
 import Test from "views/Test/Test.js";
 import UserProfile from "views/UserProfile/UserProfile";
 import Developer from "views/Developer/Developer";
@@ -29,14 +28,6 @@ const dashboardRoutes = [
     access: 1,
     hidden: false,
   },
-  // {
-  //   path: "/site-management",
-  //   name: "Site management",
-  //   icon: "map",
-  //   component: SiteManagementDev,
-  //   layout: "/admin",
-  //   access: 1,
-  // },
   {
     path: "/em-test-reports",
     name: "EM Test Reports",

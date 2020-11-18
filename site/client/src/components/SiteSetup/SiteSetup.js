@@ -9,7 +9,6 @@ import Levels from "components/SiteSetup/Levels";
 import NewBuilding from "components/SiteSetup/NewBuilding";
 import NewLevel from "components/SiteSetup/NewLevel";
 import EditBuilding from "components/SiteSetup/EditBuilding";
-import DeviceEditable from "components/Data/DeviceTableEditable";
 import jwt_decode from "jwt-decode";
 import React from "react";
 import Sensors from "components/SiteSetup/Sensors";

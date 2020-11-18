@@ -99,6 +99,7 @@ export default function LiveEmStatus() {
   };
 
   const handleClickLevel = (event, rowData) => {
+    console.log("handleClickLevel");
     const index = levels.indexOf(rowData);
     const row = levels[index];
     setStage(3);

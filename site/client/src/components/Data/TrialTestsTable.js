@@ -15,7 +15,7 @@ import { Icon, Fab, Button } from "@material-ui/core";
 
 let columnsGl = [];
 
-class GroupsTable extends Component {
+class TrialTestsTable extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -403,4 +403,4 @@ class GroupsTable extends Component {
   }
 }
 
-export default withRouter(GroupsTable);
+export default withRouter(TrialTestsTable);
