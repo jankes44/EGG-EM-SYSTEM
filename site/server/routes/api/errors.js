@@ -35,7 +35,6 @@ router.get("/", auth, (req, res) =>
     })
   ),
   //get error by param: tests_id
-
   router.get("/test/:id", auth, (req, res) =>
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
       if (err) {

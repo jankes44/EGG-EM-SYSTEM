@@ -32,7 +32,7 @@ const insertNewEmptyBuilding = "INSERT INTO buildings SET building = ?, address 
 const insertOneLevel = "INSERT INTO levels SET level = '1', buildings_id = ?"
 const insertLevelInLghts = "INSERT INTO lights SET levels_id=?"
 const updateBuilding = "UPDATE buildings SET building=?, address=? where id=?"
-const deleteBuilding = "DELETE FROM buildings WHERE id=?",
+const deleteBuilding = "DELETE FROM buildings WHERE id=?"
 
 //gets all groups
 router.get("/", auth, (req, res) => {
@@ -67,7 +67,6 @@ router.post("/new", auth, function (req, res) {
     console.log(newBuildingId, "New building");
 
     values = []
-
     for (let i = 1; i <= length; i++) {
       values.push([i, newBuildingId])
     }
