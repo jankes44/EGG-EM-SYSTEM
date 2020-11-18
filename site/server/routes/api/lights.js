@@ -58,7 +58,7 @@ const deleteLight = "DELETE FROM lights WHERE id = ?"
 
 router.get("/:uid", auth, (req, res) => {
   con.query(getUserLights, [req.params.uid, 1], (err, rows) => {
-    if (err) throw err
+    if (err) res.sendStatus(400)
     res.json(rows)
   })
 })
@@ -66,14 +66,14 @@ router.get("/:uid", auth, (req, res) => {
 
 router.get("/unassigned/:uid", auth, (req, res) => {
   con.query(getUserLights, [req.params.uid, 0], (err, rows) => {
-    if (err) throw err
+    if (err) res.sendStatus(400)
     res.json(rows)
   })
 })
 
 router.get("/building/:buildings_id", auth, (req, res) => {
   con.query(getBuildingLights, req.params.buildings_id, (err, rows) => {
-    if (err) throw err
+    if (err) res.sendStatus(400)
     if (rows.length) {
       res.json(rows);
     } 
@@ -83,7 +83,7 @@ router.get("/building/:buildings_id", auth, (req, res) => {
 
 router.get("/level/:level_id", auth, (req, res) => {
   con.query(getLevelLights, req.params.level_id, (err, rows) => {
-    if (err) throw err
+    if (err) res.sendStatus(400)
     res.json(rows)
   })
 })
@@ -91,7 +91,7 @@ router.get("/level/:level_id", auth, (req, res) => {
 router.get("/device_id/:device_id/:levels_id", auth, (req, res) => {
   const params = [req.params.device_id, req.params.levels_id]
   con.query(getLightByDeviceAndLevel, params, (err, rows) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.json(rows)
   })
 })
@@ -104,7 +104,7 @@ router.post("/add", auth, function (req, res) {
     levels_id: req.body.levels_id,
   }
   con.query(insertLight, [params], (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })
@@ -117,7 +117,7 @@ router.post("/addempty/:amount", auth, function (req, res) {
     params.push([levelId])
   }
   con.query(createEmptyLights, [params], (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })
@@ -127,7 +127,7 @@ router.post("/edit/postion", auth, function (req, res) {
   
   for (let i = 0; i < devices.length; i++) {
     con.query(updateLightPosition, paramsList[i], (err) => {
-      if (err) throw err 
+      if (err) res.sendStatus(400) 
       if (i === paramsList.length - 1){
         res.sendStatus(200)
       }
@@ -149,7 +149,7 @@ router.post("/edit/many", auth, (req, res) => {
 
     for (let i = 0; i < paramsList.length; i++) {
       con.query(updateLight, paramsList[i], (err) => {
-        if (err) throw err 
+        if (err) res.sendStatus(400) 
         if (i === paramsList.length - 1){
           res.sendStatus(200)
         }
@@ -168,7 +168,7 @@ router.post("/edit/single/:id", auth, (req, res) => {
     req.params.id,
   ]
   con.query(updateLight, params, (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })
@@ -176,7 +176,7 @@ router.post("/edit/single/:id", auth, (req, res) => {
 router.post("/assign/:id", auth, (req, res) => {
   const params = [req.body.levels_id, req.params.id]
   con.query(assignLight, params, (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })
@@ -184,14 +184,14 @@ router.post("/assign/:id", auth, (req, res) => {
 router.post("/move/:id", auth, (req, res) => {
   const params = [req.body.levels_id, req.params.id]
   con.query(moveLight, params, (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })
 
 router.delete("/:id", auth, (req, res) => {
   con.query(deleteLight, req.params.id, (err) => {
-    if (err) throw err 
+    if (err) res.sendStatus(400) 
     res.sendStatus(200)
   })
 })

@@ -39,7 +39,7 @@ const deleteBuilding = "DELETE FROM buildings WHERE id=?";
 //gets all groups
 router.get("/", auth, (req, res) => {
   con.query(selectBuildings, (err, rows) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.json(rows);
   });
 });
@@ -47,7 +47,7 @@ router.get("/", auth, (req, res) => {
 //get group by param: id
 router.get("/:sites_id", auth, (req, res) => {
   con.query(selectSite, req.params.sites_id, (err, rows) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     console.log(req.params.sites_id);
     res.json(rows);
   });
@@ -56,7 +56,7 @@ router.get("/:sites_id", auth, (req, res) => {
 //get group by param: id
 router.get("/joinlevels/:sites_id", auth, (req, res) => {
   con.query(selectSiteJoinLevels, req.params.sites_id, (err, rows) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.json(rows);
   });
 });
@@ -67,7 +67,7 @@ router.post("/new", auth, function (req, res) {
     insertNewBuilding,
     [req.body.name, req.body.sites_id],
     (err, result) => {
-      if (err) throw err;
+      if (err) res.sendStatus(400);
       const length = req.body.levels_count;
       const newBuildingId = result.insertId;
       console.log(newBuildingId, "New building");
@@ -78,7 +78,7 @@ router.post("/new", auth, function (req, res) {
       }
 
       con.query(insertNewLevels, [values], (err) => {
-        if (err) throw err;
+        if (err) res.sendStatus(400);
         res.status(200).send("Building created");
       });
     }
@@ -88,10 +88,10 @@ router.post("/new", auth, function (req, res) {
 router.post("/new-empty", auth, function (req, res) {
   const params = [req.body.building, req.body.address, req.body.sites_id];
   con.query(insertNewEmptyBuilding, params, (err, resultBuilding) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
 
     con.query(insertOneLevel, resultBuilding.insertId, (err, resultLevel) => {
-      if (err) throw err;
+      if (err) res.sendStatus(400);
       res.sendStatus(200);
     });
   });
@@ -101,7 +101,7 @@ router.post("/new-empty", auth, function (req, res) {
 router.post("/:id", auth, function (req, res) {
   const params = [req.body.building, req.body.address, req.params.id];
   con.query(updateBuilding, params, (err, result) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.json(result);
   });
 });
@@ -109,7 +109,7 @@ router.post("/:id", auth, function (req, res) {
 // Delete chosen building
 router.delete("/:id", auth, function (req, res) {
   con.query(deleteBuilding, [req.params.id], (err, result) => {
-    if (err) throw err;
+    if (err) res.sendStatus(400);
     res.sendStatus(200)
   });
 });
