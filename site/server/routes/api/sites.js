@@ -7,53 +7,48 @@ const auth = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../../database/db2");
 
-//gets all groups
-router.get("/", auth, (req, res) =>
+const usersSites = `SELECT 
+                    sites.id AS sites_id,
+                    sites.name,
+                    sites.socket_name,
+                    users.id,
+                    users.email,
+                    GROUP_CONCAT(buildings.id
+                        SEPARATOR ', ') AS buildings_id,
+                    GROUP_CONCAT(buildings.building
+                        SEPARATOR ', ') AS buildings
+                    FROM
+                    sites
+                        LEFT OUTER JOIN
+                    users_has_sites ON users_has_sites.sites_id = sites.id
+                        LEFT OUTER JOIN
+                    users ON users.id = users_has_sites.users_id
+                        LEFT OUTER JOIN
+                    buildings ON buildings.sites_id = sites.id
+                        WHERE users.id = ?
+                    GROUP BY sites_id`;
+
+const revokeAccess = `DELETE FROM users_has_sites WHERE users_id=? AND sites_id=?`;
+const insertSite =
+  "INSERT INTO sites SET `description`=?, `location`=?, `description`=?";
+const updateSite =
+  "UPDATE `sites` SET `group_name`=?, `description`=? where `id`=(?)";
+const updateSiteNoDesc = "UPDATE `sites` SET `group_name`=? where `id`=(?)";
+const deleteSite = "DELETE FROM `sites` WHERE `id`=?";
+
+//get site by param: users_id
+router.get("/:id", auth, (req, res) =>
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
       res.sendStatus(403);
     } else {
-      con.query("SELECT * FROM sites", (err, rows) => res.json(rows));
+      con.query(usersSites, req.params.id, (err, rows) => {
+        if (err) throw err;
+        res.json(rows);
+      });
     }
   })
 ),
-  //get group by param: id
-  router.get("/:id", auth, (req, res) =>
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        con.query(
-          `SELECT 
-          sites.id AS sites_id,
-          sites.name,
-          sites.socket_name,
-          users.id,
-          users.email,
-          GROUP_CONCAT(buildings.id
-              SEPARATOR ', ') AS buildings_id,
-          GROUP_CONCAT(buildings.building
-              SEPARATOR ', ') AS buildings
-      FROM
-          sites
-              LEFT OUTER JOIN
-          users_has_sites ON users_has_sites.sites_id = sites.id
-              LEFT OUTER JOIN
-          users ON users.id = users_has_sites.users_id
-              LEFT OUTER JOIN
-          buildings ON buildings.sites_id = sites.id
-              WHERE users.id = ?
-      GROUP BY sites_id
-      `,
-          [req.params.id],
-          (err, rows) => {
-            if (err) throw err;
-            res.json(rows);
-          }
-        );
-      }
-    })
-  ),
   // Delete chosen light
   router.delete("/revoke/:uid/:sid", auth, function (req, res) {
     jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
@@ -61,14 +56,13 @@ router.get("/", auth, (req, res) =>
         res.sendStatus(403);
       } else {
         // console.log(req.params);
-        con.query(
-          "DELETE FROM users_has_sites WHERE users_id=? AND sites_id=?",
-          [req.params.uid, req.params.sid],
-          function (error, results, fields, rows, id) {
-            if (error) throw error;
-            res.end(`Record deleted succesfully`);
-          }
-        );
+        con.query(revokeAccess, [req.params.uid, req.params.sid], function (
+          error,
+          results
+        ) {
+          if (error) throw error;
+          res.sendStatus(200);
+        });
       }
     });
   });
@@ -85,20 +79,15 @@ router.post("/", auth, function (req, res) {
         req.body.location,
         req.body.description,
       ];
-      con.query(
-        "INSERT INTO sites SET `description`=?, `location`=?, `description`=?",
-
-        postData,
-        function (error, results, fields) {
-          if (error) throw error;
-          res.end(JSON.stringify(results)).json({ msg: `Light added` });
-        }
-      );
+      con.query(insertSite, postData, function (error, results) {
+        if (error) throw error;
+        res.sendStatus(200);
+      });
     }
   });
 });
 
-// Update chosen light
+// Update chosen site
 router.post("/:id", auth, function (req, res) {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
     if (err) {
@@ -106,18 +95,18 @@ router.post("/:id", auth, function (req, res) {
     } else {
       if (req.body.description) {
         con.query(
-          "UPDATE `sites` SET `group_name`=?, `description`=? where `id`=(?)",
+          updateSite,
           [req.body.group_name, req.body.description, req.params.id],
-          function (error, results, fields) {
+          function (error, results) {
             if (error) throw error;
             res.end(JSON.stringify(results));
           }
         );
       } else {
         con.query(
-          "UPDATE `sites` SET `group_name`=? where `id`=(?)",
+          updateSiteNoDesc,
           [req.body.group_name, req.params.id],
-          function (error, results, fields) {
+          function (error, results) {
             if (error) throw error;
             res.end(JSON.stringify(results));
           }
@@ -134,15 +123,9 @@ router.delete("/:id", auth, function (req, res) {
       res.sendStatus(403);
     } else {
       console.log(req.body);
-      con.query("DELETE FROM `sites` WHERE `id`=?", [req.params.id], function (
-        error,
-        results,
-        fields,
-        rows,
-        id
-      ) {
+      con.query(deleteSite, req.params.id, function (error, results) {
         if (error) throw error;
-        res.end(`Record deleted succesfully`);
+        res.sendStatus(200);
       });
     }
   });
