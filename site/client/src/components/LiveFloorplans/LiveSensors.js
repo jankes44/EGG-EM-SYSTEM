@@ -214,7 +214,7 @@ export default function LiveFloorPlan(props) {
       data.append("file", event.target.files[0]);
 
       axios
-        .post(global.BASE_URL + "/api/levels/testUpload", data, {
+        .post(global.BASE_URL + "/api/levels/floorplan/upload/", data, {
           headers: {
             "Content-Type": "application/json;charset=UTF-8",
             Authorization: "Bearer " + localStorage.usertoken,

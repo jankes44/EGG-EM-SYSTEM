@@ -7,7 +7,7 @@ import PersonIcon from "@material-ui/icons/Person";
 // import Dev from "views/Dev/Dev.js";
 // import DashboardPage from "views/Dashboard/Dashboard.js";
 // core components/views for RTL layout
-import Test from "views/Test/Test.js";
+import Test from "views/TestHistory/Test.js";
 import UserProfile from "views/UserProfile/UserProfile";
 import Developer from "views/Developer/Developer";
 import AdminPage from "views/Admin/AdminPage";

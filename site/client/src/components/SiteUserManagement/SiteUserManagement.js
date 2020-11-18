@@ -6,77 +6,7 @@ import Icon from "@material-ui/core/Icon";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import cellEditFactory, { Type } from "react-bootstrap-table2-editor";
 import jwt_decode from "jwt-decode";
-// import MaterialTable from "material-table";
 import Button from "@material-ui/core/Button";
-
-// function MaterialTableDemo() {
-//   const [state, setState] = React.useState({
-//     columns: [
-//       { title: "Name", field: "name" },
-//       { title: "Surname", field: "surname" },
-//       { title: "Birth Year", field: "birthYear", type: "numeric" },
-//       {
-//         title: "Birth Place",
-//         field: "birthCity",
-//         lookup: { 34: "İstanbul", 63: "Şanlıurfa" },
-//       },
-//     ],
-//     data: [
-//       { name: "Mehmet", surname: "Baran", birthYear: 1987, birthCity: 63 },
-//       {
-//         name: "Zerya Betül",
-//         surname: "Baran",
-//         birthYear: 2017,
-//         birthCity: 34,
-//       },
-//     ],
-//   });
-
-//   return (
-//     <MaterialTable
-//       title="Editable Example"
-//       columns={state.columns}
-//       data={state.data}
-//       editable={{
-//         onRowAdd: (newData) =>
-//           new Promise((resolve) => {
-//             setTimeout(() => {
-//               resolve();
-//               setState((prevState) => {
-//                 const data = [...prevState.data];
-//                 data.push(newData);
-//                 return { ...prevState, data };
-//               });
-//             }, 600);
-//           }),
-//         onRowUpdate: (newData, oldData) =>
-//           new Promise((resolve) => {
-//             setTimeout(() => {
-//               resolve();
-//               if (oldData) {
-//                 setState((prevState) => {
-//                   const data = [...prevState.data];
-//                   data[data.indexOf(oldData)] = newData;
-//                   return { ...prevState, data };
-//                 });
-//               }
-//             }, 600);
-//           }),
-//         onRowDelete: (oldData) =>
-//           new Promise((resolve) => {
-//             setTimeout(() => {
-//               resolve();
-//               setState((prevState) => {
-//                 const data = [...prevState.data];
-//                 data.splice(data.indexOf(oldData), 1);
-//                 return { ...prevState, data };
-//               });
-//             }, 600);
-//           }),
-//       }}
-//     />
-//   );
-// }
 
 const NoDataIndication = () => (
   <div
@@ -225,39 +155,6 @@ export default class UserManagement extends Component {
         text: "CanEdit",
         hidden: true,
       },
-      // {
-      //   dataField: "access",
-      //   text: "access",
-      // },
-      // {
-      //   dataField: "actions",
-      //   text: "Actions",
-      //   editable: false,
-      //   headerStyle: (colum, colIndex) => {
-      //     return { textAlign: "center" };
-      //   },
-      //   formatter: (cellContent, row, rowId, rowIndex, e) => {
-      //     return (
-      //       <div>
-      //         {row.canEdit ? (
-      //           <IconButton
-      //             color="secondary"
-      //             onClick={(e) => {
-      //               e.stopPropagation();
-      //               this.deleteUser(row);
-      //             }}
-      //           >
-      //             <Icon style={{ fontSize: "1em" }}>delete</Icon>
-      //           </IconButton>
-      //         ) : (
-      //           <IconButton color="secondary" disabled={true}>
-      //             <Icon style={{ fontSize: "1em" }}>delete</Icon>
-      //           </IconButton>
-      //         )}
-      //       </div>
-      //     );
-      //   },
-      // },
     ];
 
     const expandRow = {

@@ -5,7 +5,6 @@ import GridContainer from "components/Grid/GridContainer.js";
 import GridItem from "components/Grid/GridItem.js";
 import React from "react";
 import DeveloperComp from "components/Developer/Developer";
-// import Maps from "components/Maps/Maps";
 
 export default function Developer() {
   // const classes = useStyles();
@@ -19,11 +18,6 @@ export default function Developer() {
           <DeveloperComp />
         </GridItem>
       </GridContainer>
-      {/* <GridContainer justify="center">
-        <GridItem xs={12}>
-          <Maps />
-        </GridItem>
-      </GridContainer> */}
     </div>
   );
 }
