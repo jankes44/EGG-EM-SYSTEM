@@ -6,6 +6,7 @@ const mysql = require("mysql");
 const auth = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../../database/db2");
+const { query } = require("express");
 
 const usersSites = `SELECT 
                     sites.id AS sites_id,
@@ -37,98 +38,62 @@ const updateSiteNoDesc = "UPDATE `sites` SET `group_name`=? where `id`=(?)";
 const deleteSite = "DELETE FROM `sites` WHERE `id`=?";
 
 //get site by param: users_id
-router.get("/:id", auth, (req, res) =>
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(usersSites, req.params.id, (err, rows) => {
-        if (err) throw err;
-        res.json(rows);
-      });
-    }
+router.get("/:id", auth, (req, res) => {
+  con.query(usersSites, req.params.id, (err, rows) => {
+    if (err) res.send(400)
+    res.json(rows);
   })
-),
-  // Delete chosen light
-  router.delete("/revoke/:uid/:sid", auth, function (req, res) {
-    jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        // console.log(req.params);
-        con.query(revokeAccess, [req.params.uid, req.params.sid], function (
-          error,
-          results
-        ) {
-          if (error) throw error;
-          res.sendStatus(200);
-        });
-      }
-    });
-  });
-
-// Create new site
-router.post("/", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      var postData = [
-        req.body.id,
-        req.body.group_name,
-        req.body.location,
-        req.body.description,
-      ];
-      con.query(insertSite, postData, function (error, results) {
-        if (error) throw error;
-        res.sendStatus(200);
-      });
-    }
+})
+  
+// Delete chosen light
+router.delete("/revoke/:uid/:sid", auth, function (req, res) {
+  con.query(revokeAccess, [req.params.uid, req.params.sid], (err) => {
+    if (err) res.sendStatus(400)
+    res.sendStatus(200)
   });
 });
+
+// Create new site
+router.post("/", auth, (req, res) => {
+  const postData = [
+    req.body.id,
+    req.body.group_name,
+    req.body.location,
+    req.body.description,
+  ];
+  con.query(insertSite, postData, (err) => {
+    if (err) res.sendStatus(400)
+    res.sendStatus(200);
+  });    
+});
+
 
 // Update chosen site
 router.post("/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      if (req.body.description) {
-        con.query(
-          updateSite,
-          [req.body.group_name, req.body.description, req.params.id],
-          function (error, results) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-          }
-        );
-      } else {
-        con.query(
-          updateSiteNoDesc,
-          [req.body.group_name, req.params.id],
-          function (error, results) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-          }
-        );
-      }
-    }
+  let query_, params 
+
+  if (req.body.description) {
+    query = updateSite
+    params = [req.body.group_name, req.body.description, req.params.id]
+  }
+  else {
+    query =  updateSiteNoDesc
+    params = [req.body.group_name, req.params.id]
+  }
+  con.query(query_, params, (err) => {
+    if (err) res.sendStatus(400)
+    res.sendStatus(200)
+  })
+})
+
+// Delete chosen site
+router.delete("/:id", auth, function (req, res) {
+  console.log(req.body);
+  con.query(deleteSite, req.params.id, (err) => {
+    if (err) res.sendStatus(400)
+    res.sendStatus(200);
   });
 });
 
-// Delete chosen light
-router.delete("/:id", auth, function (req, res) {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      console.log(req.body);
-      con.query(deleteSite, req.params.id, function (error, results) {
-        if (error) throw error;
-        res.sendStatus(200);
-      });
-    }
-  });
-});
 
 module.exports = router;
