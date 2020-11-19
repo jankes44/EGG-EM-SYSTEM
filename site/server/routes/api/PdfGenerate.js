@@ -11,11 +11,11 @@ let pdf = require("html-pdf");
 let path = require("path");
 
 const pdfPaths = {
-  "official": path.join(__dirname, "../../pdfTemplates/PdfTemplateOfficial.ejs"),
-  "simple": path.join(__dirname, "../../pdfTemplates/PdfTemplateSimple.ejs")
-}
+  official: path.join(__dirname, "../../pdfTemplates/PdfTemplateOfficial.ejs"),
+  simple: path.join(__dirname, "../../pdfTemplates/PdfTemplateSimple.ejs"),
+};
 
-const pdfOptions = { 
+const pdfOptions = {
   height: "11.25in",
   width: "8.5in",
   header: {
@@ -24,12 +24,12 @@ const pdfOptions = {
   footer: {
     height: "20mm",
   },
-}
+};
 
 const pdfResponseHeader = {
   "Content-Type": "application/force-download",
   "Content-disposition": "attachment; filename=file.pdf",
-}
+};
 
 const reportDataQuery = `SELECT 
                     trial_tests_has_lights.trial_tests_id AS test_id,
@@ -71,15 +71,17 @@ const sortCompare = (a, b) => {
 
 const generateReport = (rows, res, reportType = "official") => {
   let data_ = rows;
-  let faults = {"OK": 0, "Lamp Fault": 0, "Battery Fault": 0, "Weak connection to mesh": 0}
-  let lampFault = 0;
-  let battFault = 0;
-  let noConnection = 0;
-  let noFault = 0;
+  let faults = {
+    OK: 0,
+    "Lamp Fault": 0,
+    "Battery Fault": 0,
+    "Weak connection to mesh": 0,
+  };
+
   console.log(data_);
   data_.forEach((el) => {
-    const response = el.device_response
-    faults[response] = faults[response] + 1
+    const response = el.device_response;
+    faults[response] = faults[response] + 1;
   });
   const responsesData = {
     lampFault: faults["Lamp Fault"],
@@ -89,32 +91,30 @@ const generateReport = (rows, res, reportType = "official") => {
   };
 
   data_.sort(sortCompare);
-  const pdfData = { data: data_, resData: responsesData }
+  const pdfData = { data: data_, resData: responsesData };
 
   ejs.renderFile(pdfPaths[reportType], pdfData, (err, data) => {
-    if (err) res.sendStatus(400)
+    if (err) res.sendStatus(400);
     pdf.create(data, options).toStream((err, stream) => {
-      if (err) res.sendStatus(400)
-        res.writeHead(200, pdfResponseHeader)
-        stream.pipe(res)
-    
-    })
-  })
-}
+      if (err) res.sendStatus(400);
+      res.writeHead(200, pdfResponseHeader);
+      stream.pipe(res);
+    });
+  });
+};
 
 router.get("/generateReport/:test_id", auth, (req, res) => {
-    con.query(reportDataQuery, req.params.test_id, (err, rows) => {
-      if (err) res.sendStatus(400)
-      generateReport(rows, res, "simple");
+  con.query(reportDataQuery, req.params.test_id, (err, rows) => {
+    if (err) res.sendStatus(400);
+    generateReport(rows, res, "simple");
   });
-})
+});
 
 router.get("/generateOfficialReport/:test_id", auth, (req, res) => {
-    con.query(reportDataQuery, [req.params.test_id], (err, rows) => {
-      if (err) res.sendStatus(400)
-      generateReport(rows, res, "official");
-    })
-})
+  con.query(reportDataQuery, [req.params.test_id], (err, rows) => {
+    if (err) res.sendStatus(400);
+    generateReport(rows, res, "official");
+  });
+});
 
-
-module.exports = router
+module.exports = router;
