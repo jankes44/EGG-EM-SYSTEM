@@ -67,25 +67,25 @@ export default function Welcome(props) {
         console.log(error);
       });
 
-    axios
-      .get(global.BASE_URL + "/api/tests/lasttest/" + decoded.id, {
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          Authorization: "Bearer " + localStorage.usertoken,
-        },
-      })
-      .then((response) => {
-        newDate = moment(response.data.created_at)
-          .add(30, "days")
-          ._d.toISOString()
-          .slice(0, 19)
-          .replace("T", " ");
-        setLastTest({
-          id: response.data.id,
-          created_at: response.data.created_at,
-          building: response.data.building,
-        });
-      });
+    // axios
+    //   .get(global.BASE_URL + "/api/tests/lasttest/" + decoded.id, {
+    //     headers: {
+    //       "Content-Type": "application/json;charset=UTF-8",
+    //       Authorization: "Bearer " + localStorage.usertoken,
+    //     },
+    //   })
+    //   .then((response) => {
+    //     newDate = moment(response.data.created_at)
+    //       .add(30, "days")
+    //       ._d.toISOString()
+    //       .slice(0, 19)
+    //       .replace("T", " ");
+    //     setLastTest({
+    //       id: response.data.id,
+    //       created_at: response.data.created_at,
+    //       building: response.data.building,
+    //     });
+    //   });
   }, []);
 
   const classes = useStyles();

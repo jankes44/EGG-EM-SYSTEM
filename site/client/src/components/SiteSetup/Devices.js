@@ -65,7 +65,7 @@ export default function buildings(props) {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/api/lights/bulkedit",
+      url: global.BASE_URL + "/api/lights/edit/many",
       data: {
         update_data: updateData,
       },
