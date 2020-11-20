@@ -51,7 +51,6 @@ class MqttDevice {
             this.topic = config.topic
             this.name = config.name
 
-            this.sendTest()
         }
 
         publish = async (deviceId, command) => {
