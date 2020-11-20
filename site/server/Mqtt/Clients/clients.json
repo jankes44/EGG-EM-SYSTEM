@@ -1,0 +1,22 @@
+[
+    {
+        "keyPath": "livespprivate.pem.key",
+        "certPath": "livespcertificate.pem.crt",
+        "caPath": "livespca1.pem",
+        "clientId": "LIVESPUIDEV",
+        "topic": "LIVESPRSP",
+        "topic_send": "LIVESPCOM",
+        "name": "SP",
+        "id": 1
+    },
+    {
+        "keyPath": "SPBMDEVUI.private.key",
+        "certPath": "SPBMDEVUI.cert.pem",
+        "caPath": "AmazonRootCA1.pem",
+        "clientId": "OFFICEUIDEV",
+        "topic": "DEVRSPSP",
+        "topic_send": "DEVCOMSP",
+        "name": "EGG",
+        "id": 3
+    }
+]

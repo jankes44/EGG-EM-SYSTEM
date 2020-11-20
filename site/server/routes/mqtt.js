@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { device } = require("../Mqtt/mqttconnect");
+const { device } = require("../Mqtt/Clients/test");
 const auth = require("../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../database/db2");

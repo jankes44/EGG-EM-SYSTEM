@@ -4,23 +4,27 @@ var mqtt = require("mqtt");
 
 // LIVE CONFIG
 var device = awsIot.device({
-  keyPath: path.join(__dirname, "/certs/livespprivate.pem.key"),
-  certPath: path.join(__dirname, "/certs/livespcertificate.pem.crt"),
-  caPath: path.join(__dirname, "/certs/livespca1.pem"),
-  clientId: "TEST",
+  keyPath: path.join(__dirname, "../certs/livespprivate.pem.key"),
+  certPath: path.join(__dirname, "../certs/livespcertificate.pem.crt"),
+  caPath: path.join(__dirname, "../certs/livespca1.pem"),
+  clientId: "test",
   host: "a2vs8z4dhndn7y-ats.iot.eu-west-1.amazonaws.com",
   protocol: "mqtts",
   keepAlive: 0,
 });
 var topic = "LIVESPRSP";
 
+ function getFileName(path=__filename) {
+  return path.replace(/^.*[\\\/]/, '').replace(".js", "");
+}
+
 device.on("connect", () => {
-    console.log("Mqtt connected");
+    console.log(getFileName(), "connected");
     device.subscribe(topic);
   });
   
   device.on("reset", () => {
-    console.log("Mqtt reset");
+    console.log(getFileName(),"Mqtt reset");
   });
   
   device.on("close", () => {
@@ -39,6 +43,4 @@ device.on("connect", () => {
     console.log(error);
   });
   
-  module.exports = {
-    device: device,
-  };
+  module.exports = device
