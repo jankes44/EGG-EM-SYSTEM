@@ -12,22 +12,6 @@ User.hasOne(Role, { foreignKey: "roles_id" });
 
 users.use(cors());
 
-users.get("/", (req, res) => {
-  jwt.verify(req.token, process.env.SECRET_KEY, (err) => {
-    if (err) {
-      res.sendStatus(403);
-    } else {
-      con.query(`
-      SELECT 
-        users.*, roles.name as role_name
-      FROM
-        users
-          LEFT OUTER JOIN
-        roles ON roles.id = users.roles_id`);
-    }
-  });
-});
-
 users.post("/register", (req, res) => {
   console.log(req.body.first_name, req.body.last_name, req.body.role, req.body);
   const today = new Date();
