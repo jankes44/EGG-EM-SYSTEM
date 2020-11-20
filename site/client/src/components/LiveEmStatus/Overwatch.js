@@ -55,7 +55,7 @@ export default function Overwatch(props) {
     axios
       //route to lights of group id = this.state.rowId
       .post(
-        global.BASE_URL + "/api/lights/edit/" + light.id,
+        global.BASE_URL + "/api/lights/assign/" + light.id,
         { levels_id: props.clickedLevel },
         {
           headers: {
