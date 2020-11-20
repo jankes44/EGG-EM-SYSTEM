@@ -66,10 +66,8 @@ class MqttDevice {
 
         setMessageHandler = (t, success) => {
             this.mqtt.handleMessage = (packet, callback) => {
-                console.log(1)
                 clearTimeout(t)
-                console.log(packet)
-                success()
+                success(packet.payload.toString("utf8"))
                 callback()
         }
     }   

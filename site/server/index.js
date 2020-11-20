@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const mqttCore = require("./Mqtt/MqttCore");
 
 //init middleware
 //app.use(logger);
@@ -35,7 +36,6 @@ app.use("/users", Users);
 // MQTT routes
 // app.use("/mqtt", require("./routes/mqtt"));
 app.use("/mqtt", require("./routes/mqtt"));
-app.use("/mqttCore", require("./Mqtt/MqttCore"));
 
 // api routes
 app.use("/api/lights", require("./routes/api/lights"));

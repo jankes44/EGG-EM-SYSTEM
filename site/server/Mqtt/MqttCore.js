@@ -1,18 +1,16 @@
-const express = require("express");
-const router = express.Router();
-const auth = require("../middleware/auth");
-const jwt = require("jsonwebtoken");
-const con = require("../database/db_promise");
-var mqtt = require("mqtt");
-var schedule = require("node-schedule");
-const { on } = require("../database/db2");
+const Promise = require("bluebird");
+const mqtt = require("mqtt");
+const schedule = require("node-schedule");
 const clonedeep = require("lodash.clonedeep");
 const nodemailer = require("nodemailer");
+
+const con = require("../database/db_promise");
+
 const MqttDevice = require("./Clients/MqttDevice")
 const clients = require("./Clients/clients.json");
-const { reject } = require("lodash");
 const LiveTestDevice = require("./LiveTestDevice")
 const LiveTest = require("./LiveTest")
+
 
 const testTime = {
     Annual: 10800000,
@@ -60,10 +58,10 @@ const createRequestSuccess = (res) => (data=null) => {
 }
 const createAutomaticSuccess = () => (data=null) => console.log("Success")
 
+// CORE Functions
 const beforeTest = async (userId, deviceIds, testType, siteId) => {
     let promise = new Promise((resolve, reject) => {
       let testId 
-      let devices = {}
         
       mqttClients[siteId].testInProgress = true 
       
@@ -79,106 +77,65 @@ const beforeTest = async (userId, deviceIds, testType, siteId) => {
         return con.query(getLights, [deviceIds])
       })
       .spread(async (rows, fields) => {
-        rows.forEach(el => devices[el.light_id] = new LiveTestDevice(el, testTime[testType], userId, testId))
-        const sensorsPromises = rows.map(el => con.query(getSensors, el.id))
         const insertPromises = rows.map(el => {
           const params = { trial_tests_id: testId, lights_id: el.id }
           return con.query(insertTestLights, params)
         })
         await Promise.all(insertPromises);
-        return sensorsPromises;
-      })
-      .all()
-      .then(rows => {
-        rows.forEach(r => {
-          if (r.length > 0){
-            const lightId = r[0].light_id
-            devices[lightId].addSensors(r) 
-          }
+        
+        /*  Promise.map defines the mapping to obtain a promise and the "then" of that promise, 
+            but then runs them all */ 
+        return Promise.map(rows, el => con.query(getSensors, el.id)
+          .spread((rows, fields) => {
+            const d = new LiveTestDevice(el, testTime[testType], userId, testId)
+            d.addSensors(rows)
+          }))
         })
-        liveTests.push(new LiveTest(testId, userId, devices, testType));
-        resolve("Success")
+        .then(devices => {
+          liveTests.push(new LiveTest(testId, userId, devices, testType))
+          resolve("Success")
         })
-      })
       .catch(err => reject(err))
-
-    let result = await promise;
-    return result;
+  })
+  let result = await promise;
+  return result;
 }
 
 
-// //TODO
-//   async function checkDeviceState(counter, topic, deviceId, user, type, site) {
-//     let promise = new Promise((resolve, reject) => {
-//       var usersDevices = findUsersTest(user).devices;
-//       var messages = new Set();
-//       let received = false;
-//       const command = type === "led" ? "10038205000096" : "10018201000096";
-//       mqttClients[site].publish(deviceId, command)
-//       .then(deviceId => {
-//         console.log("state check: " + deviceId);
-//         const msgTimeout = this.timeout(deviceId, () => {
-//             usersDevices[counter].powercut = 3; //state 3 = no response
-//             usersDevices[counter].result.add("Weak connection to mesh");
-//             updateDeviceState(usersDevices[counter]);
-//             resolve("No response")
-//         })
-//         this.setMessageHandler(msgTimeout, success)
-//       })
-        
-          
-  
-//           var msgTimeout = setTimeout(() => {
-//             //if no response from device in X seconds, continue the loop
-//             ;
-//           }, noResponseTimeout);
-  
-//           checkMsgState = (msg) => {
-//             const msgCut = msg.slice(21, 25).toUpperCase();
-//             console.log(msg, msgCut, counter);
-//             switch (msgCut) {
-//               case "0CCD":
-//                 console.log(usersDevices[counter].result);
-//                 break;
-//               case "6666":
-//                 usersDevices[counter].result.add("Battery disconnected");
-//                 console.log(usersDevices[counter].result);
-//                 break;
-//               case "7FFF":
-//                 usersDevices[counter].result.add("Battery powered");
-//                 console.log(usersDevices[counter].result);
-//                 break;
-//             }
-//             updateDeviceState(usersDevices[counter]);
-//           };
-  
-//           device.handleMessage = (packet, callback) => {
-//             clearInterval(msgTimeout); //if  got the message cancel the timeout on
-//             var message = packet.payload.toString("utf8");
-//             if (!messages.has(message) && !received) {
-//               received = true;
-//               messages.add(message);
-//               setTimeout(() => {
-//                 insertMsg(message);
-//                 checkMsgState(message);
-//                 console.log(messages);
-//                 busy = false;
-//                 resolve(message);
-//                 callback(packet);
-//               }, 500);
-//             } else callback(packet);
-//           };
-//         }
-//       );
-//     });
-  
-//     let result = await promise; // wait until the promise resolves (*)
-//     return result;
-//   }
+// HELPERS
+const checkDeviceState = async (counter, topic, deviceId, user, type, site) => {
+  const promise = new Promise((resolve, reject) => {
+    const mqttMessager = mqttClients[site]
+    const usersDevices = findUsersTest(user).devices
+    let currentDevice = usersDevices[counter]
+    let messages = new Set()
+    let received = false
+    const command = type === "led" ? "10038205000096" : "10018201000096"
+   mqttMessager.publish(deviceId, command)
+    .then(deviceId => {
+      console.log("state check: " + deviceId);
+      const msgTimeout = this.timeout(deviceId, () => {
+        currentDevice.setNoResponse()
+        currentDevice.addResult("Weak connection to mesh");
+        reject("No response")
+      })
+      mqttMessager.setMessageHandler(msgTimeout, (message) => {
+        if (!messages.has(message) && !received) {
+          received = true;
+          messages.add(message);
+          insertMsg(message)
+          currentDevice.checkMessageState(message)
+          resolve(message)
+        }
+      })
+    })
+  })
+  let result = await promise; // wait until the promise resolves (*)
+  return result;  
+}
 
 beforeTest(42, [210,211,212], "Whatever", 3)
 .then(r => console.log(r))
 .catch(err => console.log(err))
 
 
-module.exports = router;
