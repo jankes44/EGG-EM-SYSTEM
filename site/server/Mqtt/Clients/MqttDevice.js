@@ -4,6 +4,11 @@ const mqtt = require("mqtt");
 
 const QOS_1 = { qos: 1 };
 
+const testTime = {
+    Annual: 10800000,
+    Monthly: 180000,
+};
+
 const defaults = {
     host: "a2vs8z4dhndn7y-ats.iot.eu-west-1.amazonaws.com",
     protocol: "mqtts",
