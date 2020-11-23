@@ -611,6 +611,7 @@ class TrialTest extends Component {
         devices: this.state.selectedDevices,
         user: user,
         test_type: this.state.testType,
+        site_id: this.state.clickedSite
       },
     })
       .then((res) => {
@@ -680,10 +681,8 @@ class TrialTest extends Component {
       url: global.BASE_URL + "/mqtt/cutpowerall",
       data: {
         //data object sent in request's body
-        message: this.state.step,
-        devices: this.state.selectedDevices,
         user: user,
-        topic: this.state.liveDevices[0].mqtt_topic,
+        site: this.state.clickedSite
       },
       timeout: 0,
     })
@@ -1186,7 +1185,7 @@ class TrialTest extends Component {
 
             <div style={{ float: "right" }}>
               <Button
-                disabled={this.state.disabledStartAll}
+                // disabled={this.state.disabledStartAll}
                 color="primary"
                 onClick={this.cutPowerAll}
               >
