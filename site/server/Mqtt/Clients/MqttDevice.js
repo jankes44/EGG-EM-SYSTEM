@@ -4,6 +4,11 @@ const mqtt = require("mqtt");
 
 const QOS_1 = { qos: 1 };
 
+const testTime = {
+    Annual: 10800000,
+    Monthly: 180000,
+};
+
 const defaults = {
     host: "a2vs8z4dhndn7y-ats.iot.eu-west-1.amazonaws.com",
     protocol: "mqtts",
@@ -50,8 +55,8 @@ class MqttDevice {
             this.topic_send = config.topic_send
             this.topic = config.topic
             this.name = config.name
+            this.testInProgress = false
 
-            this.sendTest()
         }
 
         publish = async (deviceId, command) => {
@@ -67,10 +72,8 @@ class MqttDevice {
 
         setMessageHandler = (t, success) => {
             this.mqtt.handleMessage = (packet, callback) => {
-                console.log(1)
                 clearTimeout(t)
-                console.log(packet)
-                success()
+                success(packet.payload.toString("utf8"))
                 callback()
         }
     }   
