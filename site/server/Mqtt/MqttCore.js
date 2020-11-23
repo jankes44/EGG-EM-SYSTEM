@@ -36,21 +36,15 @@ const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s 
 const getLights = "Select * from lights where id in (?)";
 
 const findUsersSiteTest = (user, site) => {
-  const usersTestDetails = liveTests.find(
-    (el) => parseInt(el.userId) === parseInt(user) && parseInt(el.siteId) === parseInt(site)
-  );
-  console.log(liveTests.find(
-    (el) => parseInt(el.userId) === parseInt(user) && parseInt(el.siteId) === parseInt(site)
-  ), liveTests)
+  const usersTestDetails = liveTests.find(el => el.userId === user && el.siteId === site)
   if (typeof usersTestDetails !== "undefined") {
-    return usersTestDetails;
-  } else return "";
+    return usersTestDetails
+  } else return null;
 };
 
 const startTest = async (userId, deviceIds, testType, siteId) => {
     let promise = new Promise((resolve, reject) => {
       let testId 
-      console.log(mqttClients[siteId])
 
       if (mqttClients[siteId].testInProgress){
         reject("Test in progrees, try again later")
@@ -82,13 +76,11 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
           .spread((rows, fields) => {
             const d = new LiveTestDevice(el, testType, userId, testId, mqttClients[siteId])
             d.addSensors(rows)
-            console.log(d)
             return d
           }))
         })
         .then(devices => {
           liveTests.push(new LiveTest(testId, userId, devices, testType, true, siteId))
-          console.log(devices)
           resolve("Success")
         })
       .catch(err => reject(err))
@@ -101,9 +93,10 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
 const getTestInfo = (user, site) => {
   let result = null
   const usersTest = findUsersSiteTest(user, site)
-  if (usersTest && typeof usersTest !== "undefined" && mqttClients[siteId].testInProgress) {
+  console.log(usersTest)
+  if (usersTest && typeof usersTest !== "undefined" && mqttClients[site].testInProgress) {
       result = clonedeep(usersTest)
-      result.devces.forEach(el => el.result = el.getDeviceStatus())
+      result.devices.forEach(el => el.result = el.getDeviceStatus())
   }
   return result         
 }
@@ -114,4 +107,10 @@ module.exports = {
   getTestInfo: getTestInfo
 }
 
+startTest(42, [210,211,212], "Whatever", 3)
+.then(r => {
+  console.log(r)
+  getTestInfo(42,3)
+})
+.catch(err => console.log(err))
 
