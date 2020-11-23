@@ -19,7 +19,7 @@ const testCheckpointsTime = {
 };
 
 class LiveTestDevice {
-    constructor(device, testType, userId, testId, messenger, siteId){
+    constructor(device, testType, userId, testId, messenger){
         this.deviceId = device.id 
         this.nodeId = device.node_id
         this.powercut = 0
@@ -27,7 +27,6 @@ class LiveTestDevice {
         this.duration = testTime[testType];
         this.durationStart =  testTime[testType];
         this.user = userId;
-        this.site = siteId;
         this.result = new Set();
         this.testid = testId;
         this.messenger = messenger
@@ -204,15 +203,19 @@ class LiveTestDevice {
         let promise = new Promise((resolve, reject) => {
             let messages = new Set()
             let received = false
+            console.log("CUT")
             if (this.powercut === 0){
+                console.log(1)
                 this.publish(this.nodeId, "10018202000096").then(deviceId => {
                     const msgTimeout = mqttMessager.timeout(deviceId, () => {
                         this.setNoResponse()
                         reject("No response")
                       })
                       mqttMessager.setMessageHandler(msgTimeout, (message) => {
+                          console.log(2)
                         let msg_node_id = message.slice("13", "17");
                         if (!messages.has(message) && !message.includes("hello") && !received) {
+                            console.log(3)
                             messages.add(message);
                             console.log(message, msg_node_id);
                             this.addResult("Battery powered");

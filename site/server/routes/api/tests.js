@@ -76,9 +76,9 @@ router.get("/lightsresponses/:id", auth, (req, res) => {
 })
 
 router.get("/usr/:id", auth, (req, res) => {
-  const params = [req.params.id, resultLimit]
+  const params = [parseInt(req.params.id), resultLimit]
   con.query(getLightResponsesByUserId, params, (err, rows) => {
-    if (err) res.sendStatus(400)
+    if (err) console.log(err)
     res.json(rows)
   })
 })

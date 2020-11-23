@@ -22,7 +22,8 @@ router.post("/cutpowerall", (req, res) => {
     const site = req.body.site
     
     const liveTest = findUsersSiteTest(user, site)
-    liveTest.cutpowerall()
+    console.log(1, liveTest)
+    liveTest.cutPowerAll()
     .then(() => res.sendStatus(200))
     .catch((err) => res.status(400).send(err))
   });

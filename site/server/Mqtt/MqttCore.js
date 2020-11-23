@@ -36,9 +36,12 @@ const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s 
 const getLights = "Select * from lights where id in (?)";
 
 const findUsersSiteTest = (user, site) => {
-  const usersTestDetails = devicesLive.find(
-    (el) => parseInt(el.user) === parseInt(user) && parseInt(el.site) === parseInt(site)
+  const usersTestDetails = liveTests.find(
+    (el) => parseInt(el.userId) === parseInt(user) && parseInt(el.siteId) === parseInt(site)
   );
+  console.log(liveTests.find(
+    (el) => parseInt(el.userId) === parseInt(user) && parseInt(el.siteId) === parseInt(site)
+  ), liveTests)
   if (typeof usersTestDetails !== "undefined") {
     return usersTestDetails;
   } else return "";
@@ -75,14 +78,17 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
         
         /*  Promise.map defines the mapping to obtain a promise and the "then" of that promise, 
             but then runs them all */ 
-        return Promise.map(rows, el => con.query(getSensors, el.id)
+        return Promise.map(rows, (el) => con.query(getSensors, el.id)
           .spread((rows, fields) => {
             const d = new LiveTestDevice(el, testType, userId, testId, mqttClients[siteId])
             d.addSensors(rows)
+            console.log(d)
+            return d
           }))
         })
         .then(devices => {
           liveTests.push(new LiveTest(testId, userId, devices, testType, true, siteId))
+          console.log(devices)
           resolve("Success")
         })
       .catch(err => reject(err))

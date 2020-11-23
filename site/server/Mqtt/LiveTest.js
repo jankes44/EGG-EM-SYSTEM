@@ -1,5 +1,5 @@
 class LiveTest {
-    constructor(testId, userId, devicesCopy, testType, inProgress) {
+    constructor(testId, userId, devicesCopy, testType, inProgress, siteId) {
         this.testId = testId
         this.status = "In progress"
         this.userId = userId
@@ -9,11 +9,14 @@ class LiveTest {
         this.finish_clicked = 0
         this.type = testType   
         this.inProgress = inProgress
+        this.siteId = siteId
     }
     
     cutPowerAll = () => {
         if (this.inProgress){
-            let promises = this.devices.map(device => device.cutPower(this.type))
+            console.log(this.devices)
+            let promises = this.devices.map((device) => {
+                return device.cutPower(this.type)})
             return Promise.all(promises)
         }
     }
