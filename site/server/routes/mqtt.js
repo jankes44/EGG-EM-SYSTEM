@@ -34,7 +34,7 @@ const QOS_1 = { qos: 1 };
 
 const errorMessages = {
   "0CCD": "",
-  6666: "No connection to driver",
+  "6666": "No connection to driver",
   "7FFF": "Battery powered",
 };
 

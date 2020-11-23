@@ -27,7 +27,6 @@ clients.forEach(el => {
     mqttClients[el.id] = new MqttDevice(el)
 })
 
-let testInProgress = false
 var liveTests = []
 
 // Queries
@@ -36,23 +35,25 @@ const insertTestLights = "INSERT INTO trial_tests_has_lights SET ?"
 const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ?"
 const getLights = "Select * from lights where id in (?)";
 
-// Errors
-const createRequestError = (res) => (err) => res.sendStatus(400)
-const createAutomaticError = () => (err) => { throw err}    
+const findUsersSiteTest = (user, site) => {
+  const usersTestDetails = devicesLive.find(
+    (el) => parseInt(el.user) === parseInt(user) && parseInt(el.site) === parseInt(site)
+  );
+  if (typeof usersTestDetails !== "undefined") {
+    return usersTestDetails;
+  } else return "";
+};
 
-//Successes
-const createRequestSuccess = (res) => (data=null) => {
-    if (data) res.json(data)
-    else res.sendStatus(200)
-}
-const createAutomaticSuccess = () => (data=null) => console.log("Success")
-
-// CORE Functions
-const beforeTest = async (userId, deviceIds, testType, siteId) => {
+const startTest = async (userId, deviceIds, testType, siteId) => {
     let promise = new Promise((resolve, reject) => {
       let testId 
-        
-      // mqttClients[siteId].testInProgress = true 
+      console.log(mqttClients[siteId])
+
+      if (mqttClients[siteId].testInProgress){
+        reject("Test in progrees, try again later")
+      }
+      else {
+        mqttClients[siteId].testInProgress = true 
       
       const data = {
         lights: deviceIds.length,
@@ -76,22 +77,24 @@ const beforeTest = async (userId, deviceIds, testType, siteId) => {
             but then runs them all */ 
         return Promise.map(rows, el => con.query(getSensors, el.id)
           .spread((rows, fields) => {
-            const d = new LiveTestDevice(el, testTime[testType], userId, testId, mqttClients[siteId])
+            const d = new LiveTestDevice(el, testType, userId, testId, mqttClients[siteId])
             d.addSensors(rows)
           }))
         })
         .then(devices => {
-          liveTests.push(new LiveTest(testId, userId, devices, testType, true))
+          liveTests.push(new LiveTest(testId, userId, devices, testType, true, siteId))
           resolve("Success")
         })
       .catch(err => reject(err))
+      } 
   })
   let result = await promise;
   return result;
 }
 
-// beforeTest(42, [210,211,212], "Whatever", 3)
-// .then(r => console.log(r))
-// .catch(err => console.log(err))
+module.exports = {
+  startTest: startTest,
+  findUsersSiteTest: findUsersSiteTest
+}
 
 

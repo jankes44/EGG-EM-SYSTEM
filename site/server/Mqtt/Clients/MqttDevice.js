@@ -55,6 +55,7 @@ class MqttDevice {
             this.topic_send = config.topic_send
             this.topic = config.topic
             this.name = config.name
+            this.testInProgress = false
 
         }
 

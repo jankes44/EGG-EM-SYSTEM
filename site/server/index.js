@@ -35,7 +35,7 @@ app.use("/users", Users);
 
 // MQTT routes
 // app.use("/mqtt", require("./routes/mqtt"));
-app.use("/mqtt", require("./routes/mqtt"));
+app.use("/mqtt", require("./routes/mqtt_new"));
 
 // api routes
 app.use("/api/lights", require("./routes/api/lights"));

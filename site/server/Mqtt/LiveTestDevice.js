@@ -8,20 +8,26 @@ const errorMessages = {
     "7FFF": "Battery powered",
 };
 
+const testTime = {
+    Annual: 10800000,
+    Monthly: 180000,
+};
+
 const testCheckpointsTime = {
     Annual: new Set([9900000, 3600000, 300000]),
     Monthly: new Set([150000, 120000, 60000]),
 };
 
 class LiveTestDevice {
-    constructor(device, duration, userId, testId, messenger){
+    constructor(device, testType, userId, testId, messenger, siteId){
         this.deviceId = device.id 
         this.nodeId = device.node_id
         this.powercut = 0
         this.clicked = 0;
-        this.duration = duration;
-        this.durationStart = this.duration;
+        this.duration = testTime[testType];
+        this.durationStart =  testTime[testType];
         this.user = userId;
+        this.site = siteId;
         this.result = new Set();
         this.testid = testId;
         this.messenger = messenger
@@ -129,9 +135,10 @@ class LiveTestDevice {
                 if (messageIsNew){
                     sensor.sensor_responded = true;
                     switch(type){
-                        case "vbat": this.readFromVbat(sensor, msgSliced, messages)
-                        case "ldr": this.readFromLdr(sensor, msgSliced, messages)
+                        case "vbat": resolve(this.readFromVbat(sensor, msgSliced, messages))
+                        case "ldr": resolve(this.readFromLdr(sensor, msgSliced, messages))
                     }
+
                 }
             })
         })
@@ -172,6 +179,7 @@ class LiveTestDevice {
         messages.add(`${message} voltage: ${voltage}v`)
         sensor.voltage = voltage
         if (voltage > 3 || voltage < 2) this.addResult("Battery fault") 
+        resolve(voltage)
     }
 
     readFromLdr = (sensor, msgSliced, messages) => {
@@ -188,8 +196,44 @@ class LiveTestDevice {
             insertMsg(message, type, "", ldrReading);
             messages.add(`${message} ldr: ${ldrReading} ${onOff}`)
             sensor.reading = onOff;
+            resolve(onOff)
         })
     }
+
+    cutPower = async (testType) => {
+        let promise = new Promise((resolve, reject) => {
+            let messages = new Set()
+            let received = false
+            if (this.powercut === 0){
+                this.publish(this.nodeId, "10018202000096").then(deviceId => {
+                    const msgTimeout = mqttMessager.timeout(deviceId, () => {
+                        this.setNoResponse()
+                        reject("No response")
+                      })
+                      mqttMessager.setMessageHandler(msgTimeout, (message) => {
+                        let msg_node_id = message.slice("13", "17");
+                        if (!messages.has(message) && !message.includes("hello") && !received) {
+                            messages.add(message);
+                            console.log(message, msg_node_id);
+                            this.addResult("Battery powered");
+                            this.powercut = 1
+                            received = true;
+                            this.durationCounterStart(testType)
+                            resolve(true)
+                        }
+                                else reject(false)    
+                    })
+                })
+            }
+            else reject(this.nodeId)
+        })
+        
+        let result = await promise;
+        return result;
+    }
+
+    durationCounterStart = (testType) => this.testInterval = setInterval(() => this.testLoop(testType))
+    
 }
 
 

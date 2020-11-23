@@ -1,8 +1,3 @@
-const testTime = {
-    Annual: 10800000,
-    Monthly: 180000,
-};
-
 class LiveTest {
     constructor(testId, userId, devicesCopy, testType, inProgress) {
         this.testId = testId
@@ -15,13 +10,13 @@ class LiveTest {
         this.type = testType   
         this.inProgress = inProgress
     }
-
-    durationCounterStart = (counter) => {
-        const currentDevice = this.devices[counter]
+    
+    cutPowerAll = () => {
         if (this.inProgress){
-            currentDevice.testInterval = setInterval(() => currentDevice.testLoop(this.type))
+            let promises = this.devices.map(device => device.cutPower(this.type))
+            return Promise.all(promises)
         }
-    } 
+    }
 }
 
 module.exports = LiveTest
