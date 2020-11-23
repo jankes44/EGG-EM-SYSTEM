@@ -88,12 +88,15 @@ class LiveTestDevice {
         if (testCheckpointsTime[testType].has(this.duration)) {
             let messages = new Set();
             if (this.hasSensors){
-                console.log(this.sensors)
-                for (let index = 0; index < this.sensors.length; index++) {
+                console.log(this.sensors.length, this.duration, this.nodeId)
+                let index = 0
+                while (index < this.sensors.length) {
+                    console.log(index)
                     const sensor = this.sensors[index];
-                    console.log(sensors)
+                    console.log(this.sensors)
                     await sleep(2000);
                     await this.testSensor(sensor, messages)
+                    index++
                 }
             }
         }
@@ -115,13 +118,13 @@ class LiveTestDevice {
                     else console.log(message, arrayContainsMessage)
                 })
             .catch(() => this.setNoResponse())
-              
             }
           }
 
     testSensor = async (sensor, messages) => {
         let promise = new Promise((resolve, reject) => {
             const type = sensor.type.toLowerCase()
+            console.log(sensor, "W")
             this.messenger.publish(sensor.sensorId, "10038205000096")
             .then(message => {
                 const msgSliced = parseInt(`0x${message.slice(21, 25)}`)
@@ -130,8 +133,10 @@ class LiveTestDevice {
                 if (messageIsNew){
                     sensor.sensor_responded = true;
                     switch(type){
-                        case "vbat": resolve(this.readFromVbat(sensor, msgSliced, messages))
+                        case "vbat": resolve(this.readFromVbat(sensor, msgSliced, messages)) 
+                        break
                         case "ldr": resolve(this.readFromLdr(sensor, msgSliced, messages))
+                        break
                     }
 
                 }
@@ -228,9 +233,8 @@ class LiveTestDevice {
     }
 
     durationCounterStart = (testType) => {
-        this.testInterval = setInterval(() => this.testLoop(testType))
-    }
-    
+        this.testInterval = setInterval(() => this.testLoop(testType), 1000)
+    }   
 }
 
 

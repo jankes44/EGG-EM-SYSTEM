@@ -108,10 +108,10 @@ module.exports = {
 
 // mqttClients[3].publish("", "XrebX") 
 
-// startTest(42, [210,211,212], "Monthly", 3)
-// .then(r => {
-//   getTestInfo(42,3)
-//   findUsersSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
-// })
-// .catch(err => console.log(err))
+startTest(42, [210,211,212], "Monthly", 3)
+.then(r => {
+  getTestInfo(42,3)
+  findUsersSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
+})
+.catch(err => console.log(err))
 
