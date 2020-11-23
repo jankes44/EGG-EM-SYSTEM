@@ -19,7 +19,7 @@ router.post("/trialteststart/:uid", (req, res) => {
 
 router.post("/cutpowerall", (req, res) => {
     const user = req.body.user;
-    const site = req.body.site
+    const site = req.body.site;
     
     const liveTest = findUsersSiteTest(user, site)
     console.log(1, liveTest)

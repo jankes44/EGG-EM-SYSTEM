@@ -36,6 +36,7 @@ const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s 
 const getLights = "Select * from lights where id in (?)";
 
 const findUsersSiteTest = (user, site) => {
+  console.log(liveTests)
   const usersTestDetails = liveTests.find(el => el.userId === user && el.siteId === site)
   if (typeof usersTestDetails !== "undefined") {
     return usersTestDetails
@@ -107,10 +108,10 @@ module.exports = {
   getTestInfo: getTestInfo
 }
 
-startTest(42, [210,211,212], "Whatever", 3)
-.then(r => {
-  console.log(r)
-  getTestInfo(42,3)
-})
-.catch(err => console.log(err))
+// startTest(42, [210,211,212], "Whatever", 3)
+// .then(r => {
+//   console.log(r)
+//   getTestInfo(42,3)
+// })
+// .catch(err => console.log(err))
 

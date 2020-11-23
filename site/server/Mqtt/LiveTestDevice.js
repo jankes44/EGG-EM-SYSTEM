@@ -207,6 +207,7 @@ class LiveTestDevice {
             if (this.powercut === 0){
                 console.log(1)
                 this.publish(this.nodeId, "10018202000096").then(deviceId => {
+                    console.log("PUB")
                     const msgTimeout = mqttMessager.timeout(deviceId, () => {
                         this.setNoResponse()
                         reject("No response")

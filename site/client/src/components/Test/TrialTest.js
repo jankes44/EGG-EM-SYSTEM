@@ -597,6 +597,8 @@ class TrialTest extends Component {
     const token = localStorage.usertoken;
     const decoded = jwt_decode(token);
     const user = decoded.id;
+    const devices = this.state.selectedDevices.map(el => el.id)
+    console.log(devices)
     axios({
       //Axios POST request
       method: "post",
@@ -608,7 +610,7 @@ class TrialTest extends Component {
       data: {
         //data object sent in request's body
         message: this.state.step,
-        devices: this.state.selectedDevices,
+        devices: devices,
         user: user,
         test_type: this.state.testType,
         site_id: this.state.clickedSite
@@ -667,6 +669,7 @@ class TrialTest extends Component {
     const token = localStorage.usertoken;
     const decoded = jwt_decode(token);
     const user = decoded.id;
+    console.log(this.state.clickedSite, user)
     this.setState({
       disabledStartAll: true,
       clickedStartAll: true,
