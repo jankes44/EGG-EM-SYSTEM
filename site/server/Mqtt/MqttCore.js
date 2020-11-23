@@ -92,9 +92,20 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
   return result;
 }
 
+const getTestInfo = (user, site) => {
+  let result = null
+  const usersTest = findUsersSiteTest(user, site)
+  if (usersTest && typeof usersTest !== "undefined" && mqttClients[siteId].testInProgress) {
+      result = clonedeep(usersTest)
+      result.devces.forEach(el => el.result = el.getDeviceStatus())
+  }
+  return result         
+}
+
 module.exports = {
   startTest: startTest,
-  findUsersSiteTest: findUsersSiteTest
+  findUsersSiteTest: findUsersSiteTest,
+  getTestInfo: getTestInfo
 }
 
 
