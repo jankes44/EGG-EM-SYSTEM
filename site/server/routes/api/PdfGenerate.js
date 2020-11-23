@@ -95,7 +95,7 @@ const generateReport = (rows, res, reportType = "official") => {
 
   ejs.renderFile(pdfPaths[reportType], pdfData, (err, data) => {
     if (err) res.sendStatus(400);
-    pdf.create(data, options).toStream((err, stream) => {
+    pdf.create(data, pdfOptions).toStream((err, stream) => {
       if (err) res.sendStatus(400);
       res.writeHead(200, pdfResponseHeader);
       stream.pipe(res);
