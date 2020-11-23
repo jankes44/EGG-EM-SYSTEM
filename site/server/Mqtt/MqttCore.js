@@ -36,7 +36,6 @@ const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s 
 const getLights = "Select * from lights where id in (?)";
 
 const findUsersSiteTest = (user, site) => {
-  console.log(liveTests)
   const usersTestDetails = liveTests.find(el => el.userId === user && el.siteId === site)
   if (typeof usersTestDetails !== "undefined") {
     return usersTestDetails
@@ -94,7 +93,6 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
 const getTestInfo = (user, site) => {
   let result = null
   const usersTest = findUsersSiteTest(user, site)
-  console.log(usersTest)
   if (usersTest && typeof usersTest !== "undefined" && mqttClients[site].testInProgress) {
       result = clonedeep(usersTest)
       result.devices.forEach(el => el.result = el.getDeviceStatus())
@@ -108,10 +106,12 @@ module.exports = {
   getTestInfo: getTestInfo
 }
 
-// startTest(42, [210,211,212], "Whatever", 3)
+// mqttClients[3].publish("", "XrebX") 
+
+// startTest(42, [210,211,212], "Monthly", 3)
 // .then(r => {
-//   console.log(r)
 //   getTestInfo(42,3)
+//   findUsersSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
 // })
 // .catch(err => console.log(err))
 

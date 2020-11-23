@@ -1,4 +1,7 @@
 const con = require("../database/db_promise");
+const Promise = require("bluebird")
+
+const {insertMsg, insertVoltLdrReading} = require("./MqttHelpers")
 
 const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`
 
@@ -14,8 +17,8 @@ const testTime = {
 };
 
 const testCheckpointsTime = {
-    Annual: new Set([9900000, 3600000, 300000]),
-    Monthly: new Set([150000, 120000, 60000]),
+    "Annual": new Set([9900000, 3600000, 300000]),
+    "Monthly": new Set([150000, 120000, 60000]),
 };
 
 class LiveTestDevice {
@@ -80,12 +83,18 @@ class LiveTestDevice {
         if (error.length > 0) this.addResult(error) 
     }
 
-    testLoop = (testType) => {
+    testLoop = async (testType) => {
         this.duration = this.duration - 1000
         if (testCheckpointsTime[testType].has(this.duration)) {
             let messages = new Set();
             if (this.hasSensors){
-                this.sensors.forEach(s => this.testSensor(s, messages).then(() => "OK"))
+                console.log(this.sensors)
+                for (let index = 0; index < this.sensors.length; index++) {
+                    const sensor = this.sensors[index];
+                    console.log(sensors)
+                    await sleep(2000);
+                    await this.testSensor(sensor, messages)
+                }
             }
         }
 
@@ -93,41 +102,28 @@ class LiveTestDevice {
             clearInterval(this.testInterval)
             let messages = new Set();
             const deviceId = this.nodeId
-            checkDeviceState(counter, topic, deviceId, user, "led")
+            this.checkDeviceState("led")
             .then(msg => this.messenger.publish(deviceId, "10018202000196"))
-            .then(deviceId => {
+            .then(message => {
                 console.log(`${deviceId}: MAIN ON`)
-                const msgTimeout = mqttMessager.timeout(deviceId, () => this.setNoResponse())
-            
-                this.messenger.setMessageHandler(msgTimeout, (message) => {
-                    if (!messages.has(message) && !message.includes("hello")){
-                        const msg_node_id = message.slice("13", "17")
-                        console.log(message, msg_node_id, "test");
-                        messages.add(message);
-                        setTestFinished()
+                if (!messages.has(message) && !message.includes("hello")){
+                    const msg_node_id = message.slice("13", "17")
+                    console.log(message, msg_node_id, "test");
+                    messages.add(message);
+                    setTestFinished()
                     }
                     else console.log(message, arrayContainsMessage)
                 })
-              })
+            .catch(() => this.setNoResponse())
+              
             }
           }
 
     testSensor = async (sensor, messages) => {
         let promise = new Promise((resolve, reject) => {
-            let error = false 
             const type = sensor.type.toLowerCase()
-            do {
-                this.messenger.publish(sensor.sensorId, "10038205000096")
-                .catch(() => sleep(5000).then(() => error = true))
-            } while (error)
-
-            const msgTimeout = mqttMessager.timeout(sensor.sensorId, () => {
-                // currentDevice.setNoResponse() powercut = 3?
-                currentDevice.addResult("Weak connection to mesh");
-                reject("No response")
-            })
-
-            this.messenger.setMessageHandler(msgTimeout, (message) => {
+            this.messenger.publish(sensor.sensorId, "10038205000096")
+            .then(message => {
                 const msgSliced = parseInt(`0x${message.slice(21, 25)}`)
                 const msg_node_id = message.slice("13", "17")
                 const messageIsNew = !setFind(messages, (a) => a.includes(msg_node_id));
@@ -140,26 +136,25 @@ class LiveTestDevice {
 
                 }
             })
+            .catch(err => {
+                // this.addResult("Weak connection to mesh");
+                reject("No response")
+            }) 
         })
         let result = await promise;
         return result;
     }
 
-    checkDeviceState = async () => {
+    checkDeviceState =async (type) => {
         const promise = new Promise((resolve, reject) => {
         const deviceId = this.nodeId
         let messages = new Set()
         let received = false
         const command = type === "led" ? "10038205000096" : "10018201000096"
         this.messenger.publish(deviceId, command)
-        .then(deviceId => {
+        .then(message => {
             console.log("state check: " + deviceId);
-            const msgTimeout = mqttMessager.timeout(deviceId, () => {
-              this.setNoResponse()
-              reject("No response")
-            })
-            mqttMessager.setMessageHandler(msgTimeout, (message) => {
-              if (!messages.has(message) && !received) {
+            if (!messages.has(message) && !received) {
                 received = true;
                 messages.add(message);
                 insertMsg(message)
@@ -167,10 +162,14 @@ class LiveTestDevice {
                 resolve(message)
               }
             })
-          })
+        .catch(err => {
+            this.setNoResponse()
+            reject("No response")
         })
-        let result = await promise;
-        return result;  
+    })
+           
+    let result = await promise;
+    return result;  
     }
 
     readFromVbat = (sensor, msgSliced, messages) => {
@@ -202,41 +201,35 @@ class LiveTestDevice {
     cutPower = async (testType) => {
         let promise = new Promise((resolve, reject) => {
             let messages = new Set()
-            let received = false
-            console.log("CUT")
+            let received = false 
             if (this.powercut === 0){
-                console.log(1)
-                this.publish(this.nodeId, "10018202000096").then(deviceId => {
-                    console.log("PUB")
-                    const msgTimeout = mqttMessager.timeout(deviceId, () => {
-                        this.setNoResponse()
-                        reject("No response")
-                      })
-                      mqttMessager.setMessageHandler(msgTimeout, (message) => {
-                          console.log(2)
-                        let msg_node_id = message.slice("13", "17");
+                this.messenger.publish(this.nodeId, "10018202000096")
+                .then(message => {
+                    let msg_node_id = message.slice("13", "17");
                         if (!messages.has(message) && !message.includes("hello") && !received) {
-                            console.log(3)
                             messages.add(message);
-                            console.log(message, msg_node_id);
                             this.addResult("Battery powered");
                             this.powercut = 1
                             received = true;
                             this.durationCounterStart(testType)
                             resolve(true)
                         }
-                                else reject(false)    
-                    })
+                        else reject(false)
+                })
+                .catch(err => {
+                    this.setNoResponse()
+                    reject(err)
                 })
             }
-            else reject(this.nodeId)
+            else reject("Power already cut " + this.nodeId)
         })
-        
         let result = await promise;
         return result;
     }
 
-    durationCounterStart = (testType) => this.testInterval = setInterval(() => this.testLoop(testType))
+    durationCounterStart = (testType) => {
+        this.testInterval = setInterval(() => this.testLoop(testType))
+    }
     
 }
 
@@ -250,5 +243,11 @@ async function sleep(ms) {
     let result = await promise;
     return result;
   }
+
+const setFind = (set, cb) => {
+for (const e of set) {
+    if (cb(e)) return e;
+    }
+};  
 
 module.exports = LiveTestDevice

@@ -61,27 +61,25 @@ class MqttDevice {
 
         publish = async (deviceId, command) => {
             let promise = new Promise((resolve, reject) => {
+                const msgTimeout = this.timeout(deviceId, reject)
+                console.error("Publish message ", `${deviceId}${command}`)
                 this.mqtt.publish(this.topic_send, `${deviceId}${command}`, QOS_1, err => {
                     if (err) reject(err)
-                    resolve(deviceId)
+                    this.mqtt.handleMessage = (packet, callback) => {
+                        clearTimeout(msgTimeout)
+                        resolve(packet.payload.toString("utf8"))
+                        callback()
+                    }
                 })
             })
             let result = await promise;
             return result
-        }
+        }   
 
-        setMessageHandler = (t, success) => {
-            this.mqtt.handleMessage = (packet, callback) => {
-                clearTimeout(t)
-                success(packet.payload.toString("utf8"))
-                callback()
-        }
-    }   
-
-        timeout = (deviceId, error) => setTimeout(() => {
-                    console.log(`${this.name}: ${deviceId} NO RES`)
-                    error()
-                }, 5000)
+    timeout = (deviceId, reject) => setTimeout(() => {
+                console.log(`${this.name}: ${deviceId} NO RES`)
+                reject(deviceId)
+            }, 5000)
 }
 
 module.exports = MqttDevice

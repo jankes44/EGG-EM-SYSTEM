@@ -1,3 +1,5 @@
+const Promise = require("bluebird");
+
 class LiveTest {
     constructor(testId, userId, devicesCopy, testType, inProgress, siteId) {
         this.testId = testId
@@ -12,14 +14,42 @@ class LiveTest {
         this.siteId = siteId
     }
     
-    cutPowerAll = () => {
-        if (this.inProgress){
-            console.log(this.devices)
-            let promises = this.devices.map((device) => {
-                return device.cutPower(this.type)})
-            return Promise.all(promises)
-        }
+    cutPowerAll = async () => {
+        let promise = new Promise((resolve, reject) => {
+            if (this.inProgress){
+                // let i = 100
+                // Run promises in sequence
+                // const starterPromise = Promise.resolve(null);
+                // this.devices.reduce((p,d) => p.then(() => d.cutPower(this.type)
+                //     .then(console.log(i++))
+                //     .catch(err => console.error(err)))
+                //     .catch(err => console.error(err)),
+                // starterPromise)
+                Promise.map(this.devices, async d => {
+                    await sleep(2000);
+                    return await d.cutPower(this.type)
+                }, {concurrency: 1})
+                .then(() => resolve("OK"))
+                .catch(err => reject(err))
+            }
+            else {
+                reject("ERROR")
+            }
+        })
+
+        const result = await promise 
+        return result 
     }
 }
+
+async function sleep(ms) {
+    let promise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve("");
+      }, ms);
+    });
+    let result = await promise;
+    return result;
+  }
 
 module.exports = LiveTest
