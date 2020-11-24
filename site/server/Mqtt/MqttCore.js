@@ -12,7 +12,6 @@ const LiveTestDevice = require("./LiveTestDevice")
 const LiveTest = require("./LiveTest");
 
 const {getLedStateHelper} = require("./MqttHelpers");
-const LiveTest = require("./LiveTest");
 
 const cutInterval = 1000;
 const relayBackOn = 360000;
