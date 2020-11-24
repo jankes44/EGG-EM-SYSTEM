@@ -1,7 +1,8 @@
 const con = require("../database/db_promise");
 const Promise = require("bluebird")
 
-const {insertMsg, insertVoltLdrReading} = require("./MqttHelpers")
+const {insertMsg, insertVoltLdrReading} = require("./MqttHelpers");
+const { reject } = require("lodash");
 
 const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`
 
@@ -56,6 +57,11 @@ class LiveTestDevice {
     
     addResult = (r) => {
         this.result.add(r)
+        this.updateDeviceState()
+    }
+
+    removeResult = (r) => {
+        this.result.remove(r)
         this.updateDeviceState()
     }
 
@@ -116,7 +122,7 @@ class LiveTestDevice {
           }
 
     testSensor = async (sensor, messages) => {
-        let promise = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const type = sensor.type.toLowerCase()
             console.log(sensor, "W")
             this.messenger.publish(sensor.sensorId, "10038205000096")
@@ -132,7 +138,6 @@ class LiveTestDevice {
                         case "ldr": resolve(this.readFromLdr(sensor, msgSliced, messages))
                         break
                     }
-                    resolve(sensor.sensorId)
                 }
             })
             .catch(err => {
@@ -140,10 +145,9 @@ class LiveTestDevice {
                 resolve("No response")
             }) 
         })
-        return promise
     }
 
-    checkDeviceState =async (type) => {
+    checkDeviceState = async (type) => {
         const promise = new Promise((resolve, reject) => {
         const deviceId = this.nodeId
         let messages = new Set()
@@ -181,6 +185,7 @@ class LiveTestDevice {
     readFromLdr = (sensor, msgSliced, messages) => {
         sleep(2000).then(() => {
             const ldrReading = msgSliced.toFixed(2)
+            let onOff
             if (ldrReading > 3000) onOff = "EM Lamp ON"
             else {
                 onOff = "EM Lamp OFF";
@@ -200,8 +205,7 @@ class LiveTestDevice {
     // 1. When using Promise.map/each/all the function should just return the promise 
     // 2. When using Promise.map/each/all if the callback rejects it exits the loop
     cutPower = async (testType) => {
-        console.log(this.nodeId)
-        let promise = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             console.log(this.nodeId)
             let messages = new Set()
             let received = false 
@@ -227,7 +231,37 @@ class LiveTestDevice {
             }
             else reject("Power already cut " + this.nodeId)
         })
-        return promise
+    }
+
+    abort = (messages) => {
+        return new Promise((resolve, reject) => {
+            this.checkDeviceState("relay")
+            .then(msg => {
+                let msgReceived = false
+                this.messenger.publish(this.nodeId, "10018202000196")
+                .then(message => {
+                    if (!messages.has(message) && !msgReceived && !message.includes("hello")){
+                        messages.add(message)
+                        console.log(message, msg_node_id, counter);
+                        msgReceived = true;
+                        this.powercut = 2
+                        this.removeResult("Battery powered")
+                        resolve(this.nodeId)   
+                    }
+                })
+                .catch(err => {
+                    console.log(this.nodeId, "NO Response")
+                    this.setNoResponse()
+                    resolve(err)
+                })
+            })
+            .catch(err => {
+                console.log(this.nodeId, "NO Response")
+                this.setNoResponse()
+                resolve(err)
+            })
+            this.messenger.publish()
+        })
     }
 
     durationCounterStart = (testType) => {

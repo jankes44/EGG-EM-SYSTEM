@@ -1010,6 +1010,8 @@ router.post("/result/:id", auth, (req, res) => {
   });
 });
 
+// -----------------------------------------------------------------------------------------------------------------
+
 //device result user input
 router.post("/setchecked", auth, (req, res) => {
   jwt.verify(req.token, process.env.SECRET_KEY, (err) => {

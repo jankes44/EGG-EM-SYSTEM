@@ -9,7 +9,8 @@ const con = require("../database/db_promise");
 const MqttDevice = require("./Clients/MqttDevice")
 const clients = require("./Clients/clients.json");
 const LiveTestDevice = require("./LiveTestDevice")
-const LiveTest = require("./LiveTest")
+const LiveTest = require("./LiveTest");
+const { reject } = require("lodash");
 
 const cutInterval = 1000;
 const relayBackOn = 360000;
@@ -44,6 +45,10 @@ const findUsersSiteTest = (user, site) => {
     return usersTestDetails
   } else return null;
 };
+
+const deleteUserSiteTest = (user, site) => {
+  liveTests = liveTests.filter(el => !(el.userId === user && el.siteId === site))
+}
 
 const startTest = async (userId, deviceIds, testType, siteId) => {
     let promise = new Promise((resolve, reject) => {
@@ -103,13 +108,53 @@ const getTestInfo = (user, site) => {
   return result         
 }
 
+const cutPowerAll = (user, site) => {
+  const liveTest = findUsersSiteTest(user, site)
+  return liveTest.cutPowerAll()
+}
+
+const cutPowerSingle = async (user, site, deviceId) => {
+  const liveTest = findUsersSiteTest(user, site)
+  const device = liveTest.getDeviceById(deviceId)
+  const result = await device.cutPower(liveTest.testType)
+  return result
+}
+
+const finishTest = async (user, site, state) => {
+  const liveTest = findUsersSiteTest(user, site)
+  let promise = new Promise((reject, resolve) => {
+    liveTest.finish(state)
+    .then(() => {
+      deleteUserSiteTest(user, site)
+      resolve()
+    })
+    .catch(err => reject(err))
+  })
+  const result = await promise
+  return result
+}
+
+const setDeviceResult = (user, site, deviceId, result) => {
+  let updated = false
+  const liveTest = findUsersSiteTest(user, site)
+  const device = liveTest.getDeviceById(deviceId)
+  if (!device.hasSensors){
+    device.result = result
+    updated = true
+  }
+  return updated
+}
+
 const rebootGateway = (siteId) => mqttClients[siteId].publish("", "XrebX")
 
 module.exports = {
   startTest: startTest,
   findUsersSiteTest: findUsersSiteTest,
   getTestInfo: getTestInfo,
-  rebootGateway: rebootGateway
+  rebootGateway: rebootGateway,
+  finishTest: finishTest,
+  cutPowerAll: cutPowerAll,
+  cutPowerSingle: cutPowerSingle
 }
 
 const reboot = false
