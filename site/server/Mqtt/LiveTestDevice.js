@@ -84,20 +84,14 @@ class LiveTestDevice {
     }
 
     testLoop = async (testType) => {
+        console.log(this.nodeId, this.duration)
         this.duration = this.duration - 1000
         if (testCheckpointsTime[testType].has(this.duration)) {
             let messages = new Set();
             if (this.hasSensors){
-                console.log(this.sensors.length, this.duration, this.nodeId)
-                let index = 0
-                while (index < this.sensors.length) {
-                    console.log(index)
-                    const sensor = this.sensors[index];
-                    console.log(this.sensors)
-                    await sleep(2000);
-                    await this.testSensor(sensor, messages)
-                    index++
-                }
+                Promise.each(this.sensors, s => this.testSensor(s, messages), {concurrency: 1})
+                .then(() => console.log("OK"))
+                .catch(err => console.log(err))
             }
         }
 
@@ -138,16 +132,15 @@ class LiveTestDevice {
                         case "ldr": resolve(this.readFromLdr(sensor, msgSliced, messages))
                         break
                     }
-
+                    resolve(sensor.sensorId)
                 }
             })
             .catch(err => {
                 // this.addResult("Weak connection to mesh");
-                reject("No response")
+                resolve("No response")
             }) 
         })
-        let result = await promise;
-        return result;
+        return promise
     }
 
     checkDeviceState =async (type) => {
@@ -203,33 +196,38 @@ class LiveTestDevice {
         })
     }
 
+    // NB 
+    // 1. When using Promise.map/each/all the function should just return the promise 
+    // 2. When using Promise.map/each/all if the callback rejects it exits the loop
     cutPower = async (testType) => {
+        console.log(this.nodeId)
         let promise = new Promise((resolve, reject) => {
+            console.log(this.nodeId)
             let messages = new Set()
             let received = false 
             if (this.powercut === 0){
                 this.messenger.publish(this.nodeId, "10018202000096")
                 .then(message => {
-                    let msg_node_id = message.slice("13", "17");
+ //                   let msg_node_id = message.slice("13", "17");
                         if (!messages.has(message) && !message.includes("hello") && !received) {
                             messages.add(message);
                             this.addResult("Battery powered");
                             this.powercut = 1
                             received = true;
                             this.durationCounterStart(testType)
-                            resolve(true)
+                            resolve(this.deviceId)
                         }
-                        else reject(false)
+                        else resolve(false)
                 })
                 .catch(err => {
+                    console.log(this.nodeId, "NO Response")
                     this.setNoResponse()
-                    reject(err)
+                    resolve(err)
                 })
             }
             else reject("Power already cut " + this.nodeId)
         })
-        let result = await promise;
-        return result;
+        return promise
     }
 
     durationCounterStart = (testType) => {

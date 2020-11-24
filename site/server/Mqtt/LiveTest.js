@@ -17,20 +17,19 @@ class LiveTest {
     cutPowerAll = async () => {
         let promise = new Promise((resolve, reject) => {
             if (this.inProgress){
-                // let i = 100
-                // Run promises in sequence
-                // const starterPromise = Promise.resolve(null);
-                // this.devices.reduce((p,d) => p.then(() => d.cutPower(this.type)
-                //     .then(console.log(i++))
-                //     .catch(err => console.error(err)))
-                //     .catch(err => console.error(err)),
-                // starterPromise)
-                Promise.map(this.devices, async d => {
-                    await sleep(2000);
-                    return await d.cutPower(this.type)
+                Promise.each(this.devices, async (d, index, len) => {
+                    await sleep(1000)
+                    console.log("CUT POWER: " + d.nodeId)
+                    return d.cutPower(this.type)
                 }, {concurrency: 1})
-                .then(() => resolve("OK"))
-                .catch(err => reject(err))
+                .then(devices => {
+                    //console.log(devices, "OK")
+                    resolve()
+                })
+                .catch(err => {
+                    console.log(err, "Error")
+                    reject(err)
+                })
             }
             else {
                 reject("ERROR")

@@ -32,9 +32,12 @@ var liveTests = []
 // Queries
 const insertTest = "INSERT INTO trial_tests SET ?"
 const insertTestLights = "INSERT INTO trial_tests_has_lights SET ?"
-const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ?"
+const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ? and s.type in (?)"
 const getLights = "Select * from lights where id in (?)";
 
+const sensorsTypesToTest = ["VBAT", "LDR"]
+
+//CORE FUNCTIONS
 const findUsersSiteTest = (user, site) => {
   const usersTestDetails = liveTests.find(el => el.userId === user && el.siteId === site)
   if (typeof usersTestDetails !== "undefined") {
@@ -72,7 +75,7 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
         
         /*  Promise.map defines the mapping to obtain a promise and the "then" of that promise, 
             but then runs them all */ 
-        return Promise.map(rows, (el) => con.query(getSensors, el.id)
+        return Promise.map(rows, (el) => con.query(getSensors, [el.id, sensorsTypesToTest])
           .spread((rows, fields) => {
             const d = new LiveTestDevice(el, testType, userId, testId, mqttClients[siteId])
             d.addSensors(rows)
@@ -100,18 +103,26 @@ const getTestInfo = (user, site) => {
   return result         
 }
 
+const rebootGateway = (siteId) => mqttClients[siteId].publish("", "XrebX")
+
 module.exports = {
   startTest: startTest,
   findUsersSiteTest: findUsersSiteTest,
-  getTestInfo: getTestInfo
+  getTestInfo: getTestInfo,
+  rebootGateway: rebootGateway
 }
 
-// mqttClients[3].publish("", "XrebX") 
+const reboot = false
 
-startTest(42, [210,211,212], "Monthly", 3)
+if (reboot) rebootGateway(3).then(message => console.log(message)).catch(err => console.log(err))
+else {
+  startTest(42, [210,211,212], "Monthly", 3)
 .then(r => {
   getTestInfo(42,3)
   findUsersSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
 })
 .catch(err => console.log(err))
+
+}
+
 
