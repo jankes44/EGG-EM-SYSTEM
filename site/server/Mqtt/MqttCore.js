@@ -6,11 +6,12 @@ const nodemailer = require("nodemailer");
 
 const con = require("../database/db_promise");
 
-const MqttDevice = require("./Clients/MqttDevice")
 const clients = require("./Clients/clients.json");
+const MqttDevice = require("./Clients/MqttDevice")
 const LiveTestDevice = require("./LiveTestDevice")
 const LiveTest = require("./LiveTest");
-const { reject } = require("lodash");
+
+const {getLedStateHelper} = require("./MqttHelpers")
 
 const cutInterval = 1000;
 const relayBackOn = 360000;
@@ -151,7 +152,7 @@ const setDeviceResult = (user, site, deviceId, result) => {
   return updated
 }
 
-const sendCmdToDevice = async (nodeId, siteId, cmd) => {
+const sendCommandToRelay = async (nodeId, siteId, cmd) => {
   let promise = new Promise((reject, resolve) => {
     let received = false 
     let messages = new Set()
@@ -188,7 +189,13 @@ const sendCmdToDevice = async (nodeId, siteId, cmd) => {
   
   const result = await promise
   return result
+}
 
+const getLedStates = (devices, site) => {
+  let messages = new Set();
+  const messenger = mqttClients[site]
+
+  return Promise.each(devices, d => getLedStateHelper(d.nodeId, messenger, messages))
 }
 
 const rebootGateway = (siteId) => mqttClients[siteId].publish("", "XrebX")
@@ -202,7 +209,8 @@ module.exports = {
   cutPowerAll: cutPowerAll,
   cutPowerSingle: cutPowerSingle,
   setDeviceResult: setDeviceResult,
-  sendCommandToDevice: sendCmdToDevice
+  sendCommandToRelay: sendCommandToRelay,
+  getLedStates: getLedStates
 }
 
 const reboot = false

@@ -1,4 +1,6 @@
+const { reject } = require("lodash");
 const con = require("../database/db_promise");
+const MqttDevice = require("./Clients/MqttDevice");
 
 const insertVoltLdrReading = (sensor_id, bat = "", ldr = "") => {
     const data = { battery: bat, ldr: ldr, sensor_node_id: sensor_id };
@@ -24,7 +26,30 @@ const insertMsg = (msg, type = "cmd", voltage = "", ldr = "") => {
     .catch(err => {throw err})
 }
 
+
+/**
+ * 
+ * @param {*} device 
+ * @param {MqttDevice} messenger 
+ * @param {Set<string>} messages
+ */
+const getLedStateHelper = (device, messenger, messages) => {
+    return new Promise((reject, resolve) => {
+        messenger.publish(device, "10038205000096")
+        .then(message => {
+        if (!messages.has(message)){
+            insertMsg(message);
+            messages.add(message);
+            console.log(message, msg_node_id);
+            resolve(message)
+        }
+    })
+    .catch(err => resolve(device+" + "+err))  
+    })
+}
+
 module.exports = {
     insertVoltLdrReading: insertVoltLdrReading,
-    insertMsg: insertMsg
+    insertMsg: insertMsg,
+    getLedStateHelper: getLedStateHelper
 }

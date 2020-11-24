@@ -4,7 +4,7 @@ const auth = require("../middleware/auth");
 var schedule = require("node-schedule");
 const clonedeep = require("lodash.clonedeep");
 const nodemailer = require("nodemailer");
-const { startTest, finishTest, getTestInfo, cutPowerAll, setDeviceResult, sendCommandToDevice} = require("../Mqtt/MqttCore");
+const { startTest, finishTest, getTestInfo, cutPowerAll, setDeviceResult, sendCommandToRelay, getLedStates} = require("../Mqtt/MqttCore");
 const device = require("../Mqtt/Clients/test");
 
 router.post("/trialteststart/:uid", (req, res) => {
@@ -52,7 +52,7 @@ router.post("/aborttest/:uid/:sid", auth, (req, res) => {
 
     finishTest(user, site, 'Cancelled')
     .then(() => res.sendStatus(200))
-    .catch(err => res.sendStatus(400))
+    .catch((err) => res.status(400).send(err))
 })
 
 router.post("/savetest/:uid/:sid", auth, (req, res) => {
@@ -61,7 +61,7 @@ router.post("/savetest/:uid/:sid", auth, (req, res) => {
 
     finishTest(user, site, 'Finished')
     .then(() => res.sendStatus(200))
-    .catch(err => res.sendStatus(400))
+    .catch((err) => res.status(400).send(err))
 })
 
 router.post("/result/:id", (req, res) => {
@@ -87,16 +87,30 @@ router.post("/setchecked", (req, res) => {
     res.sendStatus(200)
 })
 
-// -------------------------------- APP ------------------------------------------
 
-router.post("/app/relay/:cmd", (req, res) => {
+
+// -------------------------------- APP / DEV ------------------------------------------
+
+router.post("/[(app|dev)]/relay/:cmd", (req, res) => {
     const nodeID = req.body.node_id;
-    const siteId = req.body.site_id
+    const siteId = req.body.site
     const cmd = req.params.cmd  
     
-    sendCommandToDevice(nodeID, siteId, cmd)
+    sendCommandToRelay(nodeID, siteId, cmd)
     .then(result => res.status(200).send(result))
     .catch(err => res.status(400).send(err))
 })
+
+router.post("/dev/led/state", (req, res) => {
+    const devices = req.body.devices
+    const siteId = req.body.site
+
+    getLedStates(devices, siteId)
+    .then(result => res.status(200).json(result))
+    .catch((err) => res.status(400).send(err))
+})
+
+
+
 
 module.exports = router;

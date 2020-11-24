@@ -93,9 +93,10 @@ class LiveTestDevice {
         console.log(this.nodeId, this.duration)
         this.duration = this.duration - 1000
         if (testCheckpointsTime[testType].has(this.duration)) {
+            const firstCheckpoint = this.duration === testCheckpointsTime[testType][0]
             let messages = new Set();
             if (this.hasSensors){
-                Promise.each(this.sensors, s => this.testSensor(s, messages), {concurrency: 1})
+                Promise.each(this.sensors, s => this.testSensor(s, messages, firstCheckpoint), {concurrency: 1})
                 .then(() => console.log("OK"))
                 .catch(err => console.log(err))
             }
@@ -121,7 +122,7 @@ class LiveTestDevice {
             }
           }
 
-    testSensor = async (sensor, messages) => {
+    testSensor = async (sensor, messages, firstCheckpoint) => {
         return new Promise((resolve, reject) => {
             const type = sensor.type.toLowerCase()
             console.log(sensor, "W")
@@ -135,7 +136,7 @@ class LiveTestDevice {
                     switch(type){
                         case "vbat": resolve(this.readFromVbat(sensor, msgSliced, messages)) 
                         break
-                        case "ldr": resolve(this.readFromLdr(sensor, msgSliced, messages))
+                        case "ldr": resolve(this.readFromLdr(sensor, msgSliced, messages, firstCheckpoint))
                         break
                     }
                 }
@@ -182,14 +183,14 @@ class LiveTestDevice {
         resolve(voltage)
     }
 
-    readFromLdr = (sensor, msgSliced, messages) => {
+    readFromLdr = (sensor, msgSliced, messages, firstCheckpoint) => {
         sleep(2000).then(() => {
             const ldrReading = msgSliced.toFixed(2)
             let onOff
             if (ldrReading > 3000) onOff = "EM Lamp ON"
             else {
                 onOff = "EM Lamp OFF";
-                if (testedDevice.duration === testCheckpointsTime[testType][0]) {
+                if (firstCheckpoint) {
                   this.addResult("Lamp Fault");
                 }
                 this.addResult("Battery Fault");
