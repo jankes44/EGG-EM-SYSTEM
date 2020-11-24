@@ -23,6 +23,12 @@ const errorMessages = {
 "7FFF": "Battery powered",
 };
 
+const relayCommands = {
+  "on": "10018202000196",
+  "off": "10018202000096",
+  "state": "10018201000096"
+}
+
 let mqttClients = {}
 clients.forEach(el => {
     mqttClients[el.id] = new MqttDevice(el)
@@ -145,6 +151,46 @@ const setDeviceResult = (user, site, deviceId, result) => {
   return updated
 }
 
+const sendCmdToDevice = async (nodeId, siteId, cmd) => {
+  let promise = new Promise((reject, resolve) => {
+    let received = false 
+    let messages = new Set()
+
+    mqttClients[siteId].publish(nodeId, relayCommands[cmd])
+    .then(message => {
+      if (!received && !messages.has(message)){
+        const rawResponse = message.slice(13, 25);
+        const destinationNode = rawResponse.slice(0, 4);
+        const paramData = rawResponse.slice(8, 12);
+
+        received = true;
+        messages.add(message);
+        console.log(message, paramData);
+        if (cmd === 'state'){
+          switch (paramData) {
+            case "0000":
+              resolve(`${destinationNode}: OFF`);
+              break;
+            case "0001":
+              resolve(`${destinationNode}: ON`);
+              break;
+            default:
+              resolve(`${destinationNode}: UNKNOWN_RES`);
+          }
+        }
+        else resolve(`${destinationNode}: SET ${cmd.toUpperCase()}`)
+      }
+      else reject("Message already received")
+
+  })
+  .catch(err => reject(err))
+  })
+  
+  const result = await promise
+  return result
+
+}
+
 const rebootGateway = (siteId) => mqttClients[siteId].publish("", "XrebX")
 
 module.exports = {
@@ -154,7 +200,9 @@ module.exports = {
   rebootGateway: rebootGateway,
   finishTest: finishTest,
   cutPowerAll: cutPowerAll,
-  cutPowerSingle: cutPowerSingle
+  cutPowerSingle: cutPowerSingle,
+  setDeviceResult: setDeviceResult,
+  sendCommandToDevice: sendCmdToDevice
 }
 
 const reboot = false
