@@ -11,7 +11,8 @@ const MqttDevice = require("./Clients/MqttDevice")
 const LiveTestDevice = require("./LiveTestDevice")
 const LiveTest = require("./LiveTest");
 
-const {getLedStateHelper} = require("./MqttHelpers")
+const {getLedStateHelper} = require("./MqttHelpers");
+const LiveTest = require("./LiveTest");
 
 const cutInterval = 1000;
 const relayBackOn = 360000;
@@ -45,7 +46,13 @@ const getLights = "Select * from lights where id in (?)";
 
 const sensorsTypesToTest = ["VBAT", "LDR"]
 
-//CORE FUNCTIONS
+/**
+ * Finds a test launched by a specific user on a specific site, if present
+ * 
+ * @param {Number} user userId 
+ * @param {Nuber} site siteId
+ * @returns {LiveTest} test lauched by a specific user on a specific site
+ */
 const findUsersSiteTest = (user, site) => {
   const usersTestDetails = liveTests.find(el => el.userId === user && el.siteId === site)
   if (typeof usersTestDetails !== "undefined") {
@@ -53,10 +60,24 @@ const findUsersSiteTest = (user, site) => {
   } else return null;
 };
 
+/**
+ * Delete a test launched by a specific user ona a specific site
+ * 
+ * @param {Number} user userId 
+ * @param {Nuber} site siteId
+ */
 const deleteUserSiteTest = (user, site) => {
   liveTests = liveTests.filter(el => !(el.userId === user && el.siteId === site))
 }
 
+/**
+ * Start a test on a set of devices from a selected site 
+ * 
+ * @param {Number} userId user (id) who lauched the test
+ * @param {Array<String>} deviceIds list of the devices to test
+ * @param {String} testType test type (Monthly/Annual)
+ * @param {Number} siteId site (id) where to start the test
+ */
 const startTest = async (userId, deviceIds, testType, siteId) => {
     let promise = new Promise((resolve, reject) => {
       let testId 
@@ -105,6 +126,12 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
   return result;
 }
 
+/**
+ * Retrieve the informations of a live test by user and site
+ * 
+ * @param {Number} user user id 
+ * @param {Number} site site id
+ */
 const getTestInfo = (user, site) => {
   let result = null
   const usersTest = findUsersSiteTest(user, site)

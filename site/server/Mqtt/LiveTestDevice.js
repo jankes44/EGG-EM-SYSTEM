@@ -3,6 +3,7 @@ const Promise = require("bluebird")
 
 const {insertMsg, insertVoltLdrReading} = require("./MqttHelpers");
 const { reject } = require("lodash");
+const MqttDevice = require("./Clients/MqttDevice");
 
 const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`
 
@@ -23,6 +24,14 @@ const testCheckpointsTime = {
 };
 
 class LiveTestDevice {
+    /**
+     * @constructor
+     * @param {*} device 
+     * @param {String} testType 
+     * @param {Number} userId 
+     * @param {Number} testId 
+     * @param {MqttDevice} messenger 
+     */
     constructor(device, testType, userId, testId, messenger){
         this.deviceId = device.id 
         this.nodeId = device.node_id
@@ -36,6 +45,11 @@ class LiveTestDevice {
         this.messenger = messenger
     }
 
+    /**
+     * 
+     * @param {Array<*>} sensorsList
+     * 
+     */
     addSensors = (sensorsList) => { 
         if (sensorsList.length > 0){
             this.hasSensors = true 
@@ -60,6 +74,10 @@ class LiveTestDevice {
         this.updateDeviceState()
     }
 
+    /**
+     * 
+     * @param {String} r 
+     */
     removeResult = (r) => {
         this.result.remove(r)
         this.updateDeviceState()
@@ -83,6 +101,7 @@ class LiveTestDevice {
         .catch(err => {throw err})
     }
 
+    
     checkMessageState = (msg) => {
         const msgCut = msg.slice(21, 25).toUpperCase()
         const error = errorMessages[msgCut]
