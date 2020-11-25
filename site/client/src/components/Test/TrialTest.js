@@ -335,11 +335,12 @@ class TrialTest extends Component {
         formatter: (cellContent, row) => {
           return (
             <div>
-              {row.powercut === 0
+              {row.result}
+              {/* {row.powercut === 0
                 ? "Ready"
                 : row.result.length
                 ? Array.from(row.result).join(", ")
-                : null}
+                : null} */}
             </div>
           );
         },
@@ -471,6 +472,7 @@ class TrialTest extends Component {
           },
           url: global.BASE_URL + "/mqtt/testinfo/" + `${user}/${site}`,
         }).then((res) => {
+          console.log(res.data);
           if (res.data) {
             this.setState({
               testid: res.data.testId,

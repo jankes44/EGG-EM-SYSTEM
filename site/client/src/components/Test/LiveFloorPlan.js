@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, {useEffect} from "react";
 import Typography from "@material-ui/core/Typography";
 import Icon from "@material-ui/core/Icon";
-import { makeStyles } from "@material-ui/core/styles";
+import {makeStyles} from "@material-ui/core/styles";
 import Popover from "@material-ui/core/Popover";
 import moment from "moment";
 import Draggable from "react-draggable";
@@ -56,7 +56,7 @@ export default function LiveFloorPlan(props) {
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
   return (
-    <div style={{ overflowX: "scroll", width: "75vw" }}>
+    <div style={{overflowX: "scroll", width: "75vw"}}>
       <Typography variant="h4" gutterBottom>
         Level {props.liveDevices[0].level}
       </Typography>
@@ -86,7 +86,6 @@ export default function LiveFloorPlan(props) {
               var hr = duration.hours();
               var min = duration.minutes();
               var sec = duration.seconds();
-
               return (
                 <Draggable
                   key={el.id}
@@ -119,7 +118,7 @@ export default function LiveFloorPlan(props) {
                       id={id}
                       open={openedPopoverId === el.id}
                       anchorEl={anchorEl}
-                      style={{ pointerEvents: "none" }} //important
+                      style={{pointerEvents: "none"}} //important
                       anchorOrigin={{
                         vertical: "bottom",
                         horizontal: "center",

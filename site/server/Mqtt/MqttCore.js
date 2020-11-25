@@ -75,7 +75,7 @@ const sensorsTypesToTest = ["VBAT", "LDR"];
  * Finds a test launched by a specific user on a specific site, if present
  *
  * @param {Number} user userId
- * @param {Nuber} site siteId
+ * @param {Number} site siteId
  * @returns {LiveTest} test lauched by a specific user on a specific site
  */
 const findUserSiteTest = (user, site) => {
@@ -129,9 +129,7 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
           return con.query(getLights, [deviceIds]);
         })
         .spread(async (rows, fields) => {
-          console.log(rows);
           const insertPromises = rows.map((el) => {
-            console.log(el);
             const params = {trial_tests_id: testId, lights_id: el.id};
             return con.query(insertTestLights, params);
           });
@@ -185,7 +183,6 @@ const getTestInfo = (user, site) => {
   ) {
     result = clonedeep(usersTest);
     result.devices.forEach((el) => (el.result = el.getDeviceStatus()));
-    console.log(result);
   }
   return result;
 };

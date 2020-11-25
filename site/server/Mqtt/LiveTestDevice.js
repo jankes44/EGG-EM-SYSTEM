@@ -3,6 +3,7 @@ const Promise = require("bluebird");
 
 const {insertMsg} = require("./MqttHelpers");
 const MqttDevice = require("./Clients/MqttDevice");
+const {device} = require("aws-iot-device-sdk");
 
 const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`;
 
@@ -32,7 +33,7 @@ class LiveTestDevice {
    * @param {MqttDevice} messenger
    */
   constructor(device, testType, userId, testId, messenger) {
-    this.deviceId = device.lights_id;
+    this.deviceId = device.id;
     this.device_id = device.device_id;
     this.type = device.type;
     this.level = device.level;
@@ -47,6 +48,25 @@ class LiveTestDevice {
     this.testid = testId;
     this.messenger = messenger;
     this.hasSensors = false;
+  }
+
+  toJSON() {
+    return {
+      id: this.deviceId,
+      device_id: this.device_id,
+      type: this.type,
+      level: this.level,
+      node_id: this.nodeId,
+      powercut: this.powercut,
+      clicked: this.clicked,
+      duration: this.duration,
+      durationStart: this.durationStart,
+      user: this.user,
+      result: this.result,
+      testid: this.testid,
+      messenger: this.messenger,
+      hasSensors: this.hasSensors,
+    };
   }
 
   /**
@@ -113,7 +133,6 @@ class LiveTestDevice {
   };
 
   testLoop = async (testType) => {
-    console.log(this.nodeId, this.duration);
     this.duration = this.duration - 1000;
     if (testCheckpointsTime[testType].has(this.duration)) {
       const firstCheckpoint =
