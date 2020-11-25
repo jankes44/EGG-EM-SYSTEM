@@ -3,8 +3,7 @@ const con = require("../database/db_promise");
 const LiveTestDevice = require("./LiveTestDevice");
 
 const updateTestResultsQuery = "UPDATE trial_tests SET result=? WHERE id=?";
-const updateDeviceResultsQuery =
-  "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?";
+const updateDeviceResultsQuery = "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?";
 
 class LiveTest {
   constructor(testId, userId, devicesCopy, testType, inProgress, siteId) {
@@ -20,6 +19,9 @@ class LiveTest {
     this.siteId = parseInt(siteId);
   }
 
+  /**
+   * Allows to Jsonify the object ignoring the functions
+   * 
   toJSON() {
     return {
       testId: this.siteId,
@@ -35,7 +37,12 @@ class LiveTest {
     };
   }
 
-  cutPowerAll = async () => {
+  */
+
+  /**
+   *  Cut power of all the devices in the Test aka start the test
+   */
+  async cutPowerAll() {
     let promise = new Promise((resolve, reject) => {
       this.cut_all_clicked = true;
       if (this.inProgress) {
@@ -61,7 +68,7 @@ class LiveTest {
     return result;
   };
 
-  finish = async (state) => {
+  finish(state){
     let promise = new Promise((resolve, reject) => {
       if (state === "Cancelled") {
         this.abort_clicked = true;
@@ -91,7 +98,7 @@ class LiveTest {
     return result;
   };
 
-  updateTestResults = async (state) => {
+  updateTestResults(state){
     let promise = new Promise((reject, resolve) => {
       con
         .query(updateTestResultsQuery, [state, this.testId])
@@ -117,7 +124,7 @@ class LiveTest {
    * @param {Number} id deviceId
    * @returns {LiveTestDevice} device
    */
-  getDeviceById = (id) => {
+  getDeviceById(id){
     const index = this.devices.findIndex((el) => el.id === id);
     return this.devices[index];
   };
