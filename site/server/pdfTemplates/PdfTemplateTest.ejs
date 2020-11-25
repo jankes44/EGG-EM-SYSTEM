@@ -1,27 +1,207 @@
-<!DOCTYPE html>
 <html>
-    <head>
-        <style>
-        table {
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        </style>
-    </head>
-    <body>
-        <div style="width: 85%; margin: 0 7.5%;">
-            <div style="text-align: center; padding-left: 50px;">            
-                <h3>Student Report</h5>
-                <table>
-                <% if (students.length > 0) { %>
-                    <% students.forEach(student => {%>
-                       <tr><td><%= student.name %></td><td><%= student.email %></td><td><%= student.city %></td><td><%=student.country %></td></tr>
-                    <%  });%>
-                <% }%>
-                </table>
-             </div>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+      .b {
+        font-size: small;
+      }
+      .b div {
+        min-height: 20px;
+        padding: 2px;
+      }
+      .b div:not(:last-child) {
+        border-bottom: 1 solid black;
+      }
+      .b2 div:not(:first-child) {
+        border: 1 solid black;
+      }
+      .faultRec div {
+        min-height: 40px;
+      }
+      .p {
+        font-size: small;
+      }
+      .p-fl {
+        font-size: small;
+        float: left;
+      }
+      .b3 {
+        margin: auto;
+        clear: both;
+      }
+      .b3 div {
+        display: inline-block;
+        width: 32%;
+      }
+      .b4 div:last-child {
+        border-bottom: 1 solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      style="
+        position: absolute;
+        left: 0%;
+        top: 0;
+        margin-top: 0px;
+        margin: 75px;
+        overflow: hidden;
+        font-family: Arial, serif;
+      "
+    >
+      <div>
+        <img src="img/mitie.png" style="width: 220px; height: 130px" />
+        <div style="float: right">
+          <div>Document ref: 6002</div>
+          <div>Version no: 01</div>
         </div>
-    </body>
+        <div style="float: right">
+          <div style="float: right; margin-top: 100px; margin-right: 20px">
+            MTFM Asset Ref: <%= userinput.mtfm %>
+          </div>
+        </div>
+      </div>
+      <div
+        style="
+          width: 100%;
+          background-color: #651a6a;
+          font-size: 1.5em;
+          color: white;
+          padding: 8px;
+        "
+      >
+        Emergency lighting - functional inspection & test certificate
+      </div>
+      <div
+        style="
+          margin-top: 10px;
+          height: 20px;
+          font-size: 1.25em;
+          background-color: whitesmoke;
+          padding: 8px;
+        "
+      >
+        <div style="width: 50%; float: left">
+          Work order no: <%= userinput.orderNo %>
+        </div>
+        <div style="width: 50%; float: left">
+          Certificate no: <%= userinput.certNo %>
+        </div>
+      </div>
+      <p class="p">
+        For systems designed to BS 5266-1:2016 and BS EN 50172:2004 / BS
+        5266-8:2016 This certificate conforms to the appropriate recommendations
+        given in BS 5266-1:2011, BS EN 1838:1999 and BE EN 50172:2004
+      </p>
+      <p class="p">
+        WARNING Full duration tests involve discharging the batteries, so the
+        emergency lighting system will not be fully functional until the
+        batteries have had time to recharge. For this reason, always carry out
+        testing at times of minimal risk, or only test alternate luminaires at
+        any one time.
+      </p>
+
+      <div class="b" style="width: 48%; border: 1 solid black; float: left">
+        <div>Site name: <%= data[0].site_name %> - <%= data[0].building %></div>
+        <div style="min-height: 40px">
+          Site address: <%= data[0].site_address %>
+        </div>
+        <div>Site contact: <%= userinput.siteContact %></div>
+        <div>Contact tel no: <%= userinput.engTel %></div>
+        <div style="min-height: 45px">
+          Engineer name: <%= userinput.engName %>
+        </div>
+      </div>
+      <div
+        class="b"
+        style="
+          width: 48%;
+          border: 1 solid black;
+          float: left;
+          margin-left: 3%;
+          margin-bottom: 40px;
+        "
+      >
+        <div>System mode of operation:</div>
+        <div>Further details:</div>
+        <div>Duration of system (hours)</div>
+        <div>Is an automatic test system fitted?</div>
+        <div>System manufacturer: EGG Lighting</div>
+        <div style="min-height: 40px">
+          List all areas/devices tested:<span style="display: block">
+            <% if (levels.length > 0) { %> <% levels.forEach(el => {%>
+            <p style="float: left">Level <%= el %>,</p>
+            <% });%> <% }%>
+          </span>
+        </div>
+      </div>
+
+      <div style="border: 1 solid black; clear: both">
+        <div style="text-align: center; border-bottom: 1 solid black">
+          Service details
+        </div>
+        <div style="width: 100%; padding: 5px">
+          <p style="float: left">Test types:</p>
+          <ul style="float: left; font-size: small">
+            <li>C = Commissioning and verification test</li>
+            <li>
+              M = Monthly test (see BS EN 50172:2004 / BS 5266-8:2004, 7.2.3)
+            </li>
+            <li>
+              A = Annual test (see BS EN 50172:2004 / BS 5266-8:2004, 7.2.4)
+            </li>
+          </ul>
+        </div>
+        <div class="b3" style="width: 100%; padding: 5px; font-size: small">
+          <div>Date of test: <%= data[0].datetime %></div>
+          <div>Test type: <%= data[0].testtype %></div>
+          <div>Test result: <%= test_result %></div>
+        </div>
+      </div>
+
+      <div
+        style="
+          border: 1 solid black;
+          margin-top: 10px;
+          page-break-inside: avoid !important;
+          font-size: small;
+        "
+      >
+        <div style="text-align: center">Fault action record</div>
+        <div class="faultRec">
+          <div style="min-height: fit-content">
+            <p style="border-top: 1 solid black">
+              <span style="float: left"
+                >List of any defects or variations:&nbsp
+              </span>
+              <span> <%= faults %> </span>
+            </p>
+          </div>
+          <div style="clear: both">
+            <p style="border-top: 1 solid black">
+              Action taken to rectify the system: <%= userinput.rectifyAction %>
+            </p>
+          </div>
+          <div>
+            <p style="border-top: 1 solid black">
+              Remedial works required: <%= userinput.remedialWorks %>
+            </p>
+          </div>
+          <div>
+            <p style="border-top: 1 solid black">
+              Action taken to safeguard the premises (where applicable): <%=
+              userinput.safeguardAction %>
+            </p>
+          </div>
+          <div>
+            <p style="border-top: 1 solid black">
+              Are any parts required? If so, detail requirements: <%=
+              userinput.partsRequired %>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

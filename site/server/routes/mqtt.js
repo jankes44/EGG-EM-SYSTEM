@@ -1875,25 +1875,30 @@ const event = schedule.scheduleJob("*/1 * * * *", () => {
   };
 });
 
-const checkGatewayState = (topic, faultyDevices) => {
+const checkGatewayState = (topic, faultyDevices=[]) => {
   var received = 0;
   device.publish(topic, `XchkX`, QOS_1, () => {
+    console.log("PUB CHECK")
     const timeout = setTimeout(() => {
       received = -1;
-      actOnGatewayState(received, faultyDevices);
+      console.log("NO RES")
+      // actOnGatewayState(received, faultyDevices);
     }, 8000);
     device.handleMessage = (packet, callback) => {
       const message = packet.payload.toString("utf8");
       if (received === 0) {
+        console.log(message)
         clearTimeout(timeout);
         received = 1;
-        actOnGatewayState(received, faultyDevices);
+        // actOnGatewayState(received, faultyDevices);
       } else {
         callback();
       }
     };
   });
 };
+
+checkGatewayState("DEVCOMSP")
 
 const actOnGatewayState = (state, faultyDevices) => {
   var transporter = nodemailer.createTransport({
