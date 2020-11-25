@@ -2,17 +2,28 @@ var awsIot = require("aws-iot-device-sdk");
 var path = require("path");
 var mqtt = require("mqtt");
 
+`    {
+  "keyPath": "SPBMDEVUI.private.key",
+  "certPath": "SPBMDEVUI.cert.pem",
+  "caPath": "AmazonRootCA1.pem",
+  "clientId": "OFFICEUIDEV2",
+  "topic": "DEVRSPSP",
+  "topic_send": "DEVCOMSP",
+  "name": "EGG",
+  "id": 3
+}`
+
 // LIVE CONFIG
 var device = awsIot.device({
-  keyPath: path.join(__dirname, "../certs/livespprivate.pem.key"),
-  certPath: path.join(__dirname, "../certs/livespcertificate.pem.crt"),
-  caPath: path.join(__dirname, "../certs/livespca1.pem"),
+  keyPath: path.join(__dirname, "../certs/SPBMDEVUI.private.key"),
+  certPath: path.join(__dirname, "../certs/SPBMDEVUI.cert.pem"),
+  caPath: path.join(__dirname, "../certs/AmazonRootCA1.pem"),
   clientId: "test",
   host: "a2vs8z4dhndn7y-ats.iot.eu-west-1.amazonaws.com",
   protocol: "mqtts",
   keepAlive: 0,
 });
-var topic = "LIVESPRSP";
+var topic = "DEVRSPSP";
 
  function getFileName(path=__filename) {
   return path.replace(/^.*[\\\/]/, '').replace(".js", "");
@@ -43,4 +54,4 @@ device.on("connect", () => {
     console.log(error);
   });
   
-  module.exports = device
+  module.exports = {device: device}

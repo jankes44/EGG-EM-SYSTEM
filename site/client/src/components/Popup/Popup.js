@@ -1,13 +1,14 @@
 import React from "react";
 import "./style.css";
-import { Link } from "react-router-dom";
-import { CSVLink } from "react-csv";
+import {Link} from "react-router-dom";
+import {CSVLink} from "react-csv";
 // import { PDFDownloadLink } from "@react-pdf/renderer";
 // import { PdfDocument } from "./PdfTest";
 import moment from "moment";
 import Fade from "@material-ui/core/Fade";
 import axios from "axios";
-import { Checkbox, Icon } from "@material-ui/core";
+import {Checkbox, Icon} from "@material-ui/core";
+import FillPDF from "components/Popup/FillPDF";
 
 class Popup extends React.Component {
   state = {
@@ -18,7 +19,7 @@ class Popup extends React.Component {
   };
 
   generatePDF = () => {
-    this.setState({ documentGenerated: true });
+    this.setState({documentGenerated: true});
   };
 
   downloadReport = () => {
@@ -72,19 +73,26 @@ class Popup extends React.Component {
     const csvReportArray = this.props.errorsCsv;
     const tests = this.props.testsFiltered[0];
     const errors = this.props.errorsFiltered;
-
+    let errorsArr = [];
+    let errorsStr = "";
     if (tests && errors) {
       let successColor = "green";
       let successful = 0;
       errors.forEach((el) => {
         if (el.result === "OK") successful++;
+        if (!el.result.includes("OK")) {
+          const err = `${el.device_id} - ${el.type}: ${el.result}`;
+          errorsArr.push(err);
+        }
       });
+      errorsStr = errorsArr.join(", ");
+
       if (successful !== tests.lights) successColor = "salmon";
       return (
         <Fade in={this.props.showPopup}>
           <div className="containerDetails">
             <div className="datagrid">
-              <div style={{ overflowX: "auto" }}>
+              <div style={{overflowX: "auto"}}>
                 <table>
                   <tbody>
                     <tr>
@@ -99,7 +107,7 @@ class Popup extends React.Component {
                       <td>
                         {tests.site} - {tests.building}
                       </td>
-                      <td style={{ color: successColor }}>
+                      <td style={{color: successColor}}>
                         {successful}/{tests.lights}
                       </td>
                       <td>{tests.result}</td>
@@ -115,7 +123,7 @@ class Popup extends React.Component {
               <div className="infoContainer">
                 <table>
                   <tbody>
-                    <tr style={{ textAlign: "left" }}>
+                    <tr style={{textAlign: "left"}}>
                       <th></th>
                       <th>ID</th>
                       <th>Type</th>
@@ -129,12 +137,12 @@ class Popup extends React.Component {
                         item.error = item.result;
                       }
                       return (
-                        <tr key={index} style={{ backgroundColor: color }}>
+                        <tr key={index} style={{backgroundColor: color}}>
                           <td>
-                            {item.result !== "OK" ? (
-                              <Icon style={{ color: "#FF786A" }}>cancel</Icon>
+                            {!item.result.includes("OK") ? (
+                              <Icon style={{color: "#FF786A"}}>cancel</Icon>
                             ) : (
-                              <Icon style={{ color: "#92d737" }}>
+                              <Icon style={{color: "#92d737"}}>
                                 check_circle
                               </Icon>
                             )}
@@ -190,7 +198,7 @@ class Popup extends React.Component {
               className="btn-group"
               role="group"
               aria-label="CSV PDF buttons group"
-              style={{ marginTop: "20px" }}
+              style={{marginTop: "20px"}}
             >
               {/* <CSVLink
                     data={csvReportArray}
@@ -206,18 +214,12 @@ class Popup extends React.Component {
                   >
                     Download PDF
                   </button> */}
-              <button
-                onClick={this.downloadOfficialReport}
-                className="btn btn-primary m-3 mb-5"
-              >
-                Download PDF
-              </button>
             </div>
             <div
               className="btn-group"
               role="group"
               aria-label="CSV PDF buttons group"
-              style={{ marginTop: "20px", float: "right" }}
+              style={{marginTop: "20px", float: "right"}}
             >
               {/* <CSVLink
                     data={csvReportArray}
@@ -238,6 +240,7 @@ class Popup extends React.Component {
                 Retest selected
               </button>
             </div>
+            <FillPDF test={this.props.testsFiltered[0]} defects={errorsStr} />
           </div>
         </Fade>
       );

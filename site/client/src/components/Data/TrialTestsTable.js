@@ -1,17 +1,17 @@
 import "bootstrap/dist/css/bootstrap.css";
-import React, { Component } from "react";
+import React, {Component} from "react";
 import BootstrapTable from "react-bootstrap-table-next";
 import filterFactory, {
   textFilter,
   dateFilter,
   selectFilter,
 } from "react-bootstrap-table2-filter";
-import { withRouter } from "react-router-dom";
+import {withRouter} from "react-router-dom";
 import Popup from "components/Popup/Popup.js";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import moment from "moment";
 import axios from "axios";
-import { Icon, Fab, Button } from "@material-ui/core";
+import {Icon, Fab, Button} from "@material-ui/core";
 
 let columnsGl = [];
 
@@ -39,7 +39,7 @@ class TrialTestsTable extends Component {
         },
       })
       .then((response) => {
-        this.setState({ errors: response.data });
+        this.setState({errors: response.data});
         if (this.props.justFinishedTest && this.props.lastTest) {
           this.filterTests(this.props.lastTest);
           this.togglePopup();
@@ -104,8 +104,9 @@ class TrialTestsTable extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      method: "GET",
+      method: "POST",
       responseType: "blob", // important
+      data: {userinput: []},
     }).then((response) => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -119,9 +120,9 @@ class TrialTestsTable extends Component {
     });
   };
 
-  locationFormatter = (column, colIndex, { sortElement, filterElement }) => {
+  locationFormatter = (column, colIndex, {sortElement, filterElement}) => {
     return (
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{display: "flex", flexDirection: "column"}}>
         {filterElement}
         {column.text}
       </div>
@@ -135,8 +136,8 @@ class TrialTestsTable extends Component {
       },
       () =>
         this.state.showPopup === true
-          ? this.setState({ backDisabled: false })
-          : this.setState({ backDisabled: true })
+          ? this.setState({backDisabled: false})
+          : this.setState({backDisabled: true})
     );
   };
 
@@ -157,7 +158,7 @@ class TrialTestsTable extends Component {
         text: "ID",
         sort: true,
         headerStyle: (colum, colIndex) => {
-          return { width: "50px" };
+          return {width: "50px"};
         },
       },
       {
@@ -236,19 +237,19 @@ class TrialTestsTable extends Component {
         formatter: (cell, row) => {
           if (row.responseok === cell) {
             return (
-              <span style={{ color: "green" }}>
+              <span style={{color: "green"}}>
                 {row.responseok}/{cell}
               </span>
             );
           } else
             return (
-              <span style={{ color: "red" }}>
+              <span style={{color: "red"}}>
                 {row.responseok}/{cell}
               </span>
             );
         },
         headerStyle: (colum, colIndex) => {
-          return { width: "60px" };
+          return {width: "60px"};
         },
       },
       {
@@ -266,7 +267,7 @@ class TrialTestsTable extends Component {
         }),
         headerFormatter: this.locationFormatter,
         headerStyle: (colum, colIndex) => {
-          return { width: "80px" };
+          return {width: "80px"};
         },
       },
       {
@@ -276,7 +277,7 @@ class TrialTestsTable extends Component {
         filter: textFilter(),
         headerFormatter: this.locationFormatter,
         headerStyle: (colum, colIndex) => {
-          return { width: "90px" };
+          return {width: "90px"};
         },
         // style: {
         //   whiteSpace: "nowrap",
@@ -288,11 +289,11 @@ class TrialTestsTable extends Component {
         dataField: "created_at",
         text: "Start Time",
         sort: true,
-        filter: dateFilter({ dateStyle: { width: "140px", margin: "0px" } }),
+        filter: dateFilter({dateStyle: {width: "140px", margin: "0px"}}),
         formatter: dateFormatter,
         headerFormatter: this.locationFormatter,
         headerStyle: (colum, colIndex) => {
-          return { width: "140px" };
+          return {width: "140px"};
         },
       },
       {
@@ -300,7 +301,7 @@ class TrialTestsTable extends Component {
         text: "Actions",
         sort: false,
         headerStyle: (colum, colIndex) => {
-          return { width: "80px" };
+          return {width: "80px"};
         },
         formatter: (cell, row) => (
           <Button
@@ -344,13 +345,13 @@ class TrialTestsTable extends Component {
     };
 
     return (
-      <div style={{ marginTop: 20 }}>
+      <div style={{marginTop: 20}}>
         <Fab
           disabled={this.state.backDisabled}
           color="primary"
-          style={{ transform: "rotate(-90deg)", margin: "15px" }}
+          style={{transform: "rotate(-90deg)", margin: "15px"}}
           onClick={() => {
-            this.setState({ documentGenerated: false });
+            this.setState({documentGenerated: false});
             this.togglePopup();
           }}
         >
@@ -359,14 +360,14 @@ class TrialTestsTable extends Component {
 
         <Fab
           color="primary"
-          style={{ margin: "15px", float: "right" }}
+          style={{margin: "15px", float: "right"}}
           onClick={() => this.props.history.push("/admin/test")}
         >
           New
         </Fab>
         <Fab
           color="primary"
-          style={{ margin: "15px", float: "right" }}
+          style={{margin: "15px", float: "right"}}
           onClick={() => this.props.history.push("/admin/schedule")}
         >
           <Icon>schedule</Icon>
@@ -384,7 +385,7 @@ class TrialTestsTable extends Component {
             columns={columns}
             filter={filterFactory()}
             rowEvents={rowEvents}
-            rowStyle={{ cursor: "pointer" }}
+            rowStyle={{cursor: "pointer"}}
             pagination={paginationFactory(options)}
           />
         ) : (
