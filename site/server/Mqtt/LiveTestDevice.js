@@ -9,7 +9,7 @@ const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`;
 
 const errorMessages = {
   "0CCD": "",
-  6666: "No connection to driver",
+  "6666": "No connection to driver",
   "7FFF": "Battery powered",
 };
 
@@ -131,7 +131,7 @@ class LiveTestDevice {
   checkMessageState = (msg) => {
     const msgCut = msg.slice(21, 25).toUpperCase();
     const error = errorMessages[msgCut];
-    if (error.length > 0) this.addResult(error);
+    if (error) this.addResult(error);
   };
 
   testLoop = async (testType) => {
