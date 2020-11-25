@@ -45,30 +45,6 @@ class Popup extends React.Component {
     });
   };
 
-  downloadOfficialReport = () => {
-    const tests = this.props.testsFiltered[0];
-    axios({
-      url:
-        global.BASE_URL + "/api/generatepdf/generateOfficialReport/" + tests.id,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "Bearer " + localStorage.usertoken,
-      },
-      method: "GET",
-      responseType: "blob", // important
-    }).then((response) => {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `test${moment(tests.created_at).format("YYYY-MM-DD-kmmss")}.pdf`
-      );
-      document.body.appendChild(link);
-      link.click();
-    });
-  };
-
   render() {
     const csvReportArray = this.props.errorsCsv;
     const tests = this.props.testsFiltered[0];

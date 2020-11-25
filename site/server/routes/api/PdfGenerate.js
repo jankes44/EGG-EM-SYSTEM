@@ -121,10 +121,24 @@ const generateReport = (rows, res, userinput, reportType = "official") => {
     test_result: test_result,
     levels: uniqueLvls,
     faults: userinput.defects ? userinput.defects : faultsStr,
-    userinput: userinput.length > 0 ? userinput : {},
+    userinput: userinput.defects
+      ? userinput
+      : {
+          mtfm: "",
+          orderNo: "",
+          certNo: "",
+          siteContact: "",
+          engTel: "",
+          engName: "",
+          defects: "",
+          rectifyAction: "",
+          remedialWorks: "",
+          safeguardAction: "",
+          partsRequired: "",
+        },
   };
 
-  console.log(faultsArr, faultsStr, userinput.length > 0 ? true : false);
+  console.log(faultsArr, faultsStr, userinput.defects ? true : false);
 
   ejs.renderFile(pdfPaths[reportType], pdfData, (err, data) => {
     if (err) res.sendStatus(400);

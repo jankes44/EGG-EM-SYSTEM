@@ -106,7 +106,7 @@ class TrialTestsTable extends Component {
       },
       method: "POST",
       responseType: "blob", // important
-      data: {userinput: []},
+      data: {userinput: {}},
     }).then((response) => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");

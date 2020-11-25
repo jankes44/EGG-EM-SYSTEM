@@ -58,7 +58,7 @@
         </div>
         <div style="float: right">
           <div style="float: right; margin-top: 100px; margin-right: 20px">
-            MTFM Asset Ref:
+            MTFM Asset Ref: <%= userinput.mtfm %>
           </div>
         </div>
       </div>
@@ -82,8 +82,12 @@
           padding: 8px;
         "
       >
-        <div style="width: 50%; float: left">Work order no:</div>
-        <div style="width: 50%; float: left">Certificate no:</div>
+        <div style="width: 50%; float: left">
+          Work order no: <%= userinput.orderNo %>
+        </div>
+        <div style="width: 50%; float: left">
+          Certificate no: <%= userinput.certNo %>
+        </div>
       </div>
       <p class="p">
         For systems designed to BS 5266-1:2016 and BS EN 50172:2004 / BS
@@ -103,9 +107,11 @@
         <div style="min-height: 40px">
           Site address: <%= data[0].site_address %>
         </div>
-        <div>Site contact:</div>
-        <div>Contact tel no:</div>
-        <div style="min-height: 45px">Engineer name:</div>
+        <div>Site contact: <%= userinput.siteContact %></div>
+        <div>Contact tel no: <%= userinput.engTel %></div>
+        <div style="min-height: 45px">
+          Engineer name: <%= userinput.engName %>
+        </div>
       </div>
       <div
         class="b"
@@ -174,20 +180,24 @@
           </div>
           <div style="clear: both">
             <p style="border-top: 1 solid black">
-              Action taken to rectify the system:
-            </p>
-          </div>
-          <div>
-            <p style="border-top: 1 solid black">Remedial works required:</p>
-          </div>
-          <div>
-            <p style="border-top: 1 solid black">
-              Action taken to safeguard the premises (where applicable):
+              Action taken to rectify the system: <%= userinput.rectifyAction %>
             </p>
           </div>
           <div>
             <p style="border-top: 1 solid black">
-              Are any parts required? If so, detail requirements:
+              Remedial works required: <%= userinput.remedialWorks %>
+            </p>
+          </div>
+          <div>
+            <p style="border-top: 1 solid black">
+              Action taken to safeguard the premises (where applicable): <%=
+              userinput.safeguardAction %>
+            </p>
+          </div>
+          <div>
+            <p style="border-top: 1 solid black">
+              Are any parts required? If so, detail requirements: <%=
+              userinput.partsRequired %>
             </p>
           </div>
         </div>
