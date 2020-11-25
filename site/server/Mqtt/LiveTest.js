@@ -27,7 +27,7 @@ class LiveTest {
                     await sleep(1000)
                     console.log("CUT POWER: " + d.nodeId)
                     return d.cutPower(this.type)
-                }, {concurrency: 1})
+                })
                 .then(devices => {
                     //console.log(devices, "OK")
                     resolve()
