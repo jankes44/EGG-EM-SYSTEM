@@ -48,6 +48,7 @@ class LiveTestDevice {
     this.testid = testId;
     this.messenger = messenger;
     this.hasSensors = false;
+    this.is_assigned = device.is_assigned;
   }
 
   toJSON() {
@@ -66,6 +67,7 @@ class LiveTestDevice {
       testid: this.testid,
       messenger: this.messenger,
       hasSensors: this.hasSensors,
+      is_assigned: this.is_assigned,
     };
   }
 
@@ -153,7 +155,7 @@ class LiveTestDevice {
       clearInterval(this.testInterval);
       let messages = new Set();
       const deviceId = this.nodeId;
-      this.checkDeviceState("led")
+      this.checkDeviceState("relay")
         .then((msg) => this.messenger.publish(deviceId, "10018202000196"))
         .then((message) => {
           console.log("TEST 1");
@@ -229,7 +231,7 @@ class LiveTestDevice {
           }
         })
         .catch((err) => {
-          console.log("Error on check device");
+          console.log("Error on check device:", err);
           this.setNoResponse();
           reject("No response");
         });
@@ -248,7 +250,7 @@ class LiveTestDevice {
     console.log("voltage", voltage);
     if (voltage > 3 || voltage < 2) this.addResult("Battery fault");
 
-    resolve(voltage);
+    return voltage;
   };
 
   readFromLdr = (sensor, message, msgSliced, messages, firstCheckpoint) => {
@@ -267,7 +269,7 @@ class LiveTestDevice {
       insertVoltLdrReading(sensor.sensorId, "", ldrReading);
       messages.add(`${message} ldr: ${ldrReading} ${onOff}`);
       sensor.reading = onOff;
-      resolve(onOff);
+      return onOff;
     });
   };
 
