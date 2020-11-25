@@ -18,6 +18,20 @@ class LiveTest {
         this.inProgress = inProgress
         this.siteId = siteId
     }
+
+    toJSON(){
+        return {
+            testId: this.siteId,
+            status: this.status,
+            userId: this.userId,
+            cut_all_clicked: this.cut_all_clicked,
+            abort_clicked: this.abort_clicked,
+            finish_clicked: this.finish_clicked,
+            type: this.type,
+            inProgress: this.inProgress,
+            siteId: this.siteId
+        }
+    }
     
     cutPowerAll = async () => {
         let promise = new Promise((resolve, reject) => {
