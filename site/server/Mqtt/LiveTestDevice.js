@@ -101,7 +101,7 @@ class LiveTestDevice {
         .catch(err => {throw err})
     }
 
-    
+
     checkMessageState = (msg) => {
         const msgCut = msg.slice(21, 25).toUpperCase()
         const error = errorMessages[msgCut]
@@ -128,6 +128,7 @@ class LiveTestDevice {
             this.checkDeviceState("led")
             .then(msg => this.messenger.publish(deviceId, "10018202000196"))
             .then(message => {
+                console.log("TEST 1")
                 console.log(`${deviceId}: MAIN ON`)
                 if (!messages.has(message) && !message.includes("hello")){
                     const msg_node_id = message.slice("13", "17")
@@ -144,7 +145,7 @@ class LiveTestDevice {
     testSensor = async (sensor, messages, firstCheckpoint) => {
         return new Promise((resolve, reject) => {
             const type = sensor.type.toLowerCase()
-            console.log(sensor, "W")
+            console.log(sensor, "W", type)
             this.messenger.publish(sensor.sensorId, "10038205000096")
             .then(message => {
                 const msgSliced = parseInt(`0x${message.slice(21, 25)}`)
@@ -153,9 +154,9 @@ class LiveTestDevice {
                 if (messageIsNew){
                     sensor.sensor_responded = true;
                     switch(type){
-                        case "vbat": resolve(this.readFromVbat(sensor, msgSliced, messages)) 
+                        case "vbat": resolve(this.readFromVbat(sensor, message, msgSliced, messages)) 
                         break
-                        case "ldr": resolve(this.readFromLdr(sensor, msgSliced, messages, firstCheckpoint))
+                        case "ldr": resolve(this.readFromLdr(sensor, message, msgSliced, messages, firstCheckpoint))
                         break
                     }
                 }
@@ -185,6 +186,7 @@ class LiveTestDevice {
               }
             })
         .catch(err => {
+            console.log("Error on check device")
             this.setNoResponse()
             reject("No response")
         })
@@ -194,15 +196,18 @@ class LiveTestDevice {
     return result;  
     }
 
-    readFromVbat = (sensor, msgSliced, messages) => {
+    readFromVbat = (sensor, message, msgSliced, messages) => {
         const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4)
         messages.add(`${message} voltage: ${voltage}v`)
+        insertMsg(message, "voltage", voltage);
         sensor.voltage = voltage
+        console.log("voltage", voltage)
         if (voltage > 3 || voltage < 2) this.addResult("Battery fault") 
+        
         resolve(voltage)
     }
 
-    readFromLdr = (sensor, msgSliced, messages, firstCheckpoint) => {
+    readFromLdr = (sensor, message, msgSliced, messages, firstCheckpoint) => {
         sleep(2000).then(() => {
             const ldrReading = msgSliced.toFixed(2)
             let onOff
@@ -214,7 +219,7 @@ class LiveTestDevice {
                 }
                 this.addResult("Battery Fault");
               }
-            insertMsg(message, type, "", ldrReading);
+            insertMsg(message, "ldr", ldrReading);
             messages.add(`${message} ldr: ${ldrReading} ${onOff}`)
             sensor.reading = onOff;
             resolve(onOff)

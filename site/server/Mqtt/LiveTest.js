@@ -1,5 +1,6 @@
 const Promise = require("bluebird");
 const con = require("../database/db_promise");
+const LiveTestDevice = require("./LiveTestDevice");
 
 const updateTestResultsQuery = "UPDATE trial_tests SET result=? WHERE id=?"
 const updateDeviceResultsQuery = "update trial_tests_has_lights set result=? where trial_tests_id=? and lights_id=?"
@@ -89,6 +90,11 @@ class LiveTest {
         return result
     }
 
+    /**
+     * 
+     * @param {Number} id deviceId
+     * @returns {LiveTestDevice} device 
+     */
     getDeviceById = (id) => {
         const index = this.devices.findIndex((el) => el.id === id);
         return this.devices[index]

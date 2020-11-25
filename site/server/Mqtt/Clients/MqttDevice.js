@@ -59,6 +59,12 @@ class MqttDevice {
 
         }
 
+        /**
+         * 
+         * @param {String} deviceId 
+         * @param {String} command 
+         * @param {Boolean} isPromise indicates if we want to get the promise or the await
+         */
         publish = async (deviceId, command) => {
             let promise = new Promise((resolve, reject) => {
                 const msgTimeout = this.timeout(deviceId, reject)
@@ -72,8 +78,7 @@ class MqttDevice {
                     }
                 })
             })
-            let result = await promise;
-            return result
+            return promise
         }   
 
     timeout = (deviceId, reject) => setTimeout(() => {

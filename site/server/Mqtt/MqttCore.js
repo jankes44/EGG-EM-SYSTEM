@@ -1,6 +1,4 @@
 const Promise = require("bluebird");
-const mqtt = require("mqtt");
-const schedule = require("node-schedule");
 const clonedeep = require("lodash.clonedeep");
 const nodemailer = require("nodemailer");
 
@@ -10,8 +8,6 @@ const clients = require("./Clients/clients.json");
 const MqttDevice = require("./Clients/MqttDevice")
 const LiveTestDevice = require("./LiveTestDevice")
 const LiveTest = require("./LiveTest");
-
-const {getLedStateHelper} = require("./MqttHelpers");
 
 const cutInterval = 1000;
 const relayBackOn = 360000;
@@ -24,10 +20,13 @@ const errorMessages = {
 "7FFF": "Battery powered",
 };
 
-const relayCommands = {
+const deviceCommands = {
   "on": "10018202000196",
   "off": "10018202000096",
-  "state": "10018201000096"
+  "state": "10018201000096",
+  "led_state": "10038205000096",
+  "light_on": "10018202000095",
+  "light_off": "10018202000194"
 }
 
 let mqttClients = {}
@@ -42,6 +41,20 @@ const insertTest = "INSERT INTO trial_tests SET ?"
 const insertTestLights = "INSERT INTO trial_tests_has_lights SET ?"
 const getSensors = "select l.id as light_id, s.node_id, s.`type` from sensors s join lights l on s.parent_id  = l.id where l.id = ? and s.type in (?)"
 const getLights = "Select * from lights where id in (?)";
+const checkSiteStateQuery = `select lg.id as light_id, lg.device_id, lg.node_id, l.id as level_id, 
+                            l.level, b.building, s.mqtt_topic_out, s.mqtt_topic_in, s.id as site_id, 
+                            s.name  as site_name
+                            from lights lg 
+                            left join levels l on lg.levels_id = l.id 
+                            left join buildings b on l.buildings_id = b.id 
+                            left join sites s on b.sites_id = s.id 
+                            where s.id = ?`;
+const noAnswerFromDeviceQuery = "UPDATE lights SET status = 'No connection to bt module' WHERE id = ?";
+const insertSchedule =
+  "insert into schedule (date, test_type, user_id) values (?, ?, ?)";
+const insertScheduleDevices =
+  "insert into schedule_has_devices (schedule_id, device_id) values ?";
+
 
 const sensorsTypesToTest = ["VBAT", "LDR"]
 
@@ -52,7 +65,7 @@ const sensorsTypesToTest = ["VBAT", "LDR"]
  * @param {Nuber} site siteId
  * @returns {LiveTest} test lauched by a specific user on a specific site
  */
-const findUsersSiteTest = (user, site) => {
+const findUserSiteTest = (user, site) => {
   const usersTestDetails = liveTests.find(el => el.userId === user && el.siteId === site)
   if (typeof usersTestDetails !== "undefined") {
     return usersTestDetails
@@ -133,7 +146,7 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
  */
 const getTestInfo = (user, site) => {
   let result = null
-  const usersTest = findUsersSiteTest(user, site)
+  const usersTest = findUserSiteTest(user, site)
   if (usersTest && typeof usersTest !== "undefined" && mqttClients[site].testInProgress) {
       result = clonedeep(usersTest)
       result.devices.forEach(el => el.result = el.getDeviceStatus())
@@ -142,19 +155,19 @@ const getTestInfo = (user, site) => {
 }
 
 const cutPowerAll = (user, site) => {
-  const liveTest = findUsersSiteTest(user, site)
+  const liveTest = findUserSiteTest(user, site)
   return liveTest.cutPowerAll()
 }
 
 const cutPowerSingle = async (user, site, deviceId) => {
-  const liveTest = findUsersSiteTest(user, site)
+  const liveTest = findUserSiteTest(user, site)
   const device = liveTest.getDeviceById(deviceId)
   const result = await device.cutPower(liveTest.testType)
   return result
 }
 
 const finishTest = async (user, site, state) => {
-  const liveTest = findUsersSiteTest(user, site)
+  const liveTest = findUserSiteTest(user, site)
   let promise = new Promise((reject, resolve) => {
     liveTest.finish(state)
     .then(() => {
@@ -169,7 +182,7 @@ const finishTest = async (user, site, state) => {
 
 const setDeviceResult = (user, site, deviceId, result) => {
   let updated = false
-  const liveTest = findUsersSiteTest(user, site)
+  const liveTest = findUserSiteTest(user, site)
   const device = liveTest.getDeviceById(deviceId)
   if (!device.hasSensors){
     device.result = result
@@ -178,12 +191,21 @@ const setDeviceResult = (user, site, deviceId, result) => {
   return updated
 }
 
-const sendCommandToRelay = async (nodeId, siteId, cmd) => {
-  let promise = new Promise((reject, resolve) => {
+/**
+ * 
+ * @param {String} nodeId nodeId
+ * @param {Number} siteId siteId
+ * @param {String} cmd string representation of the command that is mapped to the corresponding mqtt command
+ * @param {String} fullCmd raw mqtt command
+ * @param {Boolean} multiple to indicate if this function is called inside a Promise.each()
+ */
+const sendCommandToDevice = async (nodeId, siteId, cmd, fullCmd=null, multiple=false) => {
+  return new Promise((reject, resolve) => {
     let received = false 
     let messages = new Set()
+    const command = fullCmd ? fullCmd : deviceCommands[cmd]
 
-    mqttClients[siteId].publish(nodeId, relayCommands[cmd])
+    mqttClients[siteId].publish(nodeId, command)
     .then(message => {
       if (!received && !messages.has(message)){
         const rawResponse = message.slice(13, 25);
@@ -193,50 +215,163 @@ const sendCommandToRelay = async (nodeId, siteId, cmd) => {
         received = true;
         messages.add(message);
         console.log(message, paramData);
-        if (cmd === 'state'){
-          switch (paramData) {
-            case "0000":
-              resolve(`${destinationNode}: OFF`);
-              break;
-            case "0001":
-              resolve(`${destinationNode}: ON`);
-              break;
-            default:
-              resolve(`${destinationNode}: UNKNOWN_RES`);
-          }
+        if (fullCmd){
+          resolve(message)
         }
-        else resolve(`${destinationNode}: SET ${cmd.toUpperCase()}`)
+        else {
+          if (cmd === 'state'){
+            switch (paramData) {
+              case "0000":
+                resolve(`${destinationNode}: OFF`);
+                break;
+              case "0001":
+                resolve(`${destinationNode}: ON`);
+                break;
+              default:
+                resolve(`${destinationNode}: UNKNOWN_RES`);
+            }
+          }
+          else resolve(`${destinationNode}: SET ${cmd.toUpperCase()}`)
+        }
       }
-      else reject("Message already received")
+      else multiple ? resolve("Message already received") : reject("Message already received")
 
   })
-  .catch(err => reject(err))
+  .catch(err => multiple ? resolve(err) : reject(err))
   })
+}
+
+const checkGatewayState = (siteId) => {
+  return sendCommandToDevice("", siteId, "", "XchkX")
+}
+
+const checkSiteStateHelper = (device, siteId, cmd) => {
+  return new Promise((reject, resolve) => {
+    const nodeId = device.node_id
+    const messenger = mqttClients[siteId]
+    messenger.publish(nodeId, cmd)
+    .then(message => resolve({device: device, message: message}))
+    .catch(err => resolve({device: device, error: err}))
+  })
+}
+
+const checkSiteState = (siteId) => {
+  let faultyDevices = []
+  let messages = new Set()
   
-  const result = await promise
-  return result
+  con.query(checkSiteStateQuery, siteId)
+  .spread(rows => {
+    Promise.each(rows, r => checkSiteStateHelper(r, siteId, deviceCommands["led_state"]))
+    .then(items => {
+      items.forEach(item => {
+        if (item.error) con.query(noAnswerFromDeviceQuery, item.device.id).then(() => console.log("NO ANSWER FROM DEVICE", r.device))
+        else if (!messages.has(item.message)){
+          insertMsg(item.message);
+          const msg_code = item.message.slice("21", "25").toUpperCase();
+          const errorMessage = errorMessages[msg_code];
+          if (errorMessage.length > 0) faultyDevices.push(item.device);
+        }
+      })
+      checkGatewayState(siteId)
+      .then(() => actOnGatewayState(1, faultyDevices))
+      .catch(() => actOnGatewayState(-1, faultyDevices))
+    })
+  })
+  .catch(err => {throw err})
 }
 
-const getLedStates = (devices, site) => {
-  let messages = new Set();
-  const messenger = mqttClients[site]
+const actOnGatewayState = (state, faultyDevices) => {
+  var transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "platform.notifications2020@gmail.com",
+      pass: "Jarek543",
+    },
+  });
 
-  return Promise.each(devices, d => getLedStateHelper(d.nodeId, messenger, messages))
-}
+  var mailOptions = {
+    from: "automaticTester@egglighting.com",
+    to: "jack@egglighting.com, cesare@egglighting.com",
+  };
+
+  if (state < 0) {
+    mailOptions.subject = "Automatic check - Faulty gateway";
+    mailOptions.text = "Faulty gateway, it did not respond";
+  } else if (faultyDevices.length > 0) {
+    mailOptions.subject = "Automatic check - Faulty devices";
+    var text = "Gateway OK,\nFaulty devices:\n";
+    faultyDevices.forEach((device) => {
+      text =
+        text +
+        `Device: ${device.node_id} 
+      reported error: ${Array.from(device.result).join(", ")}\n`;
+    });
+    mailOptions.text = text;
+  }
+
+  if (mailOptions.hasOwnProperty("text")) {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+  }
+};
 
 const rebootGateway = (siteId) => mqttClients[siteId].publish("", "XrebX")
 
+// -------------------------------------------- SCHEDULING ----------------------------------------
+
+const scheduleFromDB = () => {
+  con.query(scheduleQuery)
+  .spread(rows => {
+      if (rows.length > 0) rows.foreach(job => this.scheduleJob(job))
+  })
+}
+
+scheduleJob = (job) => {
+  const date = new Date(job.date.toString());
+  const name = `job${job.id}`;
+  const dateNow = new Date();
+
+  if (date > dateNow){
+      schedule.scheduleJob(name, date, () => runTest(job));
+  }
+}
+
+runTest = (test) => {
+  const userId = test.user_id;
+  const device_ids = test.device_id.split(",");
+  const testType = test.test_type;
+  const siteId = test.site_id
+
+  startTest(userId, device_ids, testType, siteId)
+  .then(() => cutPowerAll(userId, siteId))
+  .then(() => {
+      const testDuration = testTime[test.test_type] + 1000 * 60 * 5;
+      setTimeout(() => {
+        finishTest(userId, siteId, 'Finished');
+      }, testDuration);
+  })
+}
+
+const scheduleTest = () => {
+  // STUB
+}
+
 module.exports = {
   startTest: startTest,
-  findUsersSiteTest: findUsersSiteTest,
+  findUserSiteTest: findUserSiteTest,
   getTestInfo: getTestInfo,
   rebootGateway: rebootGateway,
   finishTest: finishTest,
   cutPowerAll: cutPowerAll,
   cutPowerSingle: cutPowerSingle,
   setDeviceResult: setDeviceResult,
-  sendCommandToRelay: sendCommandToRelay,
-  getLedStates: getLedStates
+  sendCommandToDevice: sendCommandToDevice,
+  checkGatewayState: checkGatewayState
 }
 
 const reboot = false
@@ -246,7 +381,7 @@ else {
   startTest(42, [210,211,212], "Monthly", 3)
 .then(r => {
   getTestInfo(42,3)
-  findUsersSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
+  findUserSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
 })
 .catch(err => console.log(err))
 
