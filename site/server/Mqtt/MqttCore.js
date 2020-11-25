@@ -361,6 +361,28 @@ const scheduleTest = () => {
   // STUB
 }
 
+const event = schedule.scheduleJob("*/1 * * * *", () => {
+  const scheduledCheck = () => {
+    if (testInProgress) {
+      const time = 30000;
+      console.log(
+        "MQTT BUSY:",
+        testInProgress,
+        "RETRYING IN:",
+        time / 1000,
+        "seconds"
+      );
+      const timeout = setTimeout(() => {
+        clearTimeout(timeout);
+        scheduledCheck();
+      }, time);
+    } else {
+      testInProgress = true;
+      checkSiteState(1);
+    }
+  };
+});
+
 module.exports = {
   startTest: startTest,
   findUserSiteTest: findUserSiteTest,
