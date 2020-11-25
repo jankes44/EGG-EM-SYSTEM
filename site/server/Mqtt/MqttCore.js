@@ -432,33 +432,16 @@ module.exports = {
   startTest: startTest,
   findUserSiteTest: findUserSiteTest,
   getTestInfo: getTestInfo,
-<<<<<<< Updated upstream
   // rebootGateway: rebootGateway,
-=======
->>>>>>> Stashed changes
   finishTest: finishTest,
   cutPowerAll: cutPowerAll,
   cutPowerSingle: cutPowerSingle,
   setDeviceResult: setDeviceResult,
   sendCommandToDevice: sendCommandToDevice,
-<<<<<<< Updated upstream
   checkGatewayState: checkGatewayState,
 };
 
 // const reboot = false
-=======
-  checkGatewayState: checkGatewayState
-}
-
-startTest(42, [210,211,212], "Monthly", 3)
-.then(r => {
-  getTestInfo(42,3)
-  findUserSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
-})
-.catch(err => console.log(err))
-
-
->>>>>>> Stashed changes
 
 // if (reboot) rebootGateway(3).then(message => console.log(message)).catch(err => console.log(err))
 // else {
