@@ -432,7 +432,7 @@ module.exports = {
   startTest: startTest,
   findUserSiteTest: findUserSiteTest,
   getTestInfo: getTestInfo,
-  rebootGateway: rebootGateway,
+  // rebootGateway: rebootGateway,
   finishTest: finishTest,
   cutPowerAll: cutPowerAll,
   cutPowerSingle: cutPowerSingle,
