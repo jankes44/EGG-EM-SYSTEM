@@ -1,8 +1,7 @@
 const con = require("../database/db_promise");
 const Promise = require("bluebird")
 
-const {insertMsg, insertVoltLdrReading} = require("./MqttHelpers");
-const { reject } = require("lodash");
+const {insertMsg} = require("./MqttHelpers");
 const MqttDevice = require("./Clients/MqttDevice");
 
 const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`
@@ -200,6 +199,7 @@ class LiveTestDevice {
         const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4)
         messages.add(`${message} voltage: ${voltage}v`)
         insertMsg(message, "voltage", voltage);
+        insertVoltLdrReading(sensor.sensorId, voltage)
         sensor.voltage = voltage
         console.log("voltage", voltage)
         if (voltage > 3 || voltage < 2) this.addResult("Battery fault") 
@@ -220,6 +220,7 @@ class LiveTestDevice {
                 this.addResult("Battery Fault");
               }
             insertMsg(message, "ldr", ldrReading);
+            insertVoltLdrReading(sensor.sensorId, "", ldrReading)
             messages.add(`${message} ldr: ${ldrReading} ${onOff}`)
             sensor.reading = onOff;
             resolve(onOff)
@@ -310,5 +311,11 @@ for (const e of set) {
     if (cb(e)) return e;
     }
 };  
+
+const insertVoltLdrReading = (sensor_id, bat = "", ldr = "") => {
+    const data = { battery: bat, ldr: ldr, sensor_node_id: sensor_id };
+    con.query("INSERT INTO device_battery_ldr SET ?", data)
+    .catch(err => {throw err})
+}
 
 module.exports = LiveTestDevice
