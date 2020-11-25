@@ -79,9 +79,9 @@ const sensorsTypesToTest = ["VBAT", "LDR"];
  * @returns {LiveTest} test lauched by a specific user on a specific site
  */
 const findUserSiteTest = (user, site) => {
-  const usersTestDetails = liveTests.find(
-    (el) => el.userId === user && el.siteId === site
-  );
+  const usersTestDetails = liveTests.find((el) => {
+    return el.userId === user && parseInt(el.siteId) === site;
+  });
   if (typeof usersTestDetails !== "undefined") {
     return usersTestDetails;
   } else return null;
@@ -95,7 +95,7 @@ const findUserSiteTest = (user, site) => {
  */
 const deleteUserSiteTest = (user, site) => {
   liveTests = liveTests.filter(
-    (el) => !(el.userId === user && el.siteId === site)
+    (el) => !(el.userId === user && parseInt(el.siteId) === site)
   );
 };
 
@@ -129,7 +129,9 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
           return con.query(getLights, [deviceIds]);
         })
         .spread(async (rows, fields) => {
+          console.log(rows);
           const insertPromises = rows.map((el) => {
+            console.log(el);
             const params = {trial_tests_id: testId, lights_id: el.id};
             return con.query(insertTestLights, params);
           });
@@ -183,11 +185,13 @@ const getTestInfo = (user, site) => {
   ) {
     result = clonedeep(usersTest);
     result.devices.forEach((el) => (el.result = el.getDeviceStatus()));
+    console.log(result);
   }
   return result;
 };
 
 const cutPowerAll = (user, site) => {
+  console.log(user, site);
   const liveTest = findUserSiteTest(user, site);
   return liveTest.cutPowerAll();
 };

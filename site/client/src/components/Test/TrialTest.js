@@ -613,7 +613,10 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/mqtt/trialteststart/" + user,
+      url:
+        global.BASE_URL +
+        "/mqtt/trialteststart/" +
+        `${user}/${this.state.clickedSite}`,
       data: {
         //data object sent in request's body
         message: this.state.step,

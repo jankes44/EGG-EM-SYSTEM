@@ -47,7 +47,6 @@ class LiveTestDevice {
     this.testid = testId;
     this.messenger = messenger;
     this.hasSensors = false;
-    console.log(device);
   }
 
   /**

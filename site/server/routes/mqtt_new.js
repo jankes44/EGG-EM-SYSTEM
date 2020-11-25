@@ -28,8 +28,8 @@ router.post("/trialteststart/:uid/:sid", (req, res) => {
 });
 
 router.post("/cutpowerall", (req, res) => {
-  const user = req.body.user;
-  const site = req.body.site_id;
+  const user = parseInt(req.body.user);
+  const site = parseInt(req.body.site);
 
   cutPowerAll(user, site)
     .then(() => res.sendStatus(200))
@@ -37,8 +37,8 @@ router.post("/cutpowerall", (req, res) => {
 });
 
 router.post("/cutpowersingle", (req, res) => {
-  const user = req.body.user;
-  const site = req.body.site;
+  const user = parseInt(req.body.user);
+  const site = parseInt(req.body.site);
   const device = req.body.device;
 
   cutPowerSingle(user, site, device)
@@ -47,8 +47,8 @@ router.post("/cutpowersingle", (req, res) => {
 });
 
 router.get("/testinfo/:uid/:sid", auth, (req, res) => {
-  const userId = parseInt(parseInt(req.params.uid));
-  const siteId = parseInt(parseInt(req.params.sid));
+  const userId = parseInt(req.params.uid);
+  const siteId = parseInt(req.params.sid);
   const testInfo = getTestInfo(userId, siteId);
 
   if (testInfo) res.status(200).send(testInfo);
@@ -74,8 +74,8 @@ router.post("/savetest/:uid/:sid", auth, (req, res) => {
 });
 
 /* router.post("/result/:id", (req, res) => {
-    const user = req.body.user
-    const site = req.body.site 
+    const user = parseInt(req.body.user)
+    const site = parseInt(req.body.site) 
     const result = req.body.result
     const deviceId = req.params.id
 
@@ -85,8 +85,8 @@ router.post("/savetest/:uid/:sid", auth, (req, res) => {
 */
 
 router.post("/setchecked", (req, res) => {
-  const user = req.body.user;
-  const site = req.body.site;
+  const user = parseInt(req.body.user);
+  const site = parseInt(req.body.site);
   const devices = req.body.devices;
   const result = req.body.value;
 
@@ -108,7 +108,7 @@ router.post("/manualset/", (req, res) => {
 
 router.post("/app/relay/:cmd", (req, res) => {
   const nodeID = req.body.node_id;
-  const siteId = req.body.site;
+  const siteId = parseInt(req.body.site);
   const cmd = req.params.cmd;
 
   sendCommandToDevice(nodeID, siteId, cmd)
@@ -118,7 +118,7 @@ router.post("/app/relay/:cmd", (req, res) => {
 
 router.post("/dev/relay/:cmd", (req, res) => {
   const devices = req.body.devices;
-  const siteId = req.body.site;
+  const siteId = parseInt(req.body.site);
   const cmd = req.params.cmd;
 
   Promise.each(devices, (d) => sendCommandToDevice(d.node_id, siteId, cmd))
@@ -128,7 +128,7 @@ router.post("/dev/relay/:cmd", (req, res) => {
 
 router.post("/dev/led/state", (req, res) => {
   const devices = req.body.devices;
-  const siteId = req.body.site;
+  const siteId = parseInt(req.body.site);
 
   Promise.each(devices, (d) =>
     sendCommandToDevice(d.node_id, siteId, "led_state")
@@ -139,7 +139,7 @@ router.post("/dev/led/state", (req, res) => {
 
 router.post("/dev/light/:cmd", (req, res) => {
   const devices = req.body.devices;
-  const siteId = req.body.site;
+  const siteId = parseInt(req.body.site);
   const cmd = "light_" + req.params.cmd;
 
   Promise.each(devices, (d) =>
@@ -150,7 +150,7 @@ router.post("/dev/light/:cmd", (req, res) => {
 });
 
 router.post("/dev/gateway/state", auth, (req, res) => {
-  const siteId = req.body.site;
+  const siteId = parseInt(req.body.site);
 
   checkGatewayState(siteId)
     .then((result) => res.status(200).json(result))
@@ -159,7 +159,7 @@ router.post("/dev/gateway/state", auth, (req, res) => {
 
 router.post("/dev/manual/cmd", auth, (req, res) => {
   const command = req.body.command;
-  const siteId = req.body.site;
+  const siteId = parseInt(req.body.site);
 
   sendCommandToDevice("", siteId, "", command)
     .then((result) => res.status(200).json(result))

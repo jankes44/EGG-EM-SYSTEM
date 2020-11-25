@@ -20,7 +20,7 @@ const mqttCore = require("./Mqtt/MqttCore");
 app.use(bodyParser.json());
 // Cors middleware, allow all requests
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -34,8 +34,8 @@ var Users = require("./routes/Users");
 app.use("/users", Users);
 
 // MQTT routes
-app.use("/mqtt", require("./routes/mqtt"));
-// app.use("/mqtt", require("./routes/mqtt_new"));
+// app.use("/mqtt", require("./routes/mqtt"));
+app.use("/mqtt", require("./routes/mqtt_new"));
 
 // api routes
 app.use("/api/lights", require("./routes/api/lights"));
