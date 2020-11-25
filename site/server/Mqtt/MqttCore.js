@@ -28,6 +28,8 @@ const deviceCommands = {
   led_state: "10038205000096",
   light_on: "10018202000095",
   light_off: "10018202000194",
+  check_gw: "XchkX",
+  reboot_gw: "XrebX",
 };
 
 let mqttClients = {};
@@ -280,7 +282,7 @@ const sendCommandToDevice = async (
 };
 
 const checkGatewayState = (siteId) => {
-  return sendCommandToDevice("", siteId, "", "XchkX");
+  return sendCommandToDevice("", siteId, "check_gw");
 };
 
 const checkSiteStateHelper = (device, siteId, cmd) => {
@@ -365,8 +367,6 @@ const actOnGatewayState = (state, faultyDevices) => {
     });
   }
 };
-
-const rebootGateway = (siteId) => mqttClients[siteId].publish("", "XrebX");
 
 // -------------------------------------------- SCHEDULING ----------------------------------------
 

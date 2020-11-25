@@ -16,11 +16,11 @@ const {
 } = require("../Mqtt/MqttCore");
 const device = require("../Mqtt/Clients/test");
 
-router.post("/trialteststart/:uid", (req, res) => {
-  const userId = parseInt(req.params.uid);
+router.post("/trialteststart/:uid/:sid", (req, res) => {
+  const userId = req.params.uid;
   const deviceIds = req.body.devices;
   const testType = req.body.test_type;
-  const siteId = req.body.site_id;
+  const siteId = req.params.sid;
 
   startTest(userId, deviceIds, testType, siteId)
     .then(() => res.sendStatus(200))
@@ -29,7 +29,7 @@ router.post("/trialteststart/:uid", (req, res) => {
 
 router.post("/cutpowerall", (req, res) => {
   const user = req.body.user;
-  const site = req.body.site;
+  const site = req.body.site_id;
 
   cutPowerAll(user, site)
     .then(() => res.sendStatus(200))
@@ -73,15 +73,16 @@ router.post("/savetest/:uid/:sid", auth, (req, res) => {
     .catch((err) => res.status(400).send(err));
 });
 
-router.post("/result/:id", (req, res) => {
-  const user = req.body.user;
-  const site = req.body.site;
-  const result = req.body.result;
-  const deviceId = req.params.id;
+/* router.post("/result/:id", (req, res) => {
+    const user = req.body.user
+    const site = req.body.site 
+    const result = req.body.result
+    const deviceId = req.params.id
 
-  const updated = setDeviceResult(user, site, deviceId, result);
-  res.status(200).json(updated);
-});
+    const updated = setDeviceResult(user, site, deviceId, result)
+    res.status(200).json(updated)
+})
+*/
 
 router.post("/setchecked", (req, res) => {
   const user = req.body.user;
