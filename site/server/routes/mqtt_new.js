@@ -9,6 +9,7 @@ const {
   finishTest,
   getTestInfo,
   cutPowerAll,
+  cutPowerSingle,
   setDeviceResult,
   sendCommandToDevice,
   findUserSiteTest,

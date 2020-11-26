@@ -8,12 +8,12 @@ export default class LiveFloorplanWrapper extends Component {
   };
 
   componentDidMount() {
-    let devicesGrouped = _.groupBy(this.props.liveDevices, "levels_id"); //group the devices by "levels_id"
+    let devicesGrouped = _.groupBy(this.props.liveDevices, "level"); //group the devices by "levels_id"
     this.setState({ devicesGrouped: devicesGrouped });
   }
 
   render() {
-    let devicesGrouped = _.groupBy(this.props.liveDevices, "levels_id");
+    let devicesGrouped = _.groupBy(this.props.liveDevices, "level");
     return (
       <div>
         {_.map(devicesGrouped, (subArr, i) => {

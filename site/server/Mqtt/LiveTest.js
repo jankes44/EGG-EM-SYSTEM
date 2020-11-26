@@ -71,6 +71,7 @@ class LiveTest {
 
   finish(state){
     let promise = new Promise((resolve, reject) => {
+      //TODO PROTECTION FOR CANCELLING AND FINISHING AND CUTPOWERALL
       if (state === "Cancelled") {
         this.abort_clicked = true;
       } else if (state === "Finished") {
@@ -82,7 +83,7 @@ class LiveTest {
         async (d) => {
           await sleep(1000);
           console.log("ABORT DEVICE: " + d.nodeId);
-          return d.abort(messages);
+          return d.finishDevice(messages);
         },
         {concurrency: 1}
       )
@@ -128,7 +129,7 @@ class LiveTest {
    * @returns {LiveTestDevice} device
    */
   getDeviceById(id){
-    const index = this.devices.findIndex((el) => el.id === id);
+    const index = this.devices.findIndex((el) => el.deviceId === id);
     return this.devices[index];
   };
 }

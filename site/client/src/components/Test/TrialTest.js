@@ -656,8 +656,8 @@ class TrialTest extends Component {
       data: {
         //data object sent in request's body
         device: device,
-        topic: this.state.liveDevices[0].mqtt_topic,
         user: user,
+        site: this.state.clickedSite
       },
       timeout: 0,
     })
@@ -752,9 +752,8 @@ class TrialTest extends Component {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/mqtt/savetest/" + this.state.testid,
+      url: global.BASE_URL + "/mqtt/savetest/" + `${user}/${this.state.clickedSite}`,
       timeout: 0,
-      data: {user: user, topic: this.state.liveDevices[0].mqtt_topic},
     })
       .then((res) => {
         this.setState({message: res.data, step: 4, disabledBackBtn: false});
@@ -1236,10 +1235,6 @@ class TrialTest extends Component {
             <Typography variant="h4" gutterBottom>
               {this.state.message}
             </Typography>
-            <Typography variant="h4" gutterBottom>
-              {this.state.errorMessage}
-            </Typography>
-
             <div style={{float: "right"}}>
               <Button
                 // disabled={this.state.disabledStartAll}
@@ -1250,7 +1245,7 @@ class TrialTest extends Component {
               </Button>
               <Button
                 color="primary"
-                disabled={this.state.disabledFinish}
+                disabled={false}
                 onClick={this.saveTest}
               >
                 finish & save

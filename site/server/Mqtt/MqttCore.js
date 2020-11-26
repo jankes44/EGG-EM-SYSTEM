@@ -9,6 +9,7 @@ const clients = require("./Clients/clients.json");
 const MqttDevice = require("./Clients/MqttDevice");
 const LiveTestDevice = require("./LiveTestDevice");
 const LiveTest = require("./LiveTest");
+const { reject } = require("lodash");
 
 const cutInterval = 1000;
 const relayBackOn = 360000;
@@ -188,7 +189,6 @@ const getTestInfo = (user, site) => {
 };
 
 const cutPowerAll = (user, site) => {
-  console.log(user, site);
   const liveTest = findUserSiteTest(user, site);
   return liveTest.cutPowerAll();
 };
@@ -196,8 +196,7 @@ const cutPowerAll = (user, site) => {
 const cutPowerSingle = async (user, site, deviceId) => {
   const liveTest = findUserSiteTest(user, site);
   const device = liveTest.getDeviceById(deviceId);
-  const result = await device.cutPower(liveTest.testType);
-  return result;
+  return device.cutPower(liveTest.type);
 };
 
 const finishTest = async (user, site, state) => {
@@ -446,11 +445,23 @@ module.exports = {
 
 // if (reboot) rebootGateway(3).then(message => console.log(message)).catch(err => console.log(err))
 // else {
-startTest(42, [210,211,212], "Monthly", 3)
-.then(r => {
-  getTestInfo(42,3)
-  findUserSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
-})
-.catch(err => console.log(err))
+// startTest(42, [210,211,212], "Monthly", 3)
+// .then(r => {
+//   getTestInfo(42,3)
+//   findUserSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
+// })
+// .catch(err => console.log(err))
 
-// }
+// // }
+
+Promise.resolve([1,2,3])
+.then(res => console.log(res))
+
+Promise.resolve([1,2,3])
+.spread((i1,i2,i3) => console.log(i1, i2))
+
+const test = (i) => new Promise((resolve, reject) => resolve(i*10))
+
+Promise.each([1,2,3], i => test(i))
+.then(res => console.log(res))
+.catch(err => console.log(err))

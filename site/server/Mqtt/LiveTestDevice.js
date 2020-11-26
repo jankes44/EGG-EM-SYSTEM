@@ -14,13 +14,13 @@ const errorMessages = {
 };
 
 const testTime = {
-  Annual: 10800000,
-  Monthly: 180000,
+  "Annual": 10800000,
+  "Monthly": 180000,
 };
 
 const testCheckpointsTime = {
-  Annual: new Set([9900000, 3600000, 300000]),
-  Monthly: new Set([150000, 120000, 60000]),
+  "Annual": new Set([9900000, 3600000, 300000]),
+  "Monthly": new Set([150000, 120000, 60000]),
 };
 
 class LiveTestDevice {
@@ -49,6 +49,8 @@ class LiveTestDevice {
     this.messenger = messenger;
     this.hasSensors = false;
     this.is_assigned = device.is_assigned;
+    this.fp_coordinates_left = device.fp_coordinates_left;
+    this.fp_coordinates_bot = device.fp_coordinates_bot;
   }
 
   toJSON() {
@@ -68,6 +70,8 @@ class LiveTestDevice {
       messenger: this.messenger,
       hasSensors: this.hasSensors,
       is_assigned: this.is_assigned,
+      fp_coordinates_left: this.fp_coordinates_left,
+      fp_coordinates_bot: this.fp_coordinates_bot
     };
   }
 
@@ -107,7 +111,7 @@ class LiveTestDevice {
    * @param {String} r
    */
   removeResult(r) {
-    this.result.remove(r);
+    this.result.delete(r);
     this.updateDeviceState();
   };
 
@@ -130,21 +134,22 @@ class LiveTestDevice {
 
   checkMessageState(msg) {
     const msgCut = msg.slice(21, 25).toUpperCase();
-    const error = errorMessages[msgCut];
+    const error = msgCut === "0001" ? "" : "Battery powered" 
     if (error) this.addResult(error);
   };
 
   testLoop(testType) {
     this.duration = this.duration - 1000;
     if (testCheckpointsTime[testType].has(this.duration)) {
-      const firstCheckpoint =
-        this.duration === testCheckpointsTime[testType][0];
+      const f = testCheckpointsTime[testType].values().next().value
+      console.log(f, this.duration)
+      const firstCheckpoint = this.duration === f
+        console.log("FIRST CHECKPOINT", firstCheckpoint)
       let messages = new Set();
       if (this.hasSensors) {
         Promise.each(
           this.sensors,
-          (s) => this.testSensor(s, messages, firstCheckpoint),
-          {concurrency: 1}
+          (s) => this.testSensor(s, messages, firstCheckpoint)
         )
           .then(() => console.log("OK"))
           .catch((err) => console.log(err));
@@ -164,7 +169,7 @@ class LiveTestDevice {
             const msg_node_id = message.slice("13", "17");
             console.log(message, msg_node_id, "test");
             messages.add(message);
-            setTestFinished();
+            this.setTestFinished();
           } else console.log(message, arrayContainsMessage);
         })
         .catch(() => this.setNoResponse());
@@ -178,6 +183,7 @@ class LiveTestDevice {
       this.messenger
         .publish(sensor.sensorId, "10038205000096")
         .then((message) => {
+          console.log(1)
           const msgSliced = parseInt(`0x${message.slice(21, 25)}`);
           const msg_node_id = message.slice("13", "17");
           const messageIsNew = !setFind(messages, (a) =>
@@ -191,7 +197,8 @@ class LiveTestDevice {
                   this.readFromVbat(sensor, message, msgSliced, messages)
                 );
                 break;
-              case "ldr":
+              case "ldr": {
+                console.log("LDR")
                 resolve(
                   this.readFromLdr(
                     sensor,
@@ -199,14 +206,15 @@ class LiveTestDevice {
                     msgSliced,
                     messages,
                     firstCheckpoint
-                  )
-                );
+                  )) 
+              }
                 break;
             }
-          }
+          } else console.log(message, "msg is not new", messages)
         })
         .catch((err) => {
           // this.addResult("Weak connection to mesh");
+          console.log("ERR", err) 
           resolve("No response");
         });
     });
@@ -218,6 +226,7 @@ class LiveTestDevice {
       let messages = new Set();
       let received = false;
       const command = type === "led" ? "10038205000096" : "10018201000096";
+      console.log(deviceId, command)
       this.messenger
         .publish(deviceId, command)
         .then((message) => {
@@ -243,6 +252,7 @@ class LiveTestDevice {
   };
 
   readFromVbat(sensor, message, msgSliced, messages){
+    sleep(1000).then(() => {
     const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4);
     messages.add(`${message} voltage: ${voltage}v`);
     insertMsg(message, "voltage", voltage);
@@ -252,26 +262,30 @@ class LiveTestDevice {
     if (voltage > 3 || voltage < 2) this.addResult("Battery fault");
 
     return voltage;
+  })
   };
 
   readFromLdr(sensor, message, msgSliced, messages, firstCheckpoint) {
-    sleep(2000).then(() => {
-      const ldrReading = msgSliced.toFixed(2);
-      let onOff;
-      if (ldrReading > 3000) onOff = "EM Lamp ON";
-      else {
-        onOff = "EM Lamp OFF";
-        if (firstCheckpoint) {
-          this.addResult("Lamp Fault");
-        }
-        this.addResult("Battery Fault");
+    console.log("READ LDR")
+    sleep(1000).then(() => {
+    console.log(3)
+    const ldrReading = msgSliced.toFixed(2);
+    console.log(ldrReading, firstCheckpoint)
+    let onOff;
+    if (ldrReading > 3000) onOff = "EM Lamp ON";
+    else {
+      onOff = "EM Lamp OFF";
+      if (firstCheckpoint) {
+        this.addResult("Lamp Fault");
       }
-      insertMsg(message, "ldr", ldrReading);
-      insertVoltLdrReading(sensor.sensorId, "", ldrReading);
-      messages.add(`${message} ldr: ${ldrReading} ${onOff}`);
-      sensor.reading = onOff;
-      return onOff;
-    });
+      // this.addResult("Battery Fault"); //TODO ???
+    }
+    insertMsg(message, "ldr", ldrReading);
+    insertVoltLdrReading(sensor.sensorId, "", ldrReading);
+    messages.add(`${message} ldr: ${ldrReading} ${onOff}`);
+    sensor.reading = onOff;
+    return onOff;
+  })
   };
 
   // NB
@@ -305,17 +319,17 @@ class LiveTestDevice {
             this.setNoResponse();
             resolve(err);
           });
-      } else reject("Power already cut " + this.nodeId);
+      } else resolve("Power already cut " + this.nodeId);
     });
   };
 
-  abort(messages) {
+  finishDevice(messages) {
+    console.log("FINISH DEVICE", this.nodeId)
     return new Promise((resolve, reject) => {
       this.checkDeviceState("relay")
         .then((msg) => {
           let msgReceived = false;
-          this.messenger
-            .publish(this.nodeId, "10018202000196")
+          this.messenger.publish(this.nodeId, "10018202000196")
             .then((message) => {
               if (
                 !messages.has(message) &&
@@ -323,7 +337,7 @@ class LiveTestDevice {
                 !message.includes("hello")
               ) {
                 messages.add(message);
-                console.log(message, msg_node_id, counter);
+                console.log(message, counter);
                 msgReceived = true;
                 this.powercut = 2;
                 this.removeResult("Battery powered");
@@ -331,17 +345,16 @@ class LiveTestDevice {
               }
             })
             .catch((err) => {
-              console.log(this.nodeId, "NO Response");
+              console.log(this.nodeId, "NO Response Publish", err);
               this.setNoResponse();
               resolve(err);
             });
         })
         .catch((err) => {
-          console.log(this.nodeId, "NO Response");
+          console.log(this.nodeId, "NO Response check", err);
           this.setNoResponse();
           resolve(err);
         });
-      this.messenger.publish();
     });
   };
 

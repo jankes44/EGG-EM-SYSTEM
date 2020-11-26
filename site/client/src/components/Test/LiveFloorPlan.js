@@ -35,7 +35,7 @@ export default function LiveFloorPlan(props) {
       .get(
         global.BASE_URL +
           "/api/levels/floorplan/" +
-          props.liveDevices[0].levels_id,
+          props.liveDevices[0].level,
         {
           headers: {
             "Content-Type": "application/json;charset=UTF-8",
