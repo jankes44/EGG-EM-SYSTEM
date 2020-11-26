@@ -201,7 +201,7 @@ const cutPowerSingle = async (user, site, deviceId) => {
 
 const finishTest = async (user, site, state) => {
   const liveTest = findUserSiteTest(user, site);
-  let promise = new Promise((reject, resolve) => {
+  let promise = new Promise((resolve, reject) => {
     liveTest
       .finish(state)
       .then(() => {
@@ -240,7 +240,7 @@ const sendCommandToDevice = async (
   fullCmd = null,
   multiple = false
 ) => {
-  return new Promise((reject, resolve) => {
+  return new Promise((resolve, reject) => {
     let received = false;
     let messages = new Set();
     const command = fullCmd ? fullCmd : deviceCommands[cmd];
@@ -286,7 +286,7 @@ const checkGatewayState = (siteId) => {
 };
 
 const checkSiteStateHelper = (device, siteId, cmd) => {
-  return new Promise((reject, resolve) => {
+  return new Promise((resolve, reject) => {
     const nodeId = device.node_id;
     const messenger = mqttClients[siteId];
     messenger
@@ -460,8 +460,18 @@ Promise.resolve([1,2,3])
 Promise.resolve([1,2,3])
 .spread((i1,i2,i3) => console.log(i1, i2))
 
-const test = (i) => new Promise((resolve, reject) => resolve(i*10))
+const test = async (i) => {
+  return new Promise((resolve, reject) => {
+    console.log("A", i*10)
+    resolve(i *10) 
+    //reject(-10 * i)
+  })
+}
 
-Promise.each([1,2,3], i => test(i))
+Promise.map([1,2,3], async (i) => test(i), {concurrency:1})
+.then(res => console.log(res))
+.catch(err => console.log(err))
+
+Promise.each([1,2,3], async (i) => test(i))
 .then(res => console.log(res))
 .catch(err => console.log(err))

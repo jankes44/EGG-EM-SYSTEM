@@ -102,7 +102,7 @@ class LiveTest {
   };
 
   updateTestResults(state){
-    let promise = new Promise((reject, resolve) => {
+    let promise = new Promise((resolve, reject) => {
       con
         .query(updateTestResultsQuery, [state, this.testId])
         .then(() => {
