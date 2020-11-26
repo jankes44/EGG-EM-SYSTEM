@@ -446,11 +446,11 @@ module.exports = {
 
 // if (reboot) rebootGateway(3).then(message => console.log(message)).catch(err => console.log(err))
 // else {
-//   startTest(42, [210,211,212], "Monthly", 3)
-// .then(r => {
-//   getTestInfo(42,3)
-//   findUserSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
-// })
-// .catch(err => console.log(err))
+startTest(42, [210,211,212], "Monthly", 3)
+.then(r => {
+  getTestInfo(42,3)
+  findUserSiteTest(42,3).cutPowerAll().then(() => "OK").catch(err => "FINAL ERR " + err)
+})
+.catch(err => console.log(err))
 
 // }
