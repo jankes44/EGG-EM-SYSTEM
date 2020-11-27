@@ -4,7 +4,6 @@ const auth = require("../middleware/auth");
 const con = require("../database/db2");
 const csv = require("fast-csv");
 const fs = require('fs');
-const express = require('express');
 const multer = require('multer');
 const Promise = require("bluebird");
 
@@ -19,14 +18,19 @@ router.post("/csv", upload.single("file"), (req, res) => {
 
 const uploadCSV = async (filePath) => {
     return new Promise((resolve, reject) => {
+        console.log(1, filePath)
         let rows = []
-        csv.fromPath(filePath)
-        .on("data", data => rows.push(data))
+        fs.createReadStream(filePath)
+        .pipe(csv.parse({ headers: true })) 
+        .on("data", data => {
+            console.log(data)
+            rows.push(data)
+        })
         .on("end", () => {
             fs.unlinkSync(filePath)
             resolve(rows)
         })
-        .on("error", err => reject(err))
+        .on("error", err => reject(err.field))
     }) 
 }
 
