@@ -9,7 +9,6 @@ const clients = require("./Clients/clients.json");
 const MqttDevice = require("./Clients/MqttDevice");
 const LiveTestDevice = require("./LiveTestDevice");
 const LiveTest = require("./LiveTest");
-const { reject } = require("lodash");
 
 const cutInterval = 1000;
 const relayBackOn = 360000;
@@ -66,7 +65,7 @@ const checkSiteStateQuery = `select lg.id as light_id, lg.device_id, lg.node_id,
 const noAnswerFromDeviceQuery =
   "UPDATE lights SET status = 'No connection to bt module' WHERE id = ?";
 const insertSchedule =
-  "insert into schedule (date, test_type, user_id) values (?, ?, ?)";
+  "insert into schedule (date, test_type, user_id, site_id) values (?, ?, ?. ?)";
 const insertScheduleDevices =
   "insert into schedule_has_devices (schedule_id, device_id) values ?";
 
@@ -402,31 +401,40 @@ runTest = (test) => {
     });
 };
 
-const scheduleTest = () => {
-  // STUB
+const scheduleTest = (date, testType, userId, siteId, deviceIds) => {
+  return new Promise((resolve, reject) => {
+    const params = (date, testType, userId, siteId)
+  con.query(insertSchedule, params)
+  .spread(res => {
+    const params2 = deviceIds.map(id => [res.insertId, id])
+    return con.query(insertScheduleDevices, params2)
+  })
+  .then(() => resolve())
+  .catch(err => reject(err))
+  })
 };
 
-const event = schedule.scheduleJob("*/1 * * * *", () => {
-  const scheduledCheck = () => {
-    if (testInProgress) {
-      const time = 30000;
-      console.log(
-        "MQTT BUSY:",
-        testInProgress,
-        "RETRYING IN:",
-        time / 1000,
-        "seconds"
-      );
-      const timeout = setTimeout(() => {
-        clearTimeout(timeout);
-        scheduledCheck();
-      }, time);
-    } else {
-      testInProgress = true;
-      checkSiteState(1);
-    }
-  };
-});
+// const event = schedule.scheduleJob("*/1 * * * *", () => {
+//   const scheduledCheck = () => {
+//     if (testInProgress) {
+//       const time = 30000;
+//       console.log(
+//         "MQTT BUSY:",
+//         testInProgress,
+//         "RETRYING IN:",
+//         time / 1000,
+//         "seconds"
+//       );
+//       const timeout = setTimeout(() => {
+//         clearTimeout(timeout);
+//         scheduledCheck();
+//       }, time);
+//     } else {
+//       testInProgress = true;
+//       checkSiteState(1);
+//     }
+//   };
+// });
 
 module.exports = {
   startTest: startTest,
@@ -439,6 +447,8 @@ module.exports = {
   setDeviceResult: setDeviceResult,
   sendCommandToDevice: sendCommandToDevice,
   checkGatewayState: checkGatewayState,
+  scheduleTest: scheduleTest,
+  checkSiteState: checkGatewayState
 };
 
 // const reboot = false

@@ -14,6 +14,7 @@ const {
   sendCommandToDevice,
   findUserSiteTest,
   checkGatewayState,
+  scheduleTest,
 } = require("../Mqtt/MqttCore");
 const device = require("../Mqtt/Clients/test");
 
@@ -168,7 +169,11 @@ router.post("/dev/manual/cmd", auth, (req, res) => {
 });
 
 router.post("/scheduletest/:uid", auth, (req, res) => {
-  //STUB
+  const userId = req.params.uid
+  const {date, siteId, testType, deviceIds} = req.body
+  scheduleTest(date, testType, userId, siteId, deviceIds)
+  .then(() => res.sendStatus(200))
+  .catch(err => res.status(400).send(err))
 });
 
 module.exports = router;
