@@ -52,7 +52,7 @@ class LiveTest {
           return d.cutPower(this.type);
         })
           .then((devices) => {
-            //console.log(devices, "OK")
+            console.log(devices, "CUT ALL")
             resolve();
           })
           .catch((err) => {
@@ -65,8 +65,6 @@ class LiveTest {
     });
 
     return promise
-    // const result = await promise;
-    // return result;
   };
 
   finish(state){
@@ -84,8 +82,7 @@ class LiveTest {
           await sleep(1000);
           console.log("ABORT DEVICE: " + d.nodeId);
           return d.finishDevice(messages);
-        },
-        {concurrency: 1}
+        }
       )
         .then(() => {
           console.log("Finish done", state);

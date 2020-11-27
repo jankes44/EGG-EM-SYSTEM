@@ -303,8 +303,8 @@ const checkSiteState = (siteId) => {
   con
     .query(checkSiteStateQuery, siteId)
     .spread((rows) => {
-      Promise.each(rows, (r) =>
-        checkSiteStateHelper(r, siteId, deviceCommands["led_state"])
+      Promise.map(rows, (r) =>
+        checkSiteStateHelper(r, siteId, deviceCommands["led_state"]), {concurrency: 1}
       ).then((items) => {
         items.forEach((item) => {
           if (item.error)
