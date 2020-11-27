@@ -788,7 +788,7 @@ class TrialTest extends Component {
         url: global.BASE_URL + "/mqtt/dev/relay/on",
         data: {
           devices: this.state.deviceManual,
-          topic: this.state.deviceManual[0].mqtt_topic,
+          siteId: this.state.clickedSite
         },
         timeout: 0,
       })
@@ -819,7 +819,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/relay/on",
           data: {
             devices: this.state.selectedDevices,
-            topic: topic,
+            site: this.state.clickedSite
           },
           timeout: 0,
         })

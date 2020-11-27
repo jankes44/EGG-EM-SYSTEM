@@ -4,6 +4,8 @@ const auth = require("../middleware/auth");
 var schedule = require("node-schedule");
 const clonedeep = require("lodash.clonedeep");
 const nodemailer = require("nodemailer");
+const Promise = require("bluebird");
+
 const {
   startTest,
   finishTest,

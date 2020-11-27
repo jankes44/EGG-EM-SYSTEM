@@ -272,7 +272,10 @@ class Dashboard extends React.Component {
     return (
       <Container>
         <br />
-        <Container>
+        
+        
+        {!this.props.onlyGraph ? (
+          <Container>
           <Grid
             container
             direction="row"
@@ -299,7 +302,9 @@ class Dashboard extends React.Component {
               line_data={this.state.summary.year_line}
             />
           </Grid>
-        </Container>
+        </Container> ) : null}
+        {!this.props.onlyGraph ? (
+          <div>
         <br />
         <br />
         <Grid container direction="row">
@@ -361,6 +366,8 @@ class Dashboard extends React.Component {
             </RadioGroup>
           </Grid>
         </Grid>
+        </div>
+        ) : null}
         {graph}
       </Container>
     );

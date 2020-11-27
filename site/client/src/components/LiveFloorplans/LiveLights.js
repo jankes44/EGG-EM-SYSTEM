@@ -172,11 +172,12 @@ export default function LiveFloorPlan(props) {
       url: global.BASE_URL + "/api/lights/edit/position",
       data: { devices: devices },
     }).then((res) => {
-      console.log(res);
       if (res.status === 200) {
         setSuccess(true);
       }
-    });
+    }).catch(err => {
+      if (err) console.log(err)
+    })
   };
 
   const handleDrag = (e, ui, index, id) => {

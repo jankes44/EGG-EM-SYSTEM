@@ -83,12 +83,14 @@ router.post("/edit/:id", auth, function (req, res) {
     })
 })
 
-router.post("/edit-position", auth, (req, res) => {
-    const params = [el.fp_coordinates_left, el.fp_coordinates_bot, el.id]
-    con.query(updateSensorPosition, params, (err) => {
-        if (err) res.sendStatus(400) 
-        res.sendStatus(200)
+router.post("/edit-position", auth, (req, res) => {    
+    req.body.devices.forEach(el => {
+        const params = [el.fp_coordinates_left, el.fp_coordinates_bot, el.id]
+        con.query(updateSensorPosition, params, (err) => {
+            if (err) console.error(err)
+        })
     })
+    res.sendStatus(200)
 })
 
 router.post("/assign/:id", auth, (req, res) => {

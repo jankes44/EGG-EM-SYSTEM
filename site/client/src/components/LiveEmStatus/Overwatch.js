@@ -4,6 +4,8 @@ import LiveSensors from "components/LiveFloorplans/LiveSensors";
 import axios from "axios";
 import Skeleton from "@material-ui/lab/Skeleton";
 import { Button } from "@material-ui/core";
+import Power from "components/power/Dashboard";
+
 
 export default function Overwatch(props) {
   const [lights, setLights] = React.useState([]);
@@ -127,6 +129,7 @@ export default function Overwatch(props) {
             refreshData={callLightsFloorplans}
           />
         ) : (
+          <div>
           <LiveSensors
             clickedBuilding={props.clickedBuilding}
             clickedLevel={props.clickedLevel}
@@ -134,6 +137,8 @@ export default function Overwatch(props) {
             assignSensor={assignSensor}
             refreshData={callSensorsFloorplans}
           />
+          <Power onlyGraph/>
+          </div>
         )
       ) : (
         <div>

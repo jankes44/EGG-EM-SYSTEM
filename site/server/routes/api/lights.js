@@ -11,39 +11,42 @@ const jwt = require("jsonwebtoken");
 let arr;
 var data;
 
-const getUserLights = `SELECT lg.*, l.id as levels_id, l.level, b.building, b.id as buildings_id,
-                      s.mqtt_topic_out, s.mqtt_topic_in,s.id as sites_id,
-                      s.name as sites_name
-                      FROM lights lg
-                      LEFT JOIN levels l ON l.id = lg.levels_id
-                      LEFT JOIN buildings b ON b.id = l.buildings_id
-                      LEFT JOIN sites s ON s.id = b.sites_id
-                      LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
-                      LEFT JOIN users u ON u.id = uhs.users_id
-                      WHERE u.id = ? AND lg.is_assigned = ?`
+const getUserLights = `
+  SELECT lg.*, l.id as levels_id, l.level, b.building, b.id as buildings_id,
+  s.mqtt_topic_out, s.mqtt_topic_in,s.id as sites_id,
+  s.name as sites_name
+  FROM lights lg
+  LEFT JOIN levels l ON l.id = lg.levels_id
+  LEFT JOIN buildings b ON b.id = l.buildings_id
+  LEFT JOIN sites s ON s.id = b.sites_id
+  LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
+  LEFT JOIN users u ON u.id = uhs.users_id
+  WHERE u.id = ? AND lg.is_assigned = ?`
 
-const getBuildingLights = `SELECT DISTINCT lg.id as lights_id, lg.node_id, lg.device_id, lg.type,
-                          lg.status, l.id as levels_id, l.level, b.building, b.id as buildings_id,
-                          s.mqtt_topic_out, s.mqtt_topic_in,s.id as sites_id,
-                          s.name as sites_name
-                          FROM lights lg
-                          LEFT JOIN levels l ON l.id = lg.levels_id
-                          LEFT JOIN buildings b ON b.id = l.buildings_id
-                          LEFT JOIN sites s ON s.id = b.sites_id
-                          LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
-                          LEFT JOIN users u ON u.id = uhs.users_id
-                          WHERE b.id = ?`
+const getBuildingLights = `
+  SELECT DISTINCT lg.id as lights_id, lg.node_id, lg.device_id, lg.type,
+  lg.status, l.id as levels_id, l.level, b.building, b.id as buildings_id,
+  s.mqtt_topic_out, s.mqtt_topic_in,s.id as sites_id,
+  s.name as sites_name
+  FROM lights lg
+  LEFT JOIN levels l ON l.id = lg.levels_id
+  LEFT JOIN buildings b ON b.id = l.buildings_id
+  LEFT JOIN sites s ON s.id = b.sites_id
+  LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
+  LEFT JOIN users u ON u.id = uhs.users_id
+  WHERE b.id = ?`
 
-const getLevelLights = `SELECT DISTINCT lg.*, l.id as levels_id, l.level, b.building, 
-                        b.id as buildings_id, s.mqtt_topic_out, s.mqtt_topic_in, s.id as sites_id,
-                        s.name as sites_name
-                        FROM lights lg
-                        LEFT JOIN levels l ON l.id = lg.levels_id
-                        LEFT JOIN buildings b ON b.id = l.buildings_id
-                        LEFT JOIN sites s ON s.id = b.sites_id
-                        LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
-                        LEFT JOIN users u ON u.id = uhs.users_id
-                        WHERE l.id = ? AND lg.is_assigned = 1`
+const getLevelLights = `
+  SELECT DISTINCT lg.*, l.id as levels_id, l.level, b.building, 
+  b.id as buildings_id, s.mqtt_topic_out, s.mqtt_topic_in, s.id as sites_id,
+  s.name as sites_name
+  FROM lights lg
+  LEFT JOIN levels l ON l.id = lg.levels_id
+  LEFT JOIN buildings b ON b.id = l.buildings_id
+  LEFT JOIN sites s ON s.id = b.sites_id
+  LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
+  LEFT JOIN users u ON u.id = uhs.users_id
+  WHERE l.id = ? AND lg.is_assigned = 1`
 
 const getLastLightId = "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1"
 const getLightByDeviceAndLevel = "SELECT id FROM lights WHERE device_id = ? AND levels_id = ?"
@@ -123,8 +126,9 @@ router.post("/addempty/:amount", auth, function (req, res) {
 })
 
 router.post("/edit/postion", auth, function (req, res) {
+  console.log("edit position")
+
   const paramsList = req.body.devices.map(el => [el.fp_coordinates_left, el.fp_coordinates_bot, el.id])
-  
   for (let i = 0; i < devices.length; i++) {
     con.query(updateLightPosition, paramsList[i], (err) => {
       if (err) res.sendStatus(400) 
