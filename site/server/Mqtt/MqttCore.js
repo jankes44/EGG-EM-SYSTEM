@@ -141,7 +141,7 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
             con
               .query(getSensors, [el.id, sensorsTypesToTest])
               .spread((rows, fields) => {
-                console.log(el);
+                console.log(el, rows);
                 const d = new LiveTestDevice(
                   el,
                   testType,
@@ -150,6 +150,7 @@ const startTest = async (userId, deviceIds, testType, siteId) => {
                   mqttClients[siteId]
                 );
                 d.addSensors(rows);
+                console.log(d)
                 return d;
               })
           );
@@ -464,24 +465,24 @@ module.exports = {
 
 // // }
 
-Promise.resolve([1,2,3])
-.then(res => console.log(res))
+// Promise.resolve([1,2,3])
+// .then(res => console.log(res))
 
-Promise.resolve([1,2,3])
-.spread((i1,i2,i3) => console.log(i1, i2))
+// Promise.resolve([1,2,3])
+// .spread((i1,i2,i3) => console.log(i1, i2))
 
-const test = async (i) => {
-  return new Promise((resolve, reject) => {
-    console.log("A", i*10)
-    resolve(i *10) 
-    //reject(-10 * i)
-  })
-}
+// const test = async (i) => {
+//   return new Promise((resolve, reject) => {
+//     console.log("A", i*10)
+//     resolve(i *10) 
+//     //reject(-10 * i)
+//   })
+// }
 
-Promise.map([1,2,3], async (i) => test(i), {concurrency:1})
-.then(res => console.log(res))
-.catch(err => console.log(err))
+// Promise.map([1,2,3], async (i) => test(i), {concurrency:1})
+// .then(res => console.log(res))
+// .catch(err => console.log(err))
 
-Promise.each([1,2,3], async (i) => test(i))
-.then(res => console.log(res))
-.catch(err => console.log(err))
+// Promise.each([1,2,3], async (i) => test(i))
+// .then(res => console.log(res))
+// .catch(err => console.log(err))

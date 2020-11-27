@@ -59,6 +59,7 @@ class LiveTestDevice {
       device_id: this.device_id,
       type: this.type,
       level: this.level,
+      building: this.building,
       node_id: this.nodeId,
       powercut: this.powercut,
       clicked: this.clicked,
@@ -68,6 +69,7 @@ class LiveTestDevice {
       result: this.result,
       testid: this.testid,
       messenger: this.messenger,
+      sensors: this.sensors,
       hasSensors: this.hasSensors,
       is_assigned: this.is_assigned,
       fp_coordinates_left: this.fp_coordinates_left,
@@ -142,9 +144,7 @@ class LiveTestDevice {
     this.duration = this.duration - 1000;
     if (testCheckpointsTime[testType].has(this.duration)) {
       const f = testCheckpointsTime[testType].values().next().value
-      console.log(f, this.duration)
       const firstCheckpoint = this.duration === f
-        console.log("FIRST CHECKPOINT", firstCheckpoint)
       let messages = new Set();
       if (this.hasSensors) {
         Promise.each(
@@ -210,7 +210,7 @@ class LiveTestDevice {
               }
                 break;
             }
-          } else console.log(message, "msg is not new", messages)
+          }
         })
         .catch((err) => {
           // this.addResult("Weak connection to mesh");
@@ -324,7 +324,6 @@ class LiveTestDevice {
   };
 
   finishDevice(messages) {
-    console.log("FINISH DEVICE", this.nodeId)
     return new Promise((resolve, reject) => {
       this.checkDeviceState("relay")
         .then((msg) => {
@@ -337,7 +336,7 @@ class LiveTestDevice {
                 !message.includes("hello")
               ) {
                 messages.add(message);
-                console.log(message, counter);
+                console.log(message);
                 msgReceived = true;
                 this.powercut = 2;
                 this.removeResult("Battery powered");

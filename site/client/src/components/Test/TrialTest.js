@@ -802,7 +802,7 @@ class TrialTest extends Component {
           "Content-Type": "application/json;charset=UTF-8",
           Authorization: "Bearer " + localStorage.usertoken,
         },
-        url: global.BASE_URL + "/mqtt/aborttest/" + this.state.testid,
+        url: global.BASE_URL + "/mqtt/aborttest/" + `${user}/${this.state.clickedSite}`,
         timeout: 0,
         data: {user: user, topic: this.state.liveDevices[0].mqtt_topic},
       })
