@@ -64,8 +64,9 @@ class LiveTest {
       }
     });
 
-    const result = await promise;
-    return result;
+    return promise
+//    const result = await promise;
+//    return result;
   };
 
   finish(state){
@@ -94,8 +95,9 @@ class LiveTest {
         .catch((err) => reject(err));
     });
 
-    const result = await promise;
-    return result;
+    return promise
+    //const result = await promise;
+    //return result;
   };
 
   updateTestResults(state){
@@ -115,8 +117,9 @@ class LiveTest {
         });
     });
 
-    const result = await promise;
-    return result;
+    return promise
+    //const result = await promise;
+    //return result;
   };
 
   /**
