@@ -348,6 +348,9 @@ class TrialTest extends Component {
       {
         dataField: "hasSensors",
         text: "Battery",
+        editable: (cell, row, rowIndex, colIndex) => {
+          return !row.hasSensors;
+        },
         editor: {
           type: Type.SELECT,
           options: [
@@ -366,13 +369,9 @@ class TrialTest extends Component {
           ],
         },
         formatter: (cellContent, row) => {
-          const result = row.result.length
-            ? Array.from(row.result).join(",")
-            : "";
-
           if (
-            result.includes("Battery Fault") ||
-            result.includes("Battery disconnected")
+            row.result.includes("Battery Fault") ||
+            row.result.includes("Battery disconnected")
           ) {
             return <span>Faulty</span>;
           } else if (row.powercut !== 3 && row.powercut > 0)
@@ -383,6 +382,9 @@ class TrialTest extends Component {
       {
         dataField: "is_assigned",
         text: "Lamp",
+        editable: (cell, row, rowIndex, colIndex) => {
+          return !row.hasSensors;
+        },
         editor: {
           type: Type.SELECT,
           options: [
@@ -397,10 +399,7 @@ class TrialTest extends Component {
           ],
         },
         formatter: (cellContent, row) => {
-          const result = row.result.length
-            ? Array.from(row.result).join(",")
-            : "";
-          if (result.includes("Lamp Fault")) {
+          if (row.result.includes("Lamp Fault")) {
             return <span>Faulty</span>;
           } else if (row.powercut !== 3 && row.powercut > 0)
             return <span>OK</span>;
@@ -459,10 +458,7 @@ class TrialTest extends Component {
         setTimeout(() => {
           clearInterval(this.timer);
         }, 2000);
-      console.log(1);
       if (global.intervalCheck === true) {
-        console.log(2);
-
         axios({
           //Axios GET request
           method: "get",
@@ -472,13 +468,11 @@ class TrialTest extends Component {
           },
           url: global.BASE_URL + "/mqtt/testinfo/" + `${user}/${site}`,
         }).then((res) => {
-          console.log(res.data);
           if (res.data) {
             this.setState({
               testid: res.data.testId,
               testData: res.data,
             });
-            console.log(res.data);
             this.setState(
               {
                 liveDevices: res.data.devices,

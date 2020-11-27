@@ -9,7 +9,7 @@ const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`;
 
 const errorMessages = {
   "0CCD": "",
-  6666: "No connection to driver",
+  "6666": "No connection to driver",
   "7FFF": "Battery powered",
 };
 
@@ -48,6 +48,7 @@ class LiveTestDevice {
     this.testid = testId;
     this.messenger = messenger;
     this.hasSensors = false;
+    this.is_assigned = device.is_assigned;
   }
 
   toJSON() {
@@ -66,6 +67,7 @@ class LiveTestDevice {
       testid: this.testid,
       messenger: this.messenger,
       hasSensors: this.hasSensors,
+      is_assigned: this.is_assigned,
     };
   }
 
@@ -74,7 +76,7 @@ class LiveTestDevice {
    * @param {Array<*>} sensorsList
    *
    */
-  addSensors = (sensorsList) => {
+  addSensors(sensorsList) {
     if (sensorsList.length > 0) {
       this.hasSensors = true;
       this.sensors = sensorsList.map((r) => ({
@@ -84,12 +86,12 @@ class LiveTestDevice {
     } else this.hasSensors = false;
   };
 
-  setNoResponse = () => {
+  setNoResponse() {
     this.powercut = 3;
     this.addResult("Weak connection to mesh");
   };
 
-  setTestFinished = () => {
+  setTestFinished() {
     this.powercut = 2;
     this.result.delete("Battery powered");
     this.updateDeviceState();
@@ -104,12 +106,12 @@ class LiveTestDevice {
    *
    * @param {String} r
    */
-  removeResult = (r) => {
+  removeResult(r) {
     this.result.remove(r);
     this.updateDeviceState();
   };
 
-  getDeviceStatus = () => {
+  getDeviceStatus() {
     const status_ = Array.from(this.result).join(", ");
     if (this.result.size === 0) return "OK";
     else if (this.result.size === 1 && this.result.has("Battery powered"))
@@ -117,7 +119,7 @@ class LiveTestDevice {
     else return status_;
   };
 
-  updateDeviceState = () => {
+  updateDeviceState() {
     const status = this.getDeviceStatus();
     console.log("update device state:", status, this.result);
 
@@ -126,13 +128,13 @@ class LiveTestDevice {
     });
   };
 
-  checkMessageState = (msg) => {
+  checkMessageState(msg) {
     const msgCut = msg.slice(21, 25).toUpperCase();
     const error = errorMessages[msgCut];
-    if (error.length > 0) this.addResult(error);
+    if (error) this.addResult(error);
   };
 
-  testLoop = async (testType) => {
+  testLoop(testType) {
     this.duration = this.duration - 1000;
     if (testCheckpointsTime[testType].has(this.duration)) {
       const firstCheckpoint =
@@ -153,7 +155,7 @@ class LiveTestDevice {
       clearInterval(this.testInterval);
       let messages = new Set();
       const deviceId = this.nodeId;
-      this.checkDeviceState("led")
+      this.checkDeviceState("relay")
         .then((msg) => this.messenger.publish(deviceId, "10018202000196"))
         .then((message) => {
           console.log("TEST 1");
@@ -169,7 +171,7 @@ class LiveTestDevice {
     }
   };
 
-  testSensor = async (sensor, messages, firstCheckpoint) => {
+  testSensor(sensor, messages, firstCheckpoint) {
     return new Promise((resolve, reject) => {
       const type = sensor.type.toLowerCase();
       console.log(sensor, "W", type);
@@ -210,7 +212,7 @@ class LiveTestDevice {
     });
   };
 
-  checkDeviceState = async (type) => {
+  checkDeviceState(type) {
     const promise = new Promise((resolve, reject) => {
       const deviceId = this.nodeId;
       let messages = new Set();
@@ -229,17 +231,18 @@ class LiveTestDevice {
           }
         })
         .catch((err) => {
-          console.log("Error on check device");
+          console.log("Error on check device:", err);
           this.setNoResponse();
           reject("No response");
         });
     });
 
-    let result = await promise;
-    return result;
+    return promise
+    //let result = await promise;
+    //return result;
   };
 
-  readFromVbat = (sensor, message, msgSliced, messages) => {
+  readFromVbat(sensor, message, msgSliced, messages){
     const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4);
     messages.add(`${message} voltage: ${voltage}v`);
     insertMsg(message, "voltage", voltage);
@@ -248,10 +251,10 @@ class LiveTestDevice {
     console.log("voltage", voltage);
     if (voltage > 3 || voltage < 2) this.addResult("Battery fault");
 
-    resolve(voltage);
+    return voltage;
   };
 
-  readFromLdr = (sensor, message, msgSliced, messages, firstCheckpoint) => {
+  readFromLdr(sensor, message, msgSliced, messages, firstCheckpoint) {
     sleep(2000).then(() => {
       const ldrReading = msgSliced.toFixed(2);
       let onOff;
@@ -267,14 +270,14 @@ class LiveTestDevice {
       insertVoltLdrReading(sensor.sensorId, "", ldrReading);
       messages.add(`${message} ldr: ${ldrReading} ${onOff}`);
       sensor.reading = onOff;
-      resolve(onOff);
+      return onOff;
     });
   };
 
   // NB
   // 1. When using Promise.map/each/all the function should just return the promise
   // 2. When using Promise.map/each/all if the callback rejects it exits the loop
-  cutPower = async (testType) => {
+  cutPower(testType) {
     return new Promise((resolve, reject) => {
       console.log(this.nodeId);
       let messages = new Set();
@@ -306,7 +309,7 @@ class LiveTestDevice {
     });
   };
 
-  abort = (messages) => {
+  abort(messages) {
     return new Promise((resolve, reject) => {
       this.checkDeviceState("relay")
         .then((msg) => {
@@ -342,7 +345,7 @@ class LiveTestDevice {
     });
   };
 
-  durationCounterStart = (testType) => {
+  durationCounterStart(testType) {
     this.testInterval = setInterval(() => this.testLoop(testType), 1000);
   };
 }

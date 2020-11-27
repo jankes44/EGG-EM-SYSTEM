@@ -42,7 +42,7 @@ class LiveTest {
   /**
    *  Cut power of all the devices in the Test aka start the test
    */
-  async cutPowerAll() {
+  cutPowerAll() {
     let promise = new Promise((resolve, reject) => {
       this.cut_all_clicked = true;
       if (this.inProgress) {
