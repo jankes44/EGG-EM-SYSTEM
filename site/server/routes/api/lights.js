@@ -125,9 +125,9 @@ router.post("/addempty/:amount", auth, function (req, res) {
   })
 })
 
-router.post("/edit/postion", auth, function (req, res) {
+router.all("/edit/pos", auth, function (req, res) {
   console.log("edit position")
-
+  console.log(req.body)
   const paramsList = req.body.devices.map(el => [el.fp_coordinates_left, el.fp_coordinates_bot, el.id])
   for (let i = 0; i < devices.length; i++) {
     con.query(updateLightPosition, paramsList[i], (err) => {

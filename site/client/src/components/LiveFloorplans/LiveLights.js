@@ -81,7 +81,7 @@ export default function LiveFloorPlan(props) {
   const [floorplanURL, setFloorplanURL] = React.useState("");
   const [floorplanNotFound, setFloorplanNotFound] = React.useState("");
   const [comment, setComment] = React.useState("");
-  const [devices, setDevices] = React.useState("");
+  const [devices, setDevices] = React.useState([]);
   const [activeDrags, setActiveDrags] = React.useState(0);
   const [success, setSuccess] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState();
@@ -163,13 +163,14 @@ export default function LiveFloorPlan(props) {
   }, [props.devices]);
 
   const handleSavePositions = () => {
+    console.log(devices)
     axios({
       method: "post",
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
         Authorization: "Bearer " + localStorage.usertoken,
       },
-      url: global.BASE_URL + "/api/lights/edit/position",
+      url: global.BASE_URL + "/api/lights/edit/pos",
       data: { devices: devices },
     }).then((res) => {
       if (res.status === 200) {
