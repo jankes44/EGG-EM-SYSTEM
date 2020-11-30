@@ -128,14 +128,14 @@ export default function Buildings(props) {
       onClick: (event, rowData) => {
         history.push({
           pathname: "/admin/upload-csv",
-          state: { hello: "world" },
+          state: { building: rowData },
         });
       },
     },
   ];
 
   if (!props.editable) {
-    actions = {};
+    actions = [];
     editable = {};
   }
 
