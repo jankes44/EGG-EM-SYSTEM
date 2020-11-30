@@ -3,8 +3,11 @@ import NoDataIndication from "components/NoDataIndication/NoDataIndicationTable"
 import "./table.css";
 import MaterialTable from "material-table";
 import axios from "axios";
+import { useHistory } from "react-router-dom";
 
-export default function buildings(props) {
+export default function Buildings(props) {
+  const history = useHistory();
+
   const columns = [
     {
       field: "buildings_id",
@@ -118,7 +121,23 @@ export default function buildings(props) {
       }),
   };
 
-  if (!props.editable) editable = {};
+  let actions = [
+    {
+      icon: "note_add",
+      tooltip: "Upload CSV",
+      onClick: (event, rowData) => {
+        history.push({
+          pathname: "/admin/upload-csv",
+          state: { hello: "world" },
+        });
+      },
+    },
+  ];
+
+  if (!props.editable) {
+    actions = {};
+    editable = {};
+  }
 
   return (
     <MaterialTable
@@ -127,6 +146,7 @@ export default function buildings(props) {
       data={props.buildings}
       title="Buildings"
       editable={editable}
+      actions={actions}
     />
   );
 }

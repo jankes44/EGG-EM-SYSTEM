@@ -17,6 +17,7 @@ import SiteSetup from "views/SiteSetup/SiteSetup";
 import Energy from "views/Energy/Energy";
 import SiteTest from "views/TrialTest/TrialTest";
 import Schedule from "views/Schedule/ScheduleView";
+import UploadCSV from "views/UploadCSV/UploadCSV";
 
 const dashboardRoutes = [
   {
@@ -53,6 +54,15 @@ const dashboardRoutes = [
     component: Schedule,
     layout: "/admin",
     access: 3,
+    hidden: true,
+  },
+  {
+    path: "/upload-csv",
+    name: "Test schedule",
+    icon: "schedule",
+    component: UploadCSV,
+    layout: "/admin",
+    access: 2,
     hidden: true,
   },
   // {

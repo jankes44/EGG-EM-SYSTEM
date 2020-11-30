@@ -33,8 +33,12 @@ export default function buildings(props) {
     },
     {
       field: "is_assigned",
-      title: "Battery",
+      title: "Assigned?",
       editable: "never",
+      render: (rowData) => {
+        if (rowData.is_assigned === 0) return <span>No</span>;
+        else return <span>Yes</span>;
+      },
     },
     {
       field: "building",
@@ -52,6 +56,7 @@ export default function buildings(props) {
         Authorization: "Bearer " + localStorage.usertoken,
       },
       url: global.BASE_URL + "/api/lights/addempty/5",
+      data: { level_id: props.clickedLevel },
       timeout: 0,
     });
     return result;

@@ -21,7 +21,7 @@ export default class SiteSetup extends React.Component {
     devices: [],
     sensors: [],
     siteName: "",
-    stage: 1,
+    step: 1,
     backDisabled: true,
     tabsDisabled: true,
     clickedGroup: null,
@@ -36,7 +36,7 @@ export default class SiteSetup extends React.Component {
     buildingAddress: "",
     levelName: "",
   };
-  //{clickedSite, tabsDisabled, backDisabled, stage, createNewBuilding, buildings}
+  //{clickedSite, tabsDisabled, backDisabled, step, createNewBuilding, buildings}
 
   handleChangeSite = (event, site) => {
     if (
@@ -45,7 +45,7 @@ export default class SiteSetup extends React.Component {
     ) {
       this.setState({
         tabsDisabled: true,
-        stage: 1,
+        step: 1,
         buildings: [],
         levels: [],
         devices: [],
@@ -169,7 +169,7 @@ export default class SiteSetup extends React.Component {
 
   callDevices = async (levelID) => {
     const data = await axios.get(
-      global.BASE_URL + "/api/lights/level/" + levelID,
+      global.BASE_URL + "/api/lights/level/all/" + levelID,
       {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
@@ -201,7 +201,7 @@ export default class SiteSetup extends React.Component {
     const row = this.state.buildings[index];
 
     this.setState({
-      stage: 2,
+      step: 2,
       clickedBuilding: row.buildings_id,
       clickedBuildingDetails: row,
     });
@@ -223,7 +223,7 @@ export default class SiteSetup extends React.Component {
       console.log(res);
       this.setState({ sensors: res.data });
       this.setState({
-        stage: 3,
+        step: 3,
         clickedLevel: row.id,
         clickedLevelDetails: row,
       });
@@ -406,76 +406,10 @@ export default class SiteSetup extends React.Component {
   }
 
   render() {
-    // const expandRow = {
-    //   renderer: (row) => {
-    //     let data = [];
-    //     const levelColumns = [
-    //       {
-    //         dataField: "id",
-    //         text: "ID",
-    //         hidden: true,
-    //         sort: true,
-    //       },
-    //       {
-    //         dataField: "level",
-    //         text: "Level",
-    //         sort: true,
-    //       },
-    //       {
-    //         dataField: "devices",
-    //         text: "Luminaires",
-    //         sort: true,
-    //         editable: false,
-    //       },
-    //       {
-    //         dataField: "lights_count",
-    //         text: "Luminaires count",
-    //         sort: true,
-    //         editable: false,
-    //       },
-    //     ];
-    //     levels.forEach((el) => {
-    //       if (row.buildings_id === el.buildings_id) data.push(el);
-    //     });
-
-    //     return (
-    //       <div>
-    //         <GridItem xs={1} style={{ marginBottom: "10px" }}>
-    //           {clickedSite ? (
-    //             <NewLevel
-    //               handleNewLevel={this.handleNewLevel}
-    //               building={row.buildings_id}
-    //               clickedSite={clickedSite}
-    //               data={data}
-    //             />
-    //           ) : null}
-    //         </GridItem>
-    //         <BootstrapTable
-    //           keyField="id"
-    //           data={data}
-    //           columns={levelColumns}
-    //           cellEdit={cellEditFactory({
-    //             mode: "click",
-    //             beforeSaveCell: (oldValue, newValue, row, column) => {
-    //               console.log("Before Saving Cell!!");
-    //             },
-    //             afterSaveCell: (oldValue, newValue, row, column) => {
-    //               this.handleEditLevel(row.id, column.dataField, newValue);
-    //             },
-    //           })}
-    //           ref={(n) => {
-    //             this.bootstrapTableRef = n;
-    //           }}
-    //         />
-    //       </div>
-    //     );
-    //   },
-    // };
-
     const {
       clickedSite,
       backDisabled,
-      stage,
+      step,
       createNewBuilding,
       createNewLevel,
       buildings,
@@ -522,11 +456,11 @@ export default class SiteSetup extends React.Component {
         >
           {/* TABS */}
           <GridItem xs={12}>
-            {stage > 1 ? (
+            {step > 1 ? (
               <div style={{ margin: "20px" }}>
                 <EditBuilding building={this.state.clickedBuildingDetails} />
 
-                {stage > 2 ? (
+                {step > 2 ? (
                   <div>
                     <h5>Level {this.state.clickedLevelDetails.level}</h5>
                     <h6>{this.state.clickedLevelDetails.description}</h6>
@@ -547,9 +481,9 @@ export default class SiteSetup extends React.Component {
                     color="primary"
                     variant="round"
                     onClick={() => {
-                      if (this.state.stage > 1) {
-                        this.setState({ stage: stage - 1 }, () => {
-                          if (this.state.stage <= 1)
+                      if (this.state.step > 1) {
+                        this.setState({ step: step - 1 }, () => {
+                          if (this.state.step <= 1)
                             this.setState({ backDisabled: true });
                           else this.setState({ backDisabled: false });
                         });
@@ -565,7 +499,7 @@ export default class SiteSetup extends React.Component {
             </GridItem>
           </GridContainer>
         </div>
-        {stage === 1 ? (
+        {step === 1 ? (
           <GridItem xs={12}>
             <Buildings
               buildings={buildings}
@@ -577,7 +511,7 @@ export default class SiteSetup extends React.Component {
             />
           </GridItem>
         ) : null}
-        {stage === 2 ? (
+        {step === 2 ? (
           <GridItem xs={12}>
             <Levels
               levels={levels}
@@ -590,7 +524,7 @@ export default class SiteSetup extends React.Component {
             />
           </GridItem>
         ) : null}
-        {stage === 3 ? (
+        {step === 3 ? (
           <div>
             <GridItem xs={12}>
               <Devices

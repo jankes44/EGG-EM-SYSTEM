@@ -47,13 +47,24 @@ const getLevelLights = `
   LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
   LEFT JOIN users u ON u.id = uhs.users_id
   WHERE l.id = ? AND lg.is_assigned = 1`;
+const getLevelLightsAll = `
+  SELECT DISTINCT lg.*, l.id as levels_id, l.level, b.building, 
+  b.id as buildings_id, s.mqtt_topic_out, s.mqtt_topic_in, s.id as sites_id,
+  s.name as sites_name
+  FROM lights lg
+  LEFT JOIN levels l ON l.id = lg.levels_id
+  LEFT JOIN buildings b ON b.id = l.buildings_id
+  LEFT JOIN sites s ON s.id = b.sites_id
+  LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
+  LEFT JOIN users u ON u.id = uhs.users_id
+  WHERE l.id = ?`;
 
 const getLastLightId =
   "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1";
 const getLightByDeviceAndLevel =
   "SELECT id FROM lights WHERE device_id = ? AND levels_id = ?";
 const insertLight = "INSERT INTO lights SET ?";
-const createEmptyLights = "INSERT INTO lights (level_id) VALUES ?";
+const createEmptyLights = "INSERT INTO lights (levels_id) VALUES (?)";
 const updateLightPosition = `UPDATE lights SET fp_coordinates_left = ?, fp_coordinates_bot = ? WHERE id = ?`;
 const updateLight = `UPDATE lights SET ? WHERE id = ?`;
 const assignLight = "UPDATE lights SET levels_id = ?, is_assigned=1 WHERE id=?";
@@ -90,6 +101,13 @@ router.get("/level/:level_id", auth, (req, res) => {
   });
 });
 
+router.get("/level/all/:level_id", auth, (req, res) => {
+  con.query(getLevelLightsAll, req.params.level_id, (err, rows) => {
+    if (err) res.sendStatus(400);
+    res.json(rows);
+  });
+});
+
 router.get("/device_id/:device_id/:levels_id", auth, (req, res) => {
   const params = [req.params.device_id, req.params.levels_id];
   con.query(getLightByDeviceAndLevel, params, (err, rows) => {
@@ -116,11 +134,12 @@ router.post("/addempty/:amount", auth, function (req, res) {
   const levelId = req.body.level_id;
   let params = [];
   for (let i = 0; i < amount; i++) {
-    params.push([levelId]);
+    params.push(levelId);
   }
-  con.query(createEmptyLights, [params], (err) => {
-    if (err) res.sendStatus(400);
-    res.sendStatus(200);
+  console.log(params);
+  con.query(createEmptyLights, params, (err) => {
+    if (err) console.log(err);
+    else res.sendStatus(200);
   });
 });
 

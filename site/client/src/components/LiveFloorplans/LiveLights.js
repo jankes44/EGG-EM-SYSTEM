@@ -163,7 +163,7 @@ export default function LiveFloorPlan(props) {
   }, [props.devices]);
 
   const handleSavePositions = () => {
-    console.log(devices)
+    console.log(devices);
     axios({
       method: "post",
       headers: {
@@ -172,13 +172,15 @@ export default function LiveFloorPlan(props) {
       },
       url: global.BASE_URL + "/api/lights/edit/pos",
       data: { devices: devices },
-    }).then((res) => {
-      if (res.status === 200) {
-        setSuccess(true);
-      }
-    }).catch(err => {
-      if (err) console.log(err)
     })
+      .then((res) => {
+        if (res.status === 200) {
+          setSuccess(true);
+        }
+      })
+      .catch((err) => {
+        if (err) console.log(err);
+      });
   };
 
   const handleDrag = (e, ui, index, id) => {
@@ -210,22 +212,25 @@ export default function LiveFloorPlan(props) {
 
       setSelectedFile(event.target.files[0]);
 
-      const data = new FormData();
-      data.append("level", props.clickedLevel);
-      data.append("file", event.target.files[0]);
+      const data = {};
+      data.level = props.clickedLevel;
+      data.file = event.target.files[0];
 
-      axios
-        .post(global.BASE_URL + "/api/levels/floorplan/upload/", data, {
-          headers: {
-            "Content-Type": "application/json;charset=UTF-8",
-            Authorization: "Bearer " + localStorage.usertoken,
-          },
-          responseType: "blob",
-        })
-        .then((response) => {
-          console.log(URL.createObjectURL(response.data));
-          setFloorplanURL(URL.createObjectURL(response.data));
-        });
+      console.log(data, props.clickedLevel, event.target.files);
+
+      axios({
+        method: "post",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+        responseType: "blob",
+        url: global.BASE_URL + "/api/levels/floorplan/upload",
+        data: { level: props.clickedLevel, file: event.target.files[0] },
+      }).then((response) => {
+        console.log(URL.createObjectURL(response.data));
+        setFloorplanURL(URL.createObjectURL(response.data));
+      });
     } else {
       alert("Only jpg/jpeg files are allowed");
     }

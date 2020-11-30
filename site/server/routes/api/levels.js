@@ -99,10 +99,10 @@ router.get("/floorplan/:id", auth, function (req, res) {
 });
 
 //upload floorplan and assign id to it
-router.post("/floorplan/upload/:id", auth, (req, res) => {
+router.post("/floorplan/upload", auth, (req, res) => {
   const floorplan = path.join(floorplansDir, `floorplan${req.body.level}.jpg`);
   upload(req, res, (err) => {
-    console.log(req.body);
+    console.log(req.body.file);
     if (err instanceof multer.MulterError) {
       console.log(err);
       return res.status(500).json(err);
