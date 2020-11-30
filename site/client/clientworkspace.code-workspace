@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"workbench.preferredHighContrastColorTheme": "Monokai",
+		"workbench.preferredLightColorTheme": "Tomorrow Night Blue",
+		"workbench.colorTheme": "Winter is Coming (Dark Blue - No Italics)",
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	}
+}

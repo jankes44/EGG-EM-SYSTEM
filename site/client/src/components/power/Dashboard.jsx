@@ -272,101 +272,101 @@ class Dashboard extends React.Component {
     return (
       <Container>
         <br />
-        
-        
+
         {!this.props.onlyGraph ? (
           <Container>
-          <Grid
-            container
-            direction="row"
-            justify="space-evenly"
-            alignItems="center"
-            spacing={2}
-          >
-            <SummaryCard
-              loading={this.state.loadingAgg}
-              title="30 Days"
-              total_data={this.state.summary.month}
-              line_data={this.state.summary.month_line}
-            />
-            <SummaryCard
-              loading={this.state.loadingAgg}
-              title="3 Months"
-              total_data={this.state.summary.three_months}
-              line_data={this.state.summary.three_months_line}
-            />
-            <SummaryCard
-              loading={this.state.loadingAgg}
-              title="Year"
-              total_data={this.state.summary.year}
-              line_data={this.state.summary.year_line}
-            />
-          </Grid>
-        </Container> ) : null}
+            <Grid
+              container
+              direction="row"
+              justify="space-evenly"
+              alignItems="center"
+              spacing={2}
+            >
+              <SummaryCard
+                loading={this.state.loadingAgg}
+                title="30 Days"
+                total_data={this.state.summary.month}
+                line_data={this.state.summary.month_line}
+              />
+              <SummaryCard
+                loading={this.state.loadingAgg}
+                title="3 Months"
+                total_data={this.state.summary.three_months}
+                line_data={this.state.summary.three_months_line}
+              />
+              <SummaryCard
+                loading={this.state.loadingAgg}
+                title="Year"
+                total_data={this.state.summary.year}
+                line_data={this.state.summary.year_line}
+              />
+            </Grid>
+          </Container>
+        ) : null}
         {!this.props.onlyGraph ? (
           <div>
-        <br />
-        <br />
-        <Grid container direction="row">
-          <Grid item>
-            <FormLabel>Measurement: </FormLabel>
-            <RadioGroup
-              name="measurement"
-              row
-              onChange={this.onMeasureChangeValue}
-            >
-              {this.measurements.map((m) => (
-                <FormControlLabel
-                  key={m.toLowerCase()}
-                  value={m.toLowerCase()}
-                  control={<Radio />}
-                  label={m}
-                  checked={this.state.show === m.toLowerCase()}
-                />
-              ))}
-            </RadioGroup>
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item>
-            <FormLabel>Time Range: </FormLabel>
-            <RadioGroup
-              name="time_range"
-              row
-              onChange={this.onTimeRangeChangeValue}
-            >
-              <FormControlLabel
-                key="day"
-                value="day"
-                control={<Radio />}
-                label="1 Day"
-                checked={this.state.time_range === "day"}
-              />
-              <FormControlLabel
-                key="month"
-                value="month"
-                control={<Radio />}
-                label="1 Month"
-                checked={this.state.time_range === "month"}
-              />
-              <FormControlLabel
-                key="three_months"
-                value="three_months"
-                control={<Radio />}
-                label="3 Months"
-                checked={this.state.time_range === "three_months"}
-              />
-              <FormControlLabel
-                key="year"
-                value="year"
-                control={<Radio />}
-                label="1 Year"
-                checked={this.state.time_range === "year"}
-              />
-            </RadioGroup>
-          </Grid>
-        </Grid>
-        </div>
+            <br />
+            <br />
+            <Grid container direction="row">
+              <Grid item>
+                <FormLabel>Measurement: </FormLabel>
+                <RadioGroup
+                  name="measurement"
+                  row
+                  onChange={this.onMeasureChangeValue}
+                >
+                  {this.measurements.map((m) => (
+                    <FormControlLabel
+                      key={m.toLowerCase()}
+                      value={m.toLowerCase()}
+                      control={<Radio />}
+                      label={m}
+                      checked={this.state.show === m.toLowerCase()}
+                    />
+                  ))}
+                </RadioGroup>
+              </Grid>
+            </Grid>
+            <Grid container>
+              <Grid item>
+                <FormLabel>Time Range: </FormLabel>
+                <RadioGroup
+                  name="time_range"
+                  row
+                  onChange={this.onTimeRangeChangeValue}
+                >
+                  <FormControlLabel
+                    key="day"
+                    value="day"
+                    control={<Radio />}
+                    label="1 Day"
+                    checked={this.state.time_range === "day"}
+                  />
+                  <FormControlLabel
+                    key="month"
+                    value="month"
+                    control={<Radio />}
+                    label="1 Month"
+                    checked={this.state.time_range === "month"}
+                  />
+                  <FormControlLabel
+                    key="three_months"
+                    value="three_months"
+                    control={<Radio />}
+                    label="3 Months"
+                    checked={this.state.time_range === "three_months"}
+                  />
+                  <FormControlLabel
+                    key="year"
+                    value="year"
+                    control={<Radio />}
+                    label="1 Year"
+                    checked={this.state.time_range === "year"}
+                  />
+                </RadioGroup>
+              </Grid>
+            </Grid>
+          </div>
         ) : null}
         {graph}
       </Container>

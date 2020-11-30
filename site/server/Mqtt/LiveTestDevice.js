@@ -1,9 +1,9 @@
 const con = require("../database/db_promise");
 const Promise = require("bluebird");
 
-const {insertMsg} = require("./MqttHelpers");
+const { insertMsg } = require("./MqttHelpers");
 const MqttDevice = require("./Clients/MqttDevice");
-const {device} = require("aws-iot-device-sdk");
+const { device } = require("aws-iot-device-sdk");
 
 const updateStatusQuery = `UPDATE lights SET status = ? WHERE id = ?`;
 
@@ -73,7 +73,7 @@ class LiveTestDevice {
       hasSensors: this.hasSensors,
       is_assigned: this.is_assigned,
       fp_coordinates_left: this.fp_coordinates_left,
-      fp_coordinates_bot: this.fp_coordinates_bot
+      fp_coordinates_bot: this.fp_coordinates_bot,
     };
   }
 
@@ -90,18 +90,18 @@ class LiveTestDevice {
         type: r.type,
       }));
     } else this.hasSensors = false;
-  };
+  }
 
   setNoResponse() {
     this.powercut = 3;
     this.addResult("Weak connection to mesh");
-  };
+  }
 
   setTestFinished() {
     this.powercut = 2;
     this.result.delete("Battery powered");
     this.updateDeviceState();
-  };
+  }
 
   addResult = (r) => {
     this.result.add(r);
@@ -115,7 +115,7 @@ class LiveTestDevice {
   removeResult(r) {
     this.result.delete(r);
     this.updateDeviceState();
-  };
+  }
 
   getDeviceStatus() {
     const status_ = Array.from(this.result).join(", ");
@@ -123,7 +123,7 @@ class LiveTestDevice {
     else if (this.result.size === 1 && this.result.has("Battery powered"))
       return [status_, "OK"].join(", ");
     else return status_;
-  };
+  }
 
   updateDeviceState() {
     const status = this.getDeviceStatus();
@@ -132,24 +132,23 @@ class LiveTestDevice {
     con.query(updateStatusQuery, [status, this.id]).catch((err) => {
       throw err;
     });
-  };
+  }
 
   checkMessageState(msg) {
     const msgCut = msg.slice(21, 25).toUpperCase();
-    const error = msgCut === "0001" ? "" : "Battery powered" 
+    const error = msgCut === "0001" ? "" : "Battery powered";
     if (error) this.addResult(error);
-  };
+  }
 
   testLoop(testType) {
     this.duration = this.duration - 1000;
     if (testCheckpointsTime[testType].has(this.duration)) {
-      const f = testCheckpointsTime[testType].values().next().value
-      const firstCheckpoint = this.duration === f
+      const f = testCheckpointsTime[testType].values().next().value;
+      const firstCheckpoint = this.duration === f;
       let messages = new Set();
       if (this.hasSensors) {
-        Promise.each(
-          this.sensors,
-          (s) => this.testSensor(s, messages, firstCheckpoint)
+        Promise.each(this.sensors, (s) =>
+          this.testSensor(s, messages, firstCheckpoint)
         )
           .then(() => console.log("OK"))
           .catch((err) => console.log(err));
@@ -174,7 +173,7 @@ class LiveTestDevice {
         })
         .catch(() => this.setNoResponse());
     }
-  };
+  }
 
   testSensor(sensor, messages, firstCheckpoint) {
     return new Promise((resolve, reject) => {
@@ -183,7 +182,7 @@ class LiveTestDevice {
       this.messenger
         .publish(sensor.sensorId, "10038205000096")
         .then((message) => {
-          console.log(1)
+          console.log(1);
           const msgSliced = parseInt(`0x${message.slice(21, 25)}`);
           const msg_node_id = message.slice("13", "17");
           const messageIsNew = !setFind(messages, (a) =>
@@ -197,28 +196,30 @@ class LiveTestDevice {
                   this.readFromVbat(sensor, message, msgSliced, messages)
                 );
                 break;
-              case "ldr": {
-                console.log("LDR")
-                resolve(
-                  this.readFromLdr(
-                    sensor,
-                    message,
-                    msgSliced,
-                    messages,
-                    firstCheckpoint
-                  )) 
-              }
+              case "ldr":
+                {
+                  console.log("LDR");
+                  resolve(
+                    this.readFromLdr(
+                      sensor,
+                      message,
+                      msgSliced,
+                      messages,
+                      firstCheckpoint
+                    )
+                  );
+                }
                 break;
             }
           }
         })
         .catch((err) => {
           // this.addResult("Weak connection to mesh");
-          console.log("ERR", err) 
+          console.log("ERR", err);
           resolve("No response");
         });
     });
-  };
+  }
 
   checkDeviceState(type) {
     const promise = new Promise((resolve, reject) => {
@@ -226,7 +227,7 @@ class LiveTestDevice {
       let messages = new Set();
       let received = false;
       const command = type === "led" ? "10038205000096" : "10018201000096";
-      console.log(deviceId, command)
+      console.log(deviceId, command);
       this.messenger
         .publish(deviceId, command)
         .then((message) => {
@@ -246,47 +247,47 @@ class LiveTestDevice {
         });
     });
 
-    return promise
+    return promise;
     //let result = await promise;
     //return result;
-  };
+  }
 
-  readFromVbat(sensor, message, msgSliced, messages){
+  readFromVbat(sensor, message, msgSliced, messages) {
     sleep(1000).then(() => {
-    const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4);
-    messages.add(`${message} voltage: ${voltage}v`);
-    insertMsg(message, "voltage", voltage);
-    insertVoltLdrReading(sensor.sensorId, voltage);
-    sensor.voltage = voltage;
-    console.log("voltage", voltage);
-    if (voltage > 3 || voltage < 2) this.addResult("Battery fault");
+      const voltage = (msgSliced / 1241.212121 / 0.3).toFixed(4);
+      messages.add(`${message} voltage: ${voltage}v`);
+      insertMsg(message, "voltage", voltage);
+      insertVoltLdrReading(sensor.sensorId, voltage);
+      sensor.voltage = voltage;
+      console.log("voltage", voltage);
+      if (voltage > 3 || voltage < 2) this.addResult("Battery fault");
 
-    return voltage;
-  })
-  };
+      return voltage;
+    });
+  }
 
   readFromLdr(sensor, message, msgSliced, messages, firstCheckpoint) {
-    console.log("READ LDR")
+    console.log("READ LDR");
     sleep(1000).then(() => {
-    console.log(3)
-    const ldrReading = msgSliced.toFixed(2);
-    console.log(ldrReading, firstCheckpoint)
-    let onOff;
-    if (ldrReading > 3000) onOff = "EM Lamp ON";
-    else {
-      onOff = "EM Lamp OFF";
-      if (firstCheckpoint) {
-        this.addResult("Lamp Fault");
+      console.log(3);
+      const ldrReading = msgSliced.toFixed(2);
+      console.log(ldrReading, firstCheckpoint);
+      let onOff;
+      if (ldrReading > 3000) onOff = "EM Lamp ON";
+      else {
+        onOff = "EM Lamp OFF";
+        if (firstCheckpoint) {
+          this.addResult("Lamp Fault");
+        }
+        // this.addResult("Battery Fault"); //TODO ???
       }
-      // this.addResult("Battery Fault"); //TODO ???
-    }
-    insertMsg(message, "ldr", ldrReading);
-    insertVoltLdrReading(sensor.sensorId, "", ldrReading);
-    messages.add(`${message} ldr: ${ldrReading} ${onOff}`);
-    sensor.reading = onOff;
-    return onOff;
-  })
-  };
+      insertMsg(message, "ldr", ldrReading);
+      insertVoltLdrReading(sensor.sensorId, "", ldrReading);
+      messages.add(`${message} ldr: ${ldrReading} ${onOff}`);
+      sensor.reading = onOff;
+      return onOff;
+    });
+  }
 
   // NB
   // 1. When using Promise.map/each/all the function should just return the promise
@@ -321,14 +322,15 @@ class LiveTestDevice {
           });
       } else resolve("Power already cut " + this.nodeId);
     });
-  };
+  }
 
   finishDevice(messages) {
     return new Promise((resolve, reject) => {
       this.checkDeviceState("relay")
         .then((msg) => {
           let msgReceived = false;
-          this.messenger.publish(this.nodeId, "10018202000196")
+          this.messenger
+            .publish(this.nodeId, "10018202000196")
             .then((message) => {
               if (
                 !messages.has(message) &&
@@ -355,11 +357,11 @@ class LiveTestDevice {
           resolve(err);
         });
     });
-  };
+  }
 
   durationCounterStart(testType) {
     this.testInterval = setInterval(() => this.testLoop(testType), 1000);
-  };
+  }
 }
 
 async function sleep(ms) {
@@ -379,7 +381,7 @@ const setFind = (set, cb) => {
 };
 
 const insertVoltLdrReading = (sensor_id, bat = "", ldr = "") => {
-  const data = {battery: bat, ldr: ldr, sensor_node_id: sensor_id};
+  const data = { battery: bat, ldr: ldr, sensor_node_id: sensor_id };
   con.query("INSERT INTO device_battery_ldr SET ?", data).catch((err) => {
     throw err;
   });

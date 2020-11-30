@@ -21,7 +21,7 @@ const getUserLights = `
   LEFT JOIN sites s ON s.id = b.sites_id
   LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
   LEFT JOIN users u ON u.id = uhs.users_id
-  WHERE u.id = ? AND lg.is_assigned = ?`
+  WHERE u.id = ? AND lg.is_assigned = ?`;
 
 const getBuildingLights = `
   SELECT DISTINCT lg.id as lights_id, lg.node_id, lg.device_id, lg.type,
@@ -34,7 +34,7 @@ const getBuildingLights = `
   LEFT JOIN sites s ON s.id = b.sites_id
   LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
   LEFT JOIN users u ON u.id = uhs.users_id
-  WHERE b.id = ?`
+  WHERE b.id = ?`;
 
 const getLevelLights = `
   SELECT DISTINCT lg.*, l.id as levels_id, l.level, b.building, 
@@ -46,58 +46,57 @@ const getLevelLights = `
   LEFT JOIN sites s ON s.id = b.sites_id
   LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
   LEFT JOIN users u ON u.id = uhs.users_id
-  WHERE l.id = ? AND lg.is_assigned = 1`
+  WHERE l.id = ? AND lg.is_assigned = 1`;
 
-const getLastLightId = "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1"
-const getLightByDeviceAndLevel = "SELECT id FROM lights WHERE device_id = ? AND levels_id = ?"
-const insertLight = "INSERT INTO lights SET ?"
-const createEmptyLights = "INSERT INTO lights (level_id) VALUES ?"
-const updateLightPosition = `UPDATE lights SET fp_coordinates_left = ?, fp_coordinates_bot = ? WHERE id = ?`
-const updateLight = `UPDATE lights SET ? WHERE id = ?`
-const assignLight = "UPDATE lights SET levels_id = ?, is_assigned=1 WHERE id=?"
-const moveLight = "UPDATE lights SET levels_id=? WHERE id=?"
-const deleteLight = "DELETE FROM lights WHERE id = ?"
-
+const getLastLightId =
+  "SELECT id as last_id FROM lights ORDER BY id DESC LIMIT 1";
+const getLightByDeviceAndLevel =
+  "SELECT id FROM lights WHERE device_id = ? AND levels_id = ?";
+const insertLight = "INSERT INTO lights SET ?";
+const createEmptyLights = "INSERT INTO lights (level_id) VALUES ?";
+const updateLightPosition = `UPDATE lights SET fp_coordinates_left = ?, fp_coordinates_bot = ? WHERE id = ?`;
+const updateLight = `UPDATE lights SET ? WHERE id = ?`;
+const assignLight = "UPDATE lights SET levels_id = ?, is_assigned=1 WHERE id=?";
+const moveLight = "UPDATE lights SET levels_id=? WHERE id=?";
+const deleteLight = "DELETE FROM lights WHERE id = ?";
 
 router.get("/:uid", auth, (req, res) => {
   con.query(getUserLights, [req.params.uid, 1], (err, rows) => {
-    if (err) res.sendStatus(400)
-    res.json(rows)
-  })
-})
-
+    if (err) res.sendStatus(400);
+    res.json(rows);
+  });
+});
 
 router.get("/unassigned/:uid", auth, (req, res) => {
   con.query(getUserLights, [req.params.uid, 0], (err, rows) => {
-    if (err) res.sendStatus(400)
-    res.json(rows)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.json(rows);
+  });
+});
 
 router.get("/building/:buildings_id", auth, (req, res) => {
   con.query(getBuildingLights, req.params.buildings_id, (err, rows) => {
-    if (err) res.sendStatus(400)
+    if (err) res.sendStatus(400);
     if (rows.length) {
       res.json(rows);
-    } 
-    else con.query(getLastLightId, (err, rows) => res.json(rows)) 
-  })
-})
+    } else con.query(getLastLightId, (err, rows) => res.json(rows));
+  });
+});
 
 router.get("/level/:level_id", auth, (req, res) => {
   con.query(getLevelLights, req.params.level_id, (err, rows) => {
-    if (err) res.sendStatus(400)
-    res.json(rows)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.json(rows);
+  });
+});
 
 router.get("/device_id/:device_id/:levels_id", auth, (req, res) => {
-  const params = [req.params.device_id, req.params.levels_id]
+  const params = [req.params.device_id, req.params.levels_id];
   con.query(getLightByDeviceAndLevel, params, (err, rows) => {
-    if (err) res.sendStatus(400) 
-    res.json(rows)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.json(rows);
+  });
+});
 
 router.post("/add", auth, function (req, res) {
   const params = {
@@ -105,61 +104,65 @@ router.post("/add", auth, function (req, res) {
     node_id: req.body.node_id,
     type: req.body.type,
     levels_id: req.body.levels_id,
-  }
+  };
   con.query(insertLight, [params], (err) => {
-    if (err) res.sendStatus(400) 
-    res.sendStatus(200)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.sendStatus(200);
+  });
+});
 
 router.post("/addempty/:amount", auth, function (req, res) {
-  const amount = req.params.amount
-  const levelId = req.body.level_id 
-  let params = []
+  const amount = req.params.amount;
+  const levelId = req.body.level_id;
+  let params = [];
   for (let i = 0; i < amount; i++) {
-    params.push([levelId])
+    params.push([levelId]);
   }
   con.query(createEmptyLights, [params], (err) => {
-    if (err) res.sendStatus(400) 
-    res.sendStatus(200)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.sendStatus(200);
+  });
+});
 
 router.all("/edit/pos", auth, function (req, res) {
-  console.log("edit position")
-  console.log(req.body)
-  const paramsList = req.body.devices.map(el => [el.fp_coordinates_left, el.fp_coordinates_bot, el.id])
+  console.log("edit position");
+  console.log(req.body);
+  const paramsList = req.body.devices.map((el) => [
+    el.fp_coordinates_left,
+    el.fp_coordinates_bot,
+    el.id,
+  ]);
   for (let i = 0; i < devices.length; i++) {
     con.query(updateLightPosition, paramsList[i], (err) => {
-      if (err) res.sendStatus(400) 
-      if (i === paramsList.length - 1){
-        res.sendStatus(200)
+      if (err) res.sendStatus(400);
+      if (i === paramsList.length - 1) {
+        res.sendStatus(200);
       }
-    })
+    });
   }
-})
+});
 
 router.post("/edit/many", auth, (req, res) => {
   const paramsList = Object.keys(req.body.update_data)
-    .map(i => req.body.update_data[i])
-    .map(el => [
-        {
-          device_id: el.newData.device_id,
-          type: el.newData.type,
-          node_id: el.newData.node_id,
-        },
-        el.newData.id,
-      ])
+    .map((i) => req.body.update_data[i])
+    .map((el) => [
+      {
+        device_id: el.newData.device_id,
+        type: el.newData.type,
+        node_id: el.newData.node_id,
+      },
+      el.newData.id,
+    ]);
 
-    for (let i = 0; i < paramsList.length; i++) {
-      con.query(updateLight, paramsList[i], (err) => {
-        if (err) res.sendStatus(400) 
-        if (i === paramsList.length - 1){
-          res.sendStatus(200)
-        }
-      })    
-    }
-})
+  for (let i = 0; i < paramsList.length; i++) {
+    con.query(updateLight, paramsList[i], (err) => {
+      if (err) res.sendStatus(400);
+      if (i === paramsList.length - 1) {
+        res.sendStatus(200);
+      }
+    });
+  }
+});
 
 router.post("/edit/single/:id", auth, (req, res) => {
   const params = [
@@ -170,41 +173,41 @@ router.post("/edit/single/:id", auth, (req, res) => {
       levels_id: req.body.levels_id,
     },
     req.params.id,
-  ]
+  ];
   con.query(updateLight, params, (err) => {
-    if (err) res.sendStatus(400) 
-    res.sendStatus(200)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.sendStatus(200);
+  });
+});
 
 router.post("/assign/:id", auth, (req, res) => {
-  const params = [req.body.levels_id, req.params.id]
+  const params = [req.body.levels_id, req.params.id];
   con.query(assignLight, params, (err) => {
-    if (err) res.sendStatus(400) 
-    res.sendStatus(200)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.sendStatus(200);
+  });
+});
 
 router.post("/move/:id", auth, (req, res) => {
-  const params = [req.body.levels_id, req.params.id]
+  const params = [req.body.levels_id, req.params.id];
   con.query(moveLight, params, (err) => {
-    if (err) res.sendStatus(400) 
-    res.sendStatus(200)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.sendStatus(200);
+  });
+});
 
 router.delete("/:id", auth, (req, res) => {
   con.query(deleteLight, req.params.id, (err) => {
-    if (err) res.sendStatus(400) 
-    res.sendStatus(200)
-  })
-})
+    if (err) res.sendStatus(400);
+    res.sendStatus(200);
+  });
+});
 
 router.get("/lastid", auth, (req, res) => {
   con.query(getLastLightId, (err, rows) => {
-    console.log(rows)
-    res.json(rows[0])
-  })
-})
+    console.log(rows);
+    res.json(rows[0]);
+  });
+});
 
-module.exports = router
+module.exports = router;
