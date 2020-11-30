@@ -27,8 +27,9 @@ const uploadCSV = async (filePath) => {
             rows.push(data)
         })
         .on("end", () => {
-            fs.unlinkSync(filePath)
-            resolve(rows)
+            //fs.unlinkSync(filePath)
+            const result = {file: filePath, columns: Object.keys(rows[0])}
+            resolve(result)
         })
         .on("error", err => reject(err.field))
     }) 
