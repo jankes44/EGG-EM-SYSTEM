@@ -71,6 +71,8 @@ class TrialTest extends Component {
     sites: [],
     clickedSite: null,
     testType: "Monthly",
+    resultBat: [],
+    resultLamp: [],
     devices: [],
     deviceColumns: [
       {
@@ -330,7 +332,6 @@ class TrialTest extends Component {
           return { textAlign: "center" };
         },
         formatter: (cellContent, row) => {
-          console.log(row, this.state.liveDevices);
           return (
             <div>
               {row.powercut === 0
@@ -346,14 +347,17 @@ class TrialTest extends Component {
         dataField: "bat",
         text: "Battery",
         formatter: (cellContent, row) => {
-          const result = row.result.length
-            ? Array.from(row.result).join(",")
-            : "";
+          console.log(row.has_sensors);
+          if (row.has_sensors) {
+            const result = row.result.length
+              ? Array.from(row.result).join(",")
+              : "";
 
-          if (result.includes("Battery fault")) {
-            return <span>Faulty</span>;
-          } else if (row.powercut !== 3) return <span>OK</span>;
-          else return null;
+            if (result.includes("Battery fault")) {
+              return <span>Faulty</span>;
+            } else if (row.powercut !== 3) return <span>OK</span>;
+            else return null;
+          } else return;
         },
       },
       {
@@ -498,7 +502,7 @@ class TrialTest extends Component {
       url: global.BASE_URL + "/mqtt/testinfo/" + user,
     }).then((res) => {
       if (res.data.length) {
-        console.log(res.data[0].hasAccess, res.data[0].isTest, res.data[1]);
+        // console.log(res.data[0].hasAccess, res.data[0].isTest, res.data[1]);
         if (res.data[0].hasAccess && !res.data[0].isTest) {
           this.setState({ step: 1 });
         }
@@ -588,11 +592,6 @@ class TrialTest extends Component {
         alert(err.response.data);
         this.setState({ errorMessage: err.response.data });
       });
-
-    // .catch((error) => {
-    //   console.log(error.response);
-    //   this.setState({ errorMessage: error.response.data });
-    // });
   };
 
   cutPowerSingle = (device) => {
@@ -685,6 +684,10 @@ class TrialTest extends Component {
         console.log(error.response);
         this.setState({ errorMessage: error.response.data });
       });
+  };
+
+  handleInputChange = (e) => {
+    this.setState({});
   };
 
   saveTest = () => {
@@ -893,6 +896,14 @@ class TrialTest extends Component {
           this.setState({ errorMessage: error.response.data });
         });
     }
+  };
+
+  handleChangeBatRes = (e) => {
+    this.setState({ resultBat: e.target.value });
+  };
+
+  handleChangeLampRes = (e) => {
+    this.setState({ resultLamp: e.target.value });
   };
 
   componentWillUnmount() {
