@@ -25,7 +25,6 @@ router.get("/generateReport/:test_id", auth, (req, res) => {
             lights.node_id,
             lights.device_id,
             lights.type,
-            lgt_groups.group_name,
             levels.level,
             buildings.building AS building,
             sites.name AS site_name
@@ -36,9 +35,7 @@ router.get("/generateReport/:test_id", auth, (req, res) => {
                 LEFT OUTER JOIN
             lights ON lights.id = trial_tests_has_lights.lights_id
                 LEFT OUTER JOIN
-            lgt_groups ON lgt_groups.id = lights.lgt_groups_id
-                LEFT OUTER JOIN
-            levels ON levels.id = lgt_groups.levels_id
+            levels ON levels.id = lights.levels_id
                 LEFT OUTER JOIN
             buildings ON buildings.id = levels.buildings_id
                 LEFT OUTER JOIN
@@ -57,7 +54,7 @@ router.get("/generateReport/:test_id", auth, (req, res) => {
           console.log(data);
           data.forEach((el) => {
             switch (el.device_response) {
-              case "Device OK":
+              case "OK":
                 noFault++;
                 break;
               case "Lamp Fault":
@@ -66,7 +63,7 @@ router.get("/generateReport/:test_id", auth, (req, res) => {
               case "Battery Fault":
                 battFault++;
                 break;
-              case "No connection to Mesh":
+              case "Weak connection to mesh":
                 noConnection++;
                 break;
             }
@@ -130,7 +127,6 @@ router.get("/generateOfficialReport/:test_id", auth, (req, res) => {
         lights.node_id,
         lights.device_id,
         lights.type,
-        lgt_groups.group_name,
         levels.level,
         buildings.building AS building,
         sites.name AS site_name
@@ -141,9 +137,7 @@ router.get("/generateOfficialReport/:test_id", auth, (req, res) => {
             LEFT OUTER JOIN
         lights ON lights.id = trial_tests_has_lights.lights_id
             LEFT OUTER JOIN
-        lgt_groups ON lgt_groups.id = lights.lgt_groups_id
-            LEFT OUTER JOIN
-        levels ON levels.id = lgt_groups.levels_id
+        levels ON levels.id = lights.levels_id
             LEFT OUTER JOIN
         buildings ON buildings.id = levels.buildings_id
             LEFT OUTER JOIN
@@ -162,7 +156,7 @@ router.get("/generateOfficialReport/:test_id", auth, (req, res) => {
           console.log(data);
           data.forEach((el) => {
             switch (el.device_response) {
-              case "Device OK":
+              case "OK":
                 noFault++;
                 break;
               case "Lamp Fault":
@@ -171,7 +165,7 @@ router.get("/generateOfficialReport/:test_id", auth, (req, res) => {
               case "Battery Fault":
                 battFault++;
                 break;
-              case "No response from BT module" || "No connection to Mesh":
+              case "Weak connection to mesh":
                 noConnection++;
                 break;
             }

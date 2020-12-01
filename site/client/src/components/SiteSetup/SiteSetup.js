@@ -12,6 +12,7 @@ import EditBuilding from "components/SiteSetup/EditBuilding";
 import DeviceEditable from "components/Data/DeviceTableEditable";
 import jwt_decode from "jwt-decode";
 import React from "react";
+import Sensors from "components/SiteSetup/Sensors";
 
 export default class SiteSetup extends React.Component {
   state = {
@@ -19,6 +20,7 @@ export default class SiteSetup extends React.Component {
     buildings: [],
     levels: [],
     devices: [],
+    sensors: [],
     siteName: "",
     stage: 1,
     backDisabled: true,
@@ -46,6 +48,8 @@ export default class SiteSetup extends React.Component {
         tabsDisabled: true,
         stage: 1,
         buildings: [],
+        levels: [],
+        devices: [],
       });
       this.callBuildings(site).then((res) => {
         this.setState({ clickedSite: site });
@@ -178,6 +182,20 @@ export default class SiteSetup extends React.Component {
     return data;
   };
 
+  callSensors = async (levelID) => {
+    const data = await axios.get(
+      global.BASE_URL + "/api/sensors/level/" + levelID,
+      {
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: "Bearer " + localStorage.usertoken,
+        },
+      }
+    );
+
+    return data;
+  };
+
   /* HANDLERS */
   handleClickBuilding = (event, rowData) => {
     const index = this.state.buildings.indexOf(rowData);
@@ -189,6 +207,7 @@ export default class SiteSetup extends React.Component {
       clickedBuildingDetails: row,
     });
     this.callLevels(row.buildings_id).then((res) => {
+      console.log(res);
       this.setState({ levels: res.data, backDisabled: false });
     });
   };
@@ -196,10 +215,19 @@ export default class SiteSetup extends React.Component {
   handleClickLevel = (event, rowData) => {
     const index = this.state.levels.indexOf(rowData);
     const row = this.state.levels[index];
-    this.setState({ stage: 3, clickedLevel: row.id, clickedLevelDetails: row });
+
     this.callDevices(row.id).then((res) => {
       console.log(res);
       this.setState({ devices: res.data, backDisabled: false });
+    });
+    this.callSensors(row.id).then((res) => {
+      console.log(res);
+      this.setState({ sensors: res.data });
+      this.setState({
+        stage: 3,
+        clickedLevel: row.id,
+        clickedLevelDetails: row,
+      });
     });
   };
 
@@ -207,7 +235,6 @@ export default class SiteSetup extends React.Component {
     console.log(newData, action);
     switch (action) {
       case "add":
-        console.log(newData);
         this.setState({ buildings: [...this.state.buildings, newData] });
         break;
 
@@ -222,17 +249,15 @@ export default class SiteSetup extends React.Component {
         const dataDelete = [...this.state.buildings];
         const indexDel = oldData.tableData.id;
         dataDelete.splice(indexDel, 1);
-        console.log(this.state.buildings[indexDel]);
         this.setState({ buildings: [...dataDelete] });
         break;
     }
+    this.refresh();
   };
 
   handleEditLevel = (newData, oldData, action) => {
-    console.log(newData, action);
     switch (action) {
       case "add":
-        console.log(newData);
         newData.buildings_id = this.state.clickedBuilding;
         this.setState({ levels: [...this.state.levels, newData] });
         break;
@@ -248,11 +273,73 @@ export default class SiteSetup extends React.Component {
         const dataDelete = [...this.state.levels];
         const indexDel = oldData.tableData.id;
         dataDelete.splice(indexDel, 1);
-        console.log(this.state.levels[indexDel]);
         this.setState({ levels: [...dataDelete] });
         break;
     }
+    this.refresh();
   };
+
+  handleEditDevice = (newData, oldData, action) => {
+    switch (action) {
+      case "add":
+        newData.levels_id = this.state.clickedLevel;
+        this.setState({ devices: [...this.state.devices, newData] });
+        break;
+
+      case "update":
+        const dataUpdate = [...this.state.devices];
+        const index = oldData.tableData.id;
+        dataUpdate[index] = newData;
+        this.setState({ devices: [...dataUpdate] });
+        break;
+
+      case "delete":
+        const dataDelete = [...this.state.devices];
+        const indexDel = oldData.tableData.id;
+        dataDelete.splice(indexDel, 1);
+        this.setState({ devices: [...dataDelete] });
+        break;
+    }
+    this.refresh();
+  };
+
+  handleEditSensor = (newData, oldData, action) => {
+    switch (action) {
+      case "add":
+        this.setState({ sensors: [...this.state.sensors, newData] });
+        break;
+
+      case "update":
+        const dataUpdate = [...this.state.sensors];
+        const index = oldData.tableData.id;
+        dataUpdate[index] = newData;
+        this.setState({ sensors: [...dataUpdate] });
+        break;
+
+      case "delete":
+        const dataDelete = [...this.state.sensors];
+        const indexDel = oldData.tableData.id;
+        dataDelete.splice(indexDel, 1);
+        this.setState({ sensors: [...dataDelete] });
+        break;
+    }
+    this.refresh();
+  };
+
+  bulkEditDevices = (changes) => {
+    const updateData = Object.keys(changes).map((i) => changes[i]);
+    console.log(updateData);
+    const dataUpdate = [...this.state.devices];
+
+    updateData.forEach((el) => {
+      const index = el.newData.tableData.id;
+      dataUpdate[index] = el.newData;
+    });
+    this.setState({ devices: [...dataUpdate] });
+    this.refresh();
+  };
+
+  handleAddEmptyDevices = () => {};
 
   // handleEditLevel = (levelID, colName, newValue) => {
   //   axios({
@@ -280,18 +367,15 @@ export default class SiteSetup extends React.Component {
     let promise = new Promise((resolve, reject) => {
       this.callSites().then((res) => {
         const sites_id = res.data[0].sites_id;
-        console.log(res);
         this.setState({
           sites: res.data,
           clickedSite: sites_id,
           siteName: res.data[0].name,
         });
         this.callBuildings(sites_id).then((res) => {
-          console.log(res);
           this.setState({ buildings: res.data });
         });
         this.callLevels(this.state.clickedBuilding).then((res) => {
-          console.log(res.data);
           this.setState({
             levels: res.data,
           });
@@ -440,18 +524,17 @@ export default class SiteSetup extends React.Component {
           {/* TABS */}
           <GridItem xs={12}>
             {stage > 1 ? (
-              <div>
+              <div style={{ margin: "20px" }}>
                 <EditBuilding building={this.state.clickedBuildingDetails} />
 
                 {stage > 2 ? (
-                  <h5>Level {this.state.clickedLevelDetails.level}</h5>
-                ) : (
-                  <div style={{ height: "50px" }}></div>
-                )}
+                  <div>
+                    <h5>Level {this.state.clickedLevelDetails.level}</h5>
+                    <h6>{this.state.clickedLevelDetails.description}</h6>
+                  </div>
+                ) : null}
               </div>
-            ) : (
-              <div style={{ height: "50px" }}></div>
-            )}
+            ) : null}
           </GridItem>
         </GridContainer>
         {/* BACK BUTTON */}
@@ -490,17 +573,9 @@ export default class SiteSetup extends React.Component {
               handleClickBuilding={this.handleClickBuilding}
               clickedBuilding={clickedBuilding}
               handleEditBuilding={this.handleEditBuilding}
+              clickedSite={clickedSite}
+              editable
             />
-            {createNewBuilding ? (
-              <div style={{ marginLeft: "15px", marginRight: "15px" }}>
-                <NewBuilding
-                  setBuildingName={this.setBuildingName}
-                  clickedSite={clickedSite}
-                  saveNewBuilding={this.saveNewBuilding}
-                  setBuildingAddress={this.setBuildingAddress}
-                />
-              </div>
-            ) : null}
           </GridItem>
         ) : null}
         {stage === 2 ? (
@@ -511,22 +586,33 @@ export default class SiteSetup extends React.Component {
               handleClickLevel={this.handleClickLevel}
               clickedLevel={clickedLevel}
               handleEditLevel={this.handleEditLevel}
+              clickedBuilding={clickedBuilding}
+              editable
             />
-            {createNewLevel ? (
-              <div style={{ marginLeft: "15px", marginRight: "15px" }}>
-                <NewLevel
-                  setLevelName={this.setLevelName}
-                  clickedBuilding={clickedBuilding}
-                  saveNewLevel={this.saveNewLevel}
-                />
-              </div>
-            ) : null}
           </GridItem>
         ) : null}
         {stage === 3 ? (
-          <GridItem xs={12}>
-            <Devices devices={this.state.devices} />{" "}
-          </GridItem>
+          <div>
+            <GridItem xs={12}>
+              <Devices
+                devices={this.state.devices}
+                addEmpty={this.addEmpty}
+                bulkEditDevices={this.bulkEditDevices}
+                handleEditDevice={this.handleEditDevice}
+                clickedLevel={clickedLevel}
+                editable
+              />
+            </GridItem>
+            <GridItem xs={12}>
+              <Sensors
+                devices={this.state.sensors}
+                bulkEditDevices={this.bulkEditDevices}
+                handleEditSensor={this.handleEditSensor}
+                clickedLevel={clickedLevel}
+                editable
+              />
+            </GridItem>
+          </div>
         ) : null}
       </div>
     );

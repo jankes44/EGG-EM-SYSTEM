@@ -15,7 +15,8 @@ import AdminPage from "views/Admin/AdminPage";
 import SocketDevTest from "views/SocketDevTest/SocketDevTest";
 import LiveEmStatus from "views/LiveEmStatus/LiveEmStatus";
 import SiteSetup from "views/SiteSetup/SiteSetup";
-import SiteSetup2 from "views/SiteSetup2/SiteSetup";
+import Energy from "views/Energy/Energy";
+import SiteTest from "views/TrialTest/TrialTest";
 
 const dashboardRoutes = [
   {
@@ -25,6 +26,7 @@ const dashboardRoutes = [
     component: LiveEmStatus,
     layout: "/admin",
     access: 1,
+    hidden: false,
   },
   // {
   //   path: "/site-management",
@@ -41,15 +43,17 @@ const dashboardRoutes = [
     component: Test,
     layout: "/admin",
     access: 1,
+    hidden: false,
   },
-  // {
-  //   path: "/test",
-  //   name: "Test History",
-  //   icon: "content_paste",
-  //   component: Test,
-  //   layout: "/admin",
-  //   access: 1,
-  // },
+  {
+    path: "/test",
+    name: "Site Test",
+    icon: "developer_mode",
+    component: SiteTest,
+    layout: "/admin",
+    access: 3,
+    hidden: true,
+  },
   // {
   //   path: "/configuration",
   //   name: "Test configuration",
@@ -58,12 +62,22 @@ const dashboardRoutes = [
   //   layout: "/admin",
   // },
   {
-    path: "/trialtest",
+    path: "/site-setup",
     name: "Site Setup",
     icon: "settings_applications",
     component: SiteSetup,
     layout: "/admin",
     access: 2,
+    hidden: false,
+  },
+  {
+    path: "/energy",
+    name: "Energy",
+    icon: "eco",
+    component: Energy,
+    layout: "/admin",
+    access: 2,
+    hidden: false,
   },
   {
     path: "/profile",
@@ -72,6 +86,7 @@ const dashboardRoutes = [
     component: UserProfile,
     layout: "/admin",
     access: 1,
+    hidden: false,
   },
   {
     path: "/administration",
@@ -80,6 +95,7 @@ const dashboardRoutes = [
     component: AdminPage,
     layout: "/admin",
     access: 3,
+    hidden: false,
   },
   {
     path: "/socket-dev-test",
@@ -88,6 +104,7 @@ const dashboardRoutes = [
     component: SocketDevTest,
     layout: "/admin",
     access: 99,
+    hidden: false,
   },
   {
     path: "/developer",
@@ -96,6 +113,7 @@ const dashboardRoutes = [
     component: Developer,
     layout: "/admin",
     access: 99,
+    hidden: false,
   },
 ];
 

@@ -36,9 +36,7 @@ router.get("/", auth, (req, res) =>
                 LEFT OUTER JOIN
             levels ON levels.buildings_id = buildings.id
                 LEFT OUTER JOIN
-            lgt_groups ON lgt_groups.levels_id = levels.id
-                LEFT OUTER JOIN
-            lights ON lights.lgt_groups_id = lgt_groups.id
+            lights ON lights.levels_id = levels.id
         WHERE s.id = ${req.params.sites_id}
         GROUP BY buildings.id, levels.id
         `,
@@ -68,9 +66,7 @@ router.get("/", auth, (req, res) =>
                 LEFT OUTER JOIN
             levels ON levels.buildings_id = buildings.id
                 LEFT OUTER JOIN
-            lgt_groups ON lgt_groups.levels_id = levels.id
-                LEFT OUTER JOIN
-            lights ON lights.lgt_groups_id = lgt_groups.id
+            lights ON lights.levels_id = levels.id
         WHERE s.id = ${req.params.sites_id}
         GROUP BY buildings.id
         `,
@@ -98,15 +94,7 @@ router.get("/", auth, (req, res) =>
               if (counter < length) {
                 con.query(
                   "INSERT INTO levels SET level = ?, buildings_id = ?",
-                  [counter, results.insertId],
-                  (err, results) => {
-                    if (err) throw err;
-                    con.query("INSERT INTO lgt_groups SET levels_id=?", [
-                      results.insertId,
-                    ]);
-                    counter++;
-                    loop();
-                  }
+                  [counter, results.insertId]
                 );
               } else {
                 res.status(200).send("Building created");
@@ -127,18 +115,18 @@ router.post("/new-empty", auth, function (req, res) {
     } else {
       con.query(
         "INSERT INTO buildings SET building = ?, address = ?, sites_id = ?",
-        [req.body.building_name, req.body.address, req.body.sites_id],
-        function (error, results, fields) {
+        [req.body.building, req.body.address, req.body.sites_id],
+        function (error, resultsbldng, fields) {
           if (error) throw error;
           con.query(
             "INSERT INTO levels SET level = '1', buildings_id = ?",
-            [results.insertId],
-            (err, results) => {
+            [resultsbldng.insertId],
+            (err, resultslvls) => {
               if (err) throw err;
               con.query(
-                "INSERT INTO lgt_groups SET levels_id=?",
-                [results.insertId],
-                (err, results) => res.end(JSON.stringify(results))
+                "INSERT INTO lights SET levels_id=?",
+                [resultslvls.insertId],
+                (err, resultsdevices) => res.end(JSON.stringify(resultsdevices))
               );
             }
           );
@@ -154,25 +142,14 @@ router.post("/:id", auth, function (req, res) {
     if (err) {
       res.sendStatus(403);
     } else {
-      if (req.body.description) {
-        con.query(
-          "UPDATE `buildings` SET `group_name`=?, `description`=? where `id`=(?)",
-          [req.body.group_name, req.body.description, req.params.id],
-          function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-          }
-        );
-      } else {
-        con.query(
-          "UPDATE `buildings` SET `group_name`=? where `id`=(?)",
-          [req.body.group_name, req.params.id],
-          function (error, results, fields) {
-            if (error) throw error;
-            res.end(JSON.stringify(results));
-          }
-        );
-      }
+      con.query(
+        "UPDATE `buildings` SET `building`=?, `address`=? where `id`=(?)",
+        [req.body.building, req.body.address, req.params.id],
+        function (error, results, fields) {
+          if (error) throw error;
+          res.end(JSON.stringify(results));
+        }
+      );
     }
   });
 });
@@ -183,7 +160,6 @@ router.delete("/:id", auth, function (req, res) {
     if (err) {
       res.sendStatus(403);
     } else {
-      console.log(req.body);
       con.query(
         "DELETE FROM `buildings` WHERE `id`=?",
         [req.params.id],

@@ -58,13 +58,13 @@ export default function LiveFloorPlan(props) {
   return (
     <div style={{ overflowX: "scroll", width: "75vw" }}>
       <Typography variant="h4" gutterBottom>
-        {props.liveDevices[0].level} level
+        Level {props.liveDevices[0].level}
       </Typography>
       <div
         // src={this.state.objectURL}
         style={{
-          height: "550px",
-          width: "1200px",
+          height: "700px",
+          width: "1000px",
           border: "1pt solid black",
           backgroundRepeat: "no-repeat",
           backgroundSize: "contain",
@@ -75,7 +75,6 @@ export default function LiveFloorPlan(props) {
         {props.liveDevices.length > 0
           ? props.liveDevices.map((el) => {
               var color;
-
               if (el.powercut === 1 || el.powercut === 2) {
                 color = "primary";
               }
@@ -148,11 +147,34 @@ export default function LiveFloorPlan(props) {
                         ) : null}
                         {el.powercut === 3 ? (
                           <Typography className={classes.typography}>
-                            No response
+                            Connection problem
                           </Typography>
                         ) : null}
                       </div>
-
+                      <div>
+                        {el.sensors ? (
+                          el.sensors.map((s, index) => (
+                            <span key={index}>
+                              <Typography className={classes.typography}>
+                                {s.type}:{" "}
+                                {s.reading !== "undefined" ||
+                                  s.voltage !== "undefined"}
+                                {s.reading ? s.reading : s.voltage}
+                                {/* {typeof s.reading !== "undefined" ||
+                                typeof s.voltage !== "undefined"
+                                  ? s.reading
+                                    ? `${s.type}: ${s.reading}`
+                                    : `${s.type}: ${s.voltage}v`
+                                  : null} */}
+                              </Typography>
+                            </span>
+                          ))
+                        ) : (
+                          <Typography className={classes.typography}>
+                            No sensors - manual
+                          </Typography>
+                        )}
+                      </div>
                       <div>
                         {el.duration === 0 ? (
                           <Typography className={classes.typography}>
