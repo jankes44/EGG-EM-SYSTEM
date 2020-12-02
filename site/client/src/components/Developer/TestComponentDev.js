@@ -1,7 +1,7 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
-import { Type } from "react-bootstrap-table2-editor";
+import {Type} from "react-bootstrap-table2-editor";
 import BootstrapTable from "react-bootstrap-table-next";
 import Icon from "@material-ui/core/Icon";
 import moment from "moment";
@@ -22,6 +22,7 @@ import GridContainer from "components/Grid/GridContainer";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import TextField from "@material-ui/core/TextField";
+import ManualCommand from "components/Developer/ManualCommand";
 
 const styles = {
   root: {
@@ -41,7 +42,7 @@ const styles = {
 const NoDataIndication = () => (
   <div
     className="spinner-grow text-info"
-    style={{ width: "6rem", height: "6rem" }}
+    style={{width: "6rem", height: "6rem"}}
   ></div>
 );
 
@@ -95,9 +96,9 @@ class TrialTest extends Component {
         editor: {
           type: Type.SELECT,
           options: [
-            { value: "EX-58", label: "EX-58" },
-            { value: "SA-25E", label: "SA-25E" },
-            { value: "F-51E", label: "F-51E" },
+            {value: "EX-58", label: "EX-58"},
+            {value: "SA-25E", label: "SA-25E"},
+            {value: "F-51E", label: "F-51E"},
           ],
         },
       },
@@ -112,7 +113,7 @@ class TrialTest extends Component {
         sort: true,
         editor: {
           type: Type.SELECT,
-          getOptions: (setOptions, { row, column }) => {
+          getOptions: (setOptions, {row, column}) => {
             return this.state.selectOptions;
           },
         },
@@ -127,7 +128,7 @@ class TrialTest extends Component {
         hidden: true,
         editor: {
           type: Type.SELECT,
-          getOptions: (setOptions, { row, column }) => {
+          getOptions: (setOptions, {row, column}) => {
             return this.state.selectOptions;
           },
         },
@@ -139,7 +140,7 @@ class TrialTest extends Component {
         hidden: true,
         editor: {
           type: Type.SELECT,
-          getOptions: (setOptions, { row, column }) => {
+          getOptions: (setOptions, {row, column}) => {
             return this.state.selectOptions;
           },
         },
@@ -182,9 +183,9 @@ class TrialTest extends Component {
         editor: {
           type: Type.SELECT,
           options: [
-            { value: "EX-58", label: "EX-58" },
-            { value: "SA-25E", label: "SA-25E" },
-            { value: "F-51E", label: "F-51E" },
+            {value: "EX-58", label: "EX-58"},
+            {value: "SA-25E", label: "SA-25E"},
+            {value: "F-51E", label: "F-51E"},
           ],
         },
       },
@@ -194,7 +195,7 @@ class TrialTest extends Component {
         sort: true,
         editor: {
           type: Type.SELECT,
-          getOptions: (setOptions, { row, column }) => {
+          getOptions: (setOptions, {row, column}) => {
             return this.state.selectOptions;
           },
         },
@@ -209,7 +210,7 @@ class TrialTest extends Component {
         hidden: true,
         editor: {
           type: Type.SELECT,
-          getOptions: (setOptions, { row, column }) => {
+          getOptions: (setOptions, {row, column}) => {
             return this.state.selectOptions;
           },
         },
@@ -221,7 +222,7 @@ class TrialTest extends Component {
         hidden: true,
         editor: {
           type: Type.SELECT,
-          getOptions: (setOptions, { row, column }) => {
+          getOptions: (setOptions, {row, column}) => {
             return this.state.selectOptions;
           },
         },
@@ -294,7 +295,7 @@ class TrialTest extends Component {
         sort: true,
         editable: false,
         headerStyle: (colum, colIndex) => {
-          return { width: "100px" };
+          return {width: "100px"};
         },
       },
       {
@@ -315,7 +316,7 @@ class TrialTest extends Component {
         editable: false,
         align: "center",
         headerStyle: (colum, colIndex) => {
-          return { width: "160px", textAlign: "center" };
+          return {width: "160px", textAlign: "center"};
         },
         formatter: (cellContent, row, rowIndex) => {
           if (row.powercut === 0) return <span>Awaiting Start</span>;
@@ -334,7 +335,7 @@ class TrialTest extends Component {
             return <div>Awaiting review</div>;
           }
           if (row.powercut === 2) {
-            return <span style={{ textAlign: "center" }}>Power back on</span>;
+            return <span style={{textAlign: "center"}}>Power back on</span>;
           }
           if (row.powercut === 3) {
             return <span>No connection to Mesh</span>;
@@ -372,7 +373,7 @@ class TrialTest extends Component {
           ],
         },
         headerStyle: (colum, colIndex) => {
-          return { width: "250px", textAlign: "center" };
+          return {width: "250px", textAlign: "center"};
         },
         formatter: (cellContent, row) => {
           if (cellContent === "") {
@@ -437,7 +438,7 @@ class TrialTest extends Component {
             this.setState({
               liveDevices: res.data[1].devices,
             });
-          } else this.setState({ liveDevices: [] });
+          } else this.setState({liveDevices: []});
         });
         var userInput = this.state.liveDevices.every((el) => {
           if (el.userInput !== "") return true;
@@ -445,24 +446,24 @@ class TrialTest extends Component {
         });
 
         if (userInput && this.state.testData.finish_clicked === 0) {
-          this.setState({ disabledFinish: false });
-        } else this.setState({ disabledFinish: true });
+          this.setState({disabledFinish: false});
+        } else this.setState({disabledFinish: true});
 
         if (
           this.state.testData.abort_clicked === 1 ||
           this.state.finishClicked
         ) {
-          this.setState({ disabledAbort: true });
+          this.setState({disabledAbort: true});
         } else if (
           this.state.testData.abort_clicked === 0 &&
           !this.state.abortClicked
         ) {
-          this.setState({ disabledAbort: false });
+          this.setState({disabledAbort: false});
         }
 
         if (this.state.testData.cut_all_clicked === 1) {
-          this.setState({ disabledStartAll: true });
-        } else this.setState({ disabledStartAll: false });
+          this.setState({disabledStartAll: true});
+        } else this.setState({disabledStartAll: false});
       } else clearInterval(this.timer);
     }, 1000);
   };
@@ -484,14 +485,14 @@ class TrialTest extends Component {
       if (res.data.length) {
         console.log(res.data[0].hasAccess, res.data[0].isTest, res.data[1]);
         if (res.data[0].hasAccess && !res.data[0].isTest) {
-          this.setState({ step: 1 });
+          this.setState({step: 1});
         }
         if (res.data[0].hasAccess && res.data[0].isTest) {
-          this.setState({ step: 3 });
+          this.setState({step: 3});
           this.testInfo(user);
         }
         if (!res.data[0].hasAccess && res.data[0].isTest) {
-          this.setState({ step: 20 });
+          this.setState({step: 20});
         }
         if (res.data) {
           if (res.data[1].length > 0) {
@@ -531,7 +532,7 @@ class TrialTest extends Component {
       },
       url: global.BASE_URL + "/api/lights/" + user,
     }).then((res) => {
-      this.setState({ devices: res.data });
+      this.setState({devices: res.data});
     });
     this.callSites();
   }
@@ -570,7 +571,7 @@ class TrialTest extends Component {
       })
       .catch((err) => {
         alert(err.response.data);
-        this.setState({ errorMessage: err.response.data });
+        this.setState({errorMessage: err.response.data});
       });
 
     // .catch((error) => {
@@ -601,11 +602,11 @@ class TrialTest extends Component {
       timeout: 0,
     })
       .then((res) => {
-        this.setState({ message: res.data, step: 3 });
+        this.setState({message: res.data, step: 3});
       })
       .catch((error) => {
         console.log(error.response);
-        this.setState({ errorMessage: error.response.data });
+        this.setState({errorMessage: error.response.data});
       });
   };
 
@@ -636,11 +637,11 @@ class TrialTest extends Component {
       timeout: 0,
     })
       .then((res) => {
-        this.setState({ message: res.data, step: 3 });
+        this.setState({message: res.data, step: 3});
       })
       .catch((error) => {
         console.log(error.response);
-        this.setState({ errorMessage: error.response.data });
+        this.setState({errorMessage: error.response.data});
       });
   };
 
@@ -668,7 +669,7 @@ class TrialTest extends Component {
       })
       .catch((error) => {
         console.log(error.response);
-        this.setState({ errorMessage: error.response.data });
+        this.setState({errorMessage: error.response.data});
       });
   };
 
@@ -691,11 +692,11 @@ class TrialTest extends Component {
       },
       url: global.BASE_URL + "/mqtt/savetest/" + this.state.testid,
       timeout: 0,
-      data: { user: user, topic: topic },
+      data: {user: user, topic: topic},
     })
       .then((res) => {
-        this.setState({ message: res.data, step: 4, disabledBackBtn: false });
-        this.setState({ selectedDevicesLive: [], selectedDevices: [] });
+        this.setState({message: res.data, step: 4, disabledBackBtn: false});
+        this.setState({selectedDevicesLive: [], selectedDevices: []});
         axios({
           //Axios GET request
           method: "get",
@@ -717,7 +718,7 @@ class TrialTest extends Component {
       })
       .catch((error) => {
         console.log(error.response);
-        this.setState({ errorMessage: error.response.data });
+        this.setState({errorMessage: error.response.data});
       });
   };
 
@@ -742,11 +743,11 @@ class TrialTest extends Component {
         },
         url: global.BASE_URL + "/mqtt/aborttest/" + this.state.testid,
         timeout: 0,
-        data: { user: user, topic: topic },
+        data: {user: user, topic: topic},
       })
         .then((res) => {
           console.log(res);
-          this.setState({ selectedDevicesLive: [], selectedDevices: [] });
+          this.setState({selectedDevicesLive: [], selectedDevices: []});
           axios({
             //Axios GET request
             method: "get",
@@ -761,18 +762,18 @@ class TrialTest extends Component {
               testFinished: true,
             });
           });
-          this.setState({ message: res.data, step: 4, disabledBackBtn: false });
+          this.setState({message: res.data, step: 4, disabledBackBtn: false});
         })
         .catch((error) => {
           console.log(error.response);
-          this.setState({ errorMessage: error.response.data });
+          this.setState({errorMessage: error.response.data});
         });
     }
   };
 
   goToStepTwo = () => {
     if (this.state.selectedDevices.length) {
-      this.setState({ step: 2, errorMessage: "", disabledBackBtn: false });
+      this.setState({step: 2, errorMessage: "", disabledBackBtn: false});
     } else alert("You have to select devices to proceed");
   };
 
@@ -788,7 +789,7 @@ class TrialTest extends Component {
         url: global.BASE_URL + "/mqtt/dev/relay/on",
         data: {
           devices: this.state.deviceManual,
-          siteId: this.state.clickedSite
+          siteId: this.state.clickedSite,
         },
         timeout: 0,
       })
@@ -801,7 +802,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -819,7 +820,7 @@ class TrialTest extends Component {
           url: global.BASE_URL + "/mqtt/dev/relay/on",
           data: {
             devices: this.state.selectedDevices,
-            site: this.state.clickedSite
+            site: this.state.clickedSite,
           },
           timeout: 0,
         })
@@ -858,7 +859,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -915,7 +916,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -947,7 +948,7 @@ class TrialTest extends Component {
                 ],
               });
             }
-            this.setState({ responses: [...this.state.responses, res.data] });
+            this.setState({responses: [...this.state.responses, res.data]});
             console.log(res);
           })
           .catch((error) => {
@@ -982,7 +983,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -1031,7 +1032,7 @@ class TrialTest extends Component {
       })
         .then((res) => {
           console.log(res);
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
         })
         .catch((error) => {
           console.log(error);
@@ -1052,7 +1053,7 @@ class TrialTest extends Component {
       })
         .then((res) => {
           console.log(res);
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
         })
         .catch((error) => {
           console.log(error);
@@ -1085,7 +1086,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -1142,7 +1143,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -1199,7 +1200,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -1222,7 +1223,7 @@ class TrialTest extends Component {
           timeout: 0,
         })
           .then((res) => {
-            this.setState({ responses: [...this.state.responses, res.data] });
+            this.setState({responses: [...this.state.responses, res.data]});
             console.log(res);
           })
           .catch((error) => {
@@ -1257,7 +1258,7 @@ class TrialTest extends Component {
               ],
             });
           }
-          this.setState({ responses: [...this.state.responses, res.data] });
+          this.setState({responses: [...this.state.responses, res.data]});
           console.log(res);
         })
         .catch((error) => {
@@ -1280,7 +1281,7 @@ class TrialTest extends Component {
           timeout: 0,
         })
           .then((res) => {
-            this.setState({ responses: [...this.state.responses, res.data] });
+            this.setState({responses: [...this.state.responses, res.data]});
             console.log(res);
           })
           .catch((error) => {
@@ -1297,7 +1298,7 @@ class TrialTest extends Component {
       },
       () => {
         if (this.state.selectedAction !== "") {
-          this.setState({ disabledApply: false });
+          this.setState({disabledApply: false});
         }
       }
     );
@@ -1343,7 +1344,7 @@ class TrialTest extends Component {
   handleChangeSite = (event, site) => {
     if (this.state.sites.find((x) => x.sites_id === site)) {
       setTimeout(() => {
-        this.setState({ step: 1 });
+        this.setState({step: 1});
       }, 1);
       this.setState({
         step: 50,
@@ -1382,11 +1383,11 @@ class TrialTest extends Component {
       })
         .then((res) => {
           console.log(res);
-          this.setState({ selectedDevicesLive: [] });
+          this.setState({selectedDevicesLive: []});
         })
         .catch((error) => {
           console.log(error.response);
-          this.setState({ errorMessage: error.response.data });
+          this.setState({errorMessage: error.response.data});
         });
     }
   };
@@ -1396,7 +1397,7 @@ class TrialTest extends Component {
   }
 
   clearSelected = () => {
-    this.setState({ selectedDevices: [] });
+    this.setState({selectedDevices: []});
   };
 
   render() {
@@ -1421,10 +1422,10 @@ class TrialTest extends Component {
       },
       onSelectAll: (isSelect, rows, e) => {
         if (isSelect) {
-          this.setState({ selectedDevices: rows });
+          this.setState({selectedDevices: rows});
         }
         if (!isSelect) {
-          this.setState({ selectedDevices: [] });
+          this.setState({selectedDevices: []});
         }
       },
     };
@@ -1451,10 +1452,10 @@ class TrialTest extends Component {
       },
       onSelectAll: (isSelect, rows, e) => {
         if (isSelect) {
-          this.setState({ selectedDevicesLive: rows });
+          this.setState({selectedDevicesLive: rows});
         }
         if (!isSelect) {
-          this.setState({ selectedDevicesLive: [] });
+          this.setState({selectedDevicesLive: []});
         }
       },
     };
@@ -1512,7 +1513,7 @@ class TrialTest extends Component {
       this.userInput(row.id, newValue);
     };
 
-    const { classes } = this.props;
+    const {classes} = this.props;
 
     return (
       <div>
@@ -1535,16 +1536,16 @@ class TrialTest extends Component {
                 ))}
               </Tabs>
             ) : (
-              <h1 style={{ color: "gray" }}>No sites</h1>
+              <h1 style={{color: "gray"}}>No sites</h1>
             )}
           </GridItem>
         </GridContainer>
         {this.state.step === 1 ? (
           <Fab
-            style={{ marginBottom: "15px" }}
+            style={{marginBottom: "15px"}}
             onClick={() => {
-              this.setState({ step: this.state.step - 1 });
-              if (this.state.step < 3) this.setState({ selectedDevices: [] });
+              this.setState({step: this.state.step - 1});
+              if (this.state.step < 3) this.setState({selectedDevices: []});
             }}
             disabled={true}
           >
@@ -1556,9 +1557,9 @@ class TrialTest extends Component {
             color="primary"
             disabled={this.state.disabledBackBtn}
             onClick={() => {
-              this.setState({ step: this.state.step - 1 });
-              if (this.state.step < 3) this.setState({ selectedDevices: [] });
-              if (this.state.step === 4) this.setState({ step: 1 });
+              this.setState({step: this.state.step - 1});
+              if (this.state.step < 3) this.setState({selectedDevices: []});
+              if (this.state.step === 4) this.setState({step: 1});
             }}
           >
             <Icon>arrow_back</Icon>
@@ -1613,7 +1614,7 @@ class TrialTest extends Component {
             >
               app/relay
             </button>
-            <div style={{ marginLeft: "10px" }}>
+            <div style={{marginLeft: "10px"}}>
               <TextField
                 id="standard-basic"
                 label="Node address"
@@ -1624,31 +1625,30 @@ class TrialTest extends Component {
                     node_id: nodeAddress,
                     light_node_id: nodeAddress,
                   };
-                  if (e.target.value === "")
-                    this.setState({ deviceManual: [] });
+                  if (e.target.value === "") this.setState({deviceManual: []});
                   this.setState({
                     deviceManual: [device],
                   });
                 }}
               />
               <input
-                style={{ float: "left" }}
+                style={{float: "left"}}
                 type="checkbox"
                 checked={this.state.textInput}
                 onChange={() =>
-                  this.setState({ textInput: !this.state.textInput })
+                  this.setState({textInput: !this.state.textInput})
                 }
               />
               {this.state.deviceManual.length ? (
                 <h6>{this.state.deviceManual[0].mqtt_topic_out}</h6>
               ) : null}
             </div>
-            <div style={{ backgroundColor: "whitesmoke" }}>
+            <div style={{backgroundColor: "whitesmoke"}}>
               {this.state.responses.map((el, index) => (
                 <h6 key={index}>{`${el} `}</h6>
               ))}
             </div>
-            <button onClick={() => this.setState({ responses: [] })}>
+            <button onClick={() => this.setState({responses: []})}>
               Clear
             </button>
             {this.state.gwMessage ? <h5>{this.state.gwMessage}</h5> : null}
@@ -1656,7 +1656,7 @@ class TrialTest extends Component {
             <Button
               variant="contained"
               color="primary"
-              style={{ float: "right" }}
+              style={{float: "right"}}
               onClick={this.goToStepTwo}
             >
               Next
@@ -1684,7 +1684,7 @@ class TrialTest extends Component {
             <Button
               variant="contained"
               color="primary"
-              style={{ float: "right" }}
+              style={{float: "right"}}
               onClick={this.handleStart}
             >
               Next
@@ -1701,7 +1701,7 @@ class TrialTest extends Component {
               {this.state.errorMessage}
             </Typography>
 
-            <div style={{ float: "right" }}>
+            <div style={{float: "right"}}>
               <Button
                 disabled={this.state.disabledStartAll}
                 color="primary"
@@ -1741,7 +1741,7 @@ class TrialTest extends Component {
             />
             <InputLabel>Actions</InputLabel>
             <Select
-              style={{ minWidth: "200px" }}
+              style={{minWidth: "200px"}}
               onChange={this.handleSelect}
               value={this.state.selectedAction}
             >
@@ -1785,6 +1785,7 @@ class TrialTest extends Component {
             ) : null}
           </div>
         ) : null}
+        <ManualCommand clickedSite={this.state.clickedSite} />
       </div>
     );
   }

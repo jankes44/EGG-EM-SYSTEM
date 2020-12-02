@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import axios from "axios";
 
 export default class ManualCommand extends Component {
@@ -18,13 +18,13 @@ export default class ManualCommand extends Component {
       url: global.BASE_URL + "/mqtt/dev/manual/cmd",
       data: {
         command: this.state.command,
-        topic: global.SEND_TOPIC,
+        site: this.props.clickedSite,
       },
       timeout: 0,
     })
       .then((res) => {
         console.log(res);
-        this.setState({ messages: [...this.state.messages, res.data.message] });
+        this.setState({messages: [...this.state.messages, res.data.message]});
       })
       .catch((error) => {
         console.log(error);
@@ -32,7 +32,7 @@ export default class ManualCommand extends Component {
   };
 
   inputOnChange = (e) => {
-    this.setState({ command: e.target.value });
+    this.setState({command: e.target.value});
   };
 
   render() {

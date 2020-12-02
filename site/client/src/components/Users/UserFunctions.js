@@ -27,7 +27,7 @@ export const login = (user) => {
     })
     .catch((err) => {
       if (err.response) {
-        loginVar = err.response.data;
+        loginVar = err.response.data.error.name;
         console.log(err.response);
       } else loginVar = "Server not responding, check your connection";
     });

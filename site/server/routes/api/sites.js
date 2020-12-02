@@ -6,7 +6,7 @@ const mysql = require("mysql");
 const auth = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../../database/db2");
-const { query } = require("express");
+const {query} = require("express");
 
 const usersSites = `SELECT 
                     sites.id AS sites_id,
@@ -40,16 +40,16 @@ const deleteSite = "DELETE FROM `sites` WHERE `id`=?";
 //get site by param: users_id
 router.get("/:id", auth, (req, res) => {
   con.query(usersSites, req.params.id, (err, rows) => {
-    if (err) res.send(400)
-    res.json(rows);
-  })
-})
-  
+    if (err) res.sendStatus(400);
+    else res.json(rows);
+  });
+});
+
 // Delete chosen light
 router.delete("/revoke/:uid/:sid", auth, function (req, res) {
   con.query(revokeAccess, [req.params.uid, req.params.sid], (err) => {
-    if (err) res.sendStatus(400)
-    res.sendStatus(200)
+    if (err) res.sendStatus(400);
+    else res.sendStatus(200);
   });
 });
 
@@ -62,38 +62,35 @@ router.post("/", auth, (req, res) => {
     req.body.description,
   ];
   con.query(insertSite, postData, (err) => {
-    if (err) res.sendStatus(400)
-    res.sendStatus(200);
-  });    
+    if (err) res.sendStatus(400);
+    else res.sendStatus(200);
+  });
 });
-
 
 // Update chosen site
 router.post("/:id", auth, function (req, res) {
-  let query_, params 
+  let query_, params;
 
   if (req.body.description) {
-    query = updateSite
-    params = [req.body.group_name, req.body.description, req.params.id]
-  }
-  else {
-    query =  updateSiteNoDesc
-    params = [req.body.group_name, req.params.id]
+    query = updateSite;
+    params = [req.body.group_name, req.body.description, req.params.id];
+  } else {
+    query = updateSiteNoDesc;
+    params = [req.body.group_name, req.params.id];
   }
   con.query(query_, params, (err) => {
-    if (err) res.sendStatus(400)
-    res.sendStatus(200)
-  })
-})
+    if (err) res.sendStatus(400);
+    else res.sendStatus(200);
+  });
+});
 
 // Delete chosen site
 router.delete("/:id", auth, function (req, res) {
   console.log(req.body);
   con.query(deleteSite, req.params.id, (err) => {
-    if (err) res.sendStatus(400)
-    res.sendStatus(200);
+    if (err) res.sendStatus(400);
+    else res.sendStatus(200);
   });
 });
-
 
 module.exports = router;

@@ -70,6 +70,7 @@ const updateLight = `UPDATE lights SET ? WHERE id = ?`;
 const assignLight = "UPDATE lights SET levels_id = ?, is_assigned=1 WHERE id=?";
 const moveLight = "UPDATE lights SET levels_id=? WHERE id=?";
 const deleteLight = "DELETE FROM lights WHERE id = ?";
+const getColumns = "SHOW COLUMNS FROM lights";
 
 router.get("/:uid", auth, (req, res) => {
   con.query(getUserLights, [req.params.uid, 1], (err, rows) => {
@@ -113,6 +114,16 @@ router.get("/device_id/:device_id/:levels_id", auth, (req, res) => {
   con.query(getLightByDeviceAndLevel, params, (err, rows) => {
     if (err) res.sendStatus(400);
     res.json(rows);
+  });
+});
+
+router.get("/columns/columns", auth, (req, res) => {
+  con.query(getColumns, (err, rows) => {
+    if (err) res.sendStatus(400);
+    else {
+      console.log(rows);
+      res.json(rows);
+    }
   });
 });
 
