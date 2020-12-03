@@ -9,30 +9,45 @@ const Promise = require("bluebird");
 
 const upload = multer({ dest: 'tmp/csv/' });
 
-router.post("/csv", upload.single("file"), (req, res) => {
-    const filePath = req.file.path
-    uploadCSV(filePath)
-    .then(() => res.sendStatus(200))
-    .catch(err => res.status(400).send(err))
+const createLevel = 'INSERT INTO levels (buildings_id) VALUES ?' 
+const insertLights = 'INSERT INTO lights (node_id, device_id, type, levels_id) VALUES ?'
+
+router.post("/building", (req, res) => {
+    // if level_id is not present create a new one 
+    const data = req.body
+
+    let needNewLevel = false
+    data.forEach(el => {
+        if (el.levels_id === "") needNewLevel = true
+    })
+
+    if (needNewLevel){
+        createNewLevel(buildingId)
+        .then(levelId => {
+            const data_ = data
+            .map(r => r.levels_id == "" ? levelId : r.levels_id)
+            .map(r => [r.node_id, r.device_id, r.type, r.levels_id])
+            
+            return con.query(insertLights, [data_])
+        })
+        .then(() => res.sendStatus(200))
+        .catch(err => res.status(400).send(err))
+    }
 })
 
-const uploadCSV = async (filePath) => {
-    return new Promise((resolve, reject) => {
-        console.log(1, filePath)
-        let rows = []
-        fs.createReadStream(filePath)
-        .pipe(csv.parse({ headers: true })) 
-        .on("data", data => {
-            console.log(data)
-            rows.push(data)
+const createNewLevel = async (buildingId, needNewLevel) => {
+    return promise = new Promise((resolve, reject) => {
+        if (needNewLevel) {
+        con.query(createLevel, buildingId)
+        .then(res => {
+            resolve(res.insertId)
         })
-        .on("end", () => {
-            //fs.unlinkSync(filePath)
-            const result = {file: filePath, columns: Object.keys(rows[0])}
-            resolve(result)
-        })
-        .on("error", err => reject(err.field))
-    }) 
+        .catch(err => reject(err))
+    }
+    else {
+        resolve(null)
+    }
+    })
 }
 
 module.exports = router
