@@ -1,16 +1,16 @@
 import React, {useState} from "react";
-import {Button} from "@material-ui/core";
 import MaterialTable from "material-table";
 import CSVReader from "react-csv-reader";
 import axios from "axios";
 import Select from "react-select";
-import {Typography} from "@material-ui/core";
+import {Typography, Button} from "@material-ui/core";
 
 export default function UploadCSV(props) {
   const [rendered, setRendered] = useState(false);
   const [columns, setColumns] = useState([]);
   const [data, setData] = useState([]);
-  const [deviceCols, setDeviceCols] = useState([]);
+  const [dataFull, setDataFull] = useState([]);
+  const [mapping, setMapping] = useState([]);
   const [options, setOptions] = useState([]);
 
   const csvJSON = (csv) => {
@@ -50,9 +50,12 @@ export default function UploadCSV(props) {
     data[0].forEach((el) => {
       optionsData.push({value: el, label: el});
     });
+
+    prepareCsvForInsert(dataJSON);
     setOptions(optionsData);
     setColumns(c);
     setData(dataLimited);
+    setDataFull(dataJSON);
     setRendered(true);
   };
 
@@ -61,7 +64,7 @@ export default function UploadCSV(props) {
     const re = new RegExp(/\s|-|_/g);
     cols.forEach((c) => {
       let c_ = c.toLowerCase().replace(re, "");
-      deviceCols.forEach((dc) => {
+      mapping.forEach((dc) => {
         let dc_ = dc.key1.toLowerCase().replace(re, "");
         console.log(dc_, c_);
         if (dc_ === c_) {
@@ -71,27 +74,32 @@ export default function UploadCSV(props) {
       });
     });
     mapping.forEach((el) => {
-      deviceCols.forEach((dc) => {
+      mapping.forEach((dc) => {
         console.log(dc);
       });
     });
     return mapping;
   };
 
-  const prepareCsvForInsert = (input) => {
-    const mapping = {node: "node_id", id: "id"};
-
-    return input.map((n) =>
-      Object.keys(n)
-        .filter((key) => mapping.hasOwnProperty(key))
-        .reduce((obj, key) => {
-          obj[mapping[key]] = n[key];
-          return obj;
-        }, {})
+  const renameKeys = (keysMap, obj) => {
+    Object.keys(obj).reduce(
+      (acc, key) => ({
+        ...acc,
+        ...{[keysMap[key] || key]: obj[key]},
+      }),
+      {}
     );
   };
 
   const getColumns = () => {
+    const notRequiredCols = [
+      "status",
+      "created_at",
+      "updated_at",
+      "fp_coordinates_left",
+      "fp_coordinates_bot",
+    ];
+
     axios({
       //Axios GET request
       method: "get",
@@ -101,20 +109,64 @@ export default function UploadCSV(props) {
       },
       url: global.BASE_URL + "/api/lights/columns/columns",
     }).then((res) => {
-      let data = res.data.map((el) => {
-        return {key1: el.Field, key2: ""};
-      });
-
-      setDeviceCols(data);
+      const notUndefined = (anyValue) => typeof anyValue !== "undefined";
+      let data = res.data
+        .map((el) => {
+          let required = !notRequiredCols.some((n) => el.Field === n);
+          if (required) return {[el.Field]: ""};
+          console.log({[el.Field]: ""});
+        })
+        .filter(notUndefined);
+      console.log(data);
+      setMapping(data);
     });
   };
 
+  const findObjByKey = (array, key) => {
+    return array.findIndex((el) => Object.keys(el)[0] === key);
+  };
+
   const selectOnChange = (selected, el) => {
-    const index = deviceCols.findIndex((dc) => dc.key1 === el.key1);
-    let cols = deviceCols;
-    cols[index].key2 = selected.value;
-    setDeviceCols(cols);
-    console.log("SELECTED", deviceCols);
+    const objectKey = Object.keys(el)[0];
+    const index = findObjByKey(mapping, objectKey);
+
+    let cols = mapping;
+
+    cols[index][objectKey] = selected.value;
+
+    setMapping(cols);
+
+    console.log("SELECTED", mapping);
+  };
+
+  const changeObjKeys = () => {
+    const columns = {node: "node_id", id: "id"};
+    const input = [
+      {id: 1, node: "0078"},
+      {id: 2, node: "0074"},
+      {id: 3, node: "0072", name: "l1"},
+    ];
+
+    return input.map((n) =>
+      Object.keys(n)
+        .filter((key) => columns.hasOwnProperty(key))
+        .reduce((obj, key) => {
+          obj[columns[key]] = n[key];
+          return obj;
+        }, {})
+    );
+  };
+
+  const prepareCsvForInsert = () => {
+    console.log(mapping, dataFull);
+    let mappingObj = {};
+    mapping.forEach((el) => {
+      Object.assign(mappingObj, el);
+    });
+
+    console.log(changeObjKeys(mapping, dataFull));
+
+    let sendData = [];
   };
 
   React.useEffect(() => {
@@ -126,42 +178,89 @@ export default function UploadCSV(props) {
       {rendered && columns.length > 0 ? (
         <div>
           <MaterialTable columns={columns} data={data} title="Data" />
-          <Typography variant="h4">Assign your data columns</Typography>
-          <ul style={{width: "100%"}}>
-            {deviceCols.map((el, index) => (
-              <li
+
+          <ul style={{width: "100%", margin: "50px", marginLeft: "-40px"}}>
+            <Typography variant="h4">Assign your data columns</Typography>
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                backgroundColor: "#00A957",
+                borderRadius: "4px",
+                padding: "10px",
+                marginBottom: "20px",
+              }}
+            >
+              <div
                 style={{
-                  listStyle: "none",
-                  width: "100%",
-                  display: "flex",
-                  backgroundColor: "#00A957",
-                  borderRadius: "4px",
-                  padding: "10px",
+                  width: "20%",
+                  textAlign: "left",
+                  fontSize: "1.2em",
+                  marginRight: "50px",
+                  color: "#FFFFFF",
                 }}
-                key={index}
               >
-                <div
+                System columns
+              </div>
+              <div
+                style={{
+                  width: "20%",
+                  textAlign: "left",
+                  fontSize: "1.2em",
+                  marginRight: "50px",
+                  color: "#FFFFFF",
+                }}
+              >
+                Your columns
+              </div>
+            </div>
+            {mapping.map((el, index) => {
+              const objectKey = Object.keys(el)[0];
+              console.log(objectKey);
+              return (
+                <li
                   style={{
-                    width: "20%",
-                    textAlign: "left",
-                    fontSize: "1.2em",
-                    fontWeight: "lighter",
-                    marginRight: "50px",
-                    color: "#FFFFFF",
+                    listStyle: "none",
+                    width: "100%",
+                    display: "flex",
+                    backgroundColor: "#00A957",
+                    borderRadius: "4px",
+                    padding: "10px",
+                    marginBottom: "20px",
                   }}
+                  key={index}
                 >
-                  {el.key1}
-                </div>
-                <div style={{width: "45%"}}>
-                  <Select
-                    options={options}
-                    onChange={(s) => selectOnChange(s, el)}
-                    defaultValue={el.key2}
-                  />
-                </div>
-              </li>
-            ))}
+                  <div
+                    style={{
+                      width: "20%",
+                      textAlign: "left",
+                      fontSize: "1.2em",
+                      fontWeight: "lighter",
+                      marginRight: "50px",
+                      color: "#FFFFFF",
+                    }}
+                  >
+                    {objectKey}
+                  </div>
+                  <div style={{width: "45%"}}>
+                    <Select
+                      options={options}
+                      onChange={(s) => selectOnChange(s, el)}
+                      defaultValue={el.key2}
+                    />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={prepareCsvForInsert}
+            style={{float: "right"}}
+          >
+            IMPORT
+          </Button>
         </div>
       ) : (
         <Typography variant="h6">Select CSV file you wish to import</Typography>
