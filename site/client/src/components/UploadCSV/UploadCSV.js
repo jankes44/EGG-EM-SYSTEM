@@ -4,6 +4,7 @@ import MaterialTable from "material-table";
 import CSVReader from "react-csv-reader";
 import axios from "axios";
 import Select from "react-select";
+import {Typography} from "@material-ui/core";
 
 export default function UploadCSV(props) {
   const [rendered, setRendered] = useState(false);
@@ -125,29 +126,28 @@ export default function UploadCSV(props) {
       {rendered && columns.length > 0 ? (
         <div>
           <MaterialTable columns={columns} data={data} title="Data" />
-          <ul style={{margin: "3%", width: "100%"}}>
+          <Typography variant="h4">Assign your data columns</Typography>
+          <ul style={{width: "100%"}}>
             {deviceCols.map((el, index) => (
               <li
                 style={{
                   listStyle: "none",
                   width: "100%",
                   display: "flex",
-                  margin: "50px",
+                  backgroundColor: "#00A957",
+                  borderRadius: "4px",
+                  padding: "10px",
                 }}
                 key={index}
               >
                 <div
                   style={{
-                    width: "25%",
-                    textAlign: "right",
+                    width: "20%",
+                    textAlign: "left",
                     fontSize: "1.2em",
                     fontWeight: "lighter",
-                    padding: "10px",
                     marginRight: "50px",
-                    backgroundColor: "#00A957",
-                    borderRadius: "4px",
                     color: "#FFFFFF",
-                    height: "50px",
                   }}
                 >
                   {el.key1}
@@ -163,7 +163,9 @@ export default function UploadCSV(props) {
             ))}
           </ul>
         </div>
-      ) : null}
+      ) : (
+        <Typography variant="h6">Select CSV file you wish to import</Typography>
+      )}
 
       <CSVReader onFileLoaded={onFileLoaded} />
     </div>

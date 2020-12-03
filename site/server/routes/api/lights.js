@@ -120,10 +120,7 @@ router.get("/device_id/:device_id/:levels_id", auth, (req, res) => {
 router.get("/columns/columns", auth, (req, res) => {
   con.query(getColumns, (err, rows) => {
     if (err) res.sendStatus(400);
-    else {
-      console.log(rows);
-      res.json(rows);
-    }
+    else res.json(rows);
   });
 });
 
