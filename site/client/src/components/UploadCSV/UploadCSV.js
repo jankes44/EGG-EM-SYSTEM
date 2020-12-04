@@ -151,7 +151,7 @@ export default function UploadCSV(props) {
       Object.keys(n)
         .filter((key) => columns.hasOwnProperty(key))
         .reduce((obj, key) => {
-          obj[columns[key]] = n[key];
+          obj[key] = n[columns[key]];
           return obj;
         }, {})
     );
