@@ -3,12 +3,12 @@ const router = express.Router();
 const auth = require("../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const con = require("../../database/db2");
-const { values } = require("lodash");
+const {values} = require("lodash");
 
 const selectBuildings = "SELECT * FROM buildings";
 const selectSite = `SELECT s.id as sites_id, b.building, b.id as buildings_id,
                     b.address, l.id AS levels_id, l.level, 
-                    sum(case when lg.is_assigned = 1 then 1 else 0 end) as devices
+                    count(lg.id) as devices,
                     FROM sites s 
                     LEFT JOIN buildings b on s.id = b.sites_id 
                     LEFT JOIN levels l on l.buildings_id = b.id 
@@ -18,7 +18,7 @@ const selectSite = `SELECT s.id as sites_id, b.building, b.id as buildings_id,
 
 const selectSiteJoinLevels = `SELECT s.id as sites_id, b.id as buildings_id, b.building, b.address,
                               group_concat(DISTINCT l.level SEPARATOR ', ') as levels,
-                              sum(case when lg.is_assigned = 1 then 1 else 0 end) as devices
+                              count(lg.id) as devices
                               FROM sites s 
                               LEFT JOIN buildings b on s.id = b.sites_id 
                               LEFT JOIN levels l on l.buildings_id = b.id 
@@ -36,7 +36,7 @@ const insertLevelInLghts = "INSERT INTO lights SET levels_id=?";
 const updateBuilding = "UPDATE buildings SET building=?, address=? where id=?";
 const deleteBuilding = "DELETE FROM buildings WHERE id=?";
 
-//gets all groups
+//gets all buildings
 router.get("/", auth, (req, res) => {
   con.query(selectBuildings, (err, rows) => {
     if (err) res.sendStatus(400);
@@ -44,7 +44,7 @@ router.get("/", auth, (req, res) => {
   });
 });
 
-//get group by param: id
+//get building by param: id
 router.get("/:sites_id", auth, (req, res) => {
   con.query(selectSite, req.params.sites_id, (err, rows) => {
     if (err) res.sendStatus(400);
@@ -53,7 +53,7 @@ router.get("/:sites_id", auth, (req, res) => {
   });
 });
 
-//get group by param: id
+//get building by param: id
 router.get("/joinlevels/:sites_id", auth, (req, res) => {
   con.query(selectSiteJoinLevels, req.params.sites_id, (err, rows) => {
     if (err) res.sendStatus(400);
@@ -110,7 +110,7 @@ router.post("/:id", auth, function (req, res) {
 router.delete("/:id", auth, function (req, res) {
   con.query(deleteBuilding, [req.params.id], (err, result) => {
     if (err) res.sendStatus(400);
-    res.sendStatus(200)
+    res.sendStatus(200);
   });
 });
 

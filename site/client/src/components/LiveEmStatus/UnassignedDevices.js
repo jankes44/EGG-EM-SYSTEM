@@ -13,7 +13,7 @@ export default function UnassignedDevices(props) {
 
   const callDevices = async () => {
     const data = await axios.get(
-      global.BASE_URL + "/api/lights/unassigned/" + user,
+      global.BASE_URL + "/api/lights/unassigned/" + props.clickedLevel,
       {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",

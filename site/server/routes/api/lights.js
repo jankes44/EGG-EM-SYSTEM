@@ -21,7 +21,7 @@ const getUserLights = `
   LEFT JOIN sites s ON s.id = b.sites_id
   LEFT JOIN users_has_sites uhs ON uhs.sites_id = s.id
   LEFT JOIN users u ON u.id = uhs.users_id
-  WHERE u.id = ? AND lg.is_assigned = ?`;
+  WHERE l.id = ? AND lg.is_assigned = ?`;
 
 const getBuildingLights = `
   SELECT DISTINCT lg.id as lights_id, lg.node_id, lg.device_id, lg.type,
@@ -79,8 +79,8 @@ router.get("/:uid", auth, (req, res) => {
   });
 });
 
-router.get("/unassigned/:uid", auth, (req, res) => {
-  con.query(getUserLights, [req.params.uid, 0], (err, rows) => {
+router.get("/unassigned/:lid", auth, (req, res) => {
+  con.query(getUserLights, [req.params.lid, 0], (err, rows) => {
     if (err) res.sendStatus(400);
     res.json(rows);
   });

@@ -48,6 +48,6 @@ app.use("/api/generatepdf", require("./routes/api/PdfGenerate"));
 app.use("/api/sensors", require("./routes/api/sensors"));
 app.use("/sockets", require("./routes/socketsControl"));
 app.use("/api/power", require("./routes/api/powerData"));
-app.use("/upload", require("./routes/upload"))
+app.use("/api/upload", require("./routes/upload_2"));
 
 app.listen(PORT, () => console.log("Server started on port", PORT, Date()));

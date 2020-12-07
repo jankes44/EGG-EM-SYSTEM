@@ -1,7 +1,7 @@
 DB_HOST=ec2-63-32-97-125.eu-west-1.compute.amazonaws.com
 DB_USER=remote
 DB_PASS=GrapeJuice40#
-DB_BASE=emeggtesting
+DB_BASE=emergencyegg
 SECRET_KEY=H58hU5PfJ*h!kNDJrO&M%s$JYh&!U4vvouW@W%SowsQfd6t*jG
 ADMIN_SECRET=tAKhGtcNpAJZwZzewDxr
 PORT=5000

@@ -51,7 +51,6 @@ export default function UploadCSV(props) {
       optionsData.push({value: el, label: el});
     });
 
-    prepareCsvForInsert(dataJSON);
     setOptions(optionsData);
     setColumns(c);
     setData(dataLimited);
@@ -93,11 +92,14 @@ export default function UploadCSV(props) {
 
   const getColumns = () => {
     const notRequiredCols = [
+      "id",
       "status",
       "created_at",
       "updated_at",
       "fp_coordinates_left",
       "fp_coordinates_bot",
+      "is_assigned",
+      "levels_id",
     ];
 
     axios({
@@ -117,6 +119,7 @@ export default function UploadCSV(props) {
           console.log({[el.Field]: ""});
         })
         .filter(notUndefined);
+      data.push({level_name: ""});
       console.log(data);
       setMapping(data);
     });
@@ -139,34 +142,50 @@ export default function UploadCSV(props) {
     console.log("SELECTED", mapping);
   };
 
-  const changeObjKeys = () => {
-    const columns = {node: "node_id", id: "id"};
-    const input = [
-      {id: 1, node: "0078"},
-      {id: 2, node: "0074"},
-      {id: 3, node: "0072", name: "l1"},
-    ];
+  //our_db: csv
 
+  const objectFlip = (obj) => {
+    const ret = {};
+    Object.keys(obj).forEach((key) => {
+      ret[obj[key]] = key;
+    });
+    return ret;
+  };
+
+  const changeObjKeys = (columns_, input) => {
+    const columns = objectFlip(columns_);
     return input.map((n) =>
       Object.keys(n)
         .filter((key) => columns.hasOwnProperty(key))
         .reduce((obj, key) => {
-          obj[key] = n[columns[key]];
+          obj[columns[key]] = n[key] === "" ? null : n[key];
           return obj;
         }, {})
     );
   };
 
   const prepareCsvForInsert = () => {
-    console.log(mapping, dataFull);
     let mappingObj = {};
     mapping.forEach((el) => {
       Object.assign(mappingObj, el);
     });
 
-    console.log(changeObjKeys(mapping, dataFull));
+    const data = {
+      data: changeObjKeys(mappingObj, dataFull),
+      buildingId: props.building.buildings_id,
+    };
 
-    let sendData = [];
+    axios({
+      method: "POST",
+      url: global.BASE_URL + "/api/upload/building",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Authorization: "Bearer " + localStorage.usertoken,
+      },
+      data: data,
+    }).then((res) => {
+      console.log(res);
+    });
   };
 
   React.useEffect(() => {
