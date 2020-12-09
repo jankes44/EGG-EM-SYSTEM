@@ -1,0 +1,769 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "TBD",
+  "version": "1.0",
+  "meshUUID": "87637D3CEA3D4EA780557D081D05B66D",
+  "meshName": "JohanNew",
+  "timestamp": "2020-02-06T08:55:40+0000",
+  "netKeys": [
+    {
+      "name": "Network Key 1",
+      "index": 0,
+      "key": "07F2F00D75A7672F4D086E90DFEDC677",
+      "phase": 0,
+      "minSecurity": "high",
+      "timestamp": "2020-01-16T12:06:46+0000"
+    }
+  ],
+  "appKeys": [
+    {
+      "name": "Application Key 1",
+      "index": 0,
+      "boundNetKey": 0,
+      "key": "CF6CC5BCD9B459D6E1F8F58FC9AB73E9"
+    },
+    {
+      "name": "Application Key 2",
+      "index": 1,
+      "boundNetKey": 0,
+      "key": "8E56EA1735C2C48A9129B06F59FF19BC"
+    },
+    {
+      "name": "Application Key 3",
+      "index": 2,
+      "boundNetKey": 0,
+      "key": "875E9725D0AEB7E252F011448852A199"
+    }
+  ],
+  "provisioners": [
+    {
+      "provisionerName": "nRF Mesh Provisioner",
+      "UUID": "F5B3A6A204FF4A9E974DC2E28BAAF20A",
+      "allocatedUnicastRange": [
+        {
+          "lowAddress": "0001",
+          "highAddress": "199A"
+        }
+      ],
+      "allocatedGroupRange": [
+        {
+          "lowAddress": "C000",
+          "highAddress": "CC9A"
+        }
+      ],
+      "allocatedSceneRange": [
+        {
+          "firstScene": "0001",
+          "lastScene": "3333"
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "UUID": "F5B3A6A204FF4A9E974DC2E28BAAF20A",
+      "name": "nRF Mesh Provisioner",
+      "deviceKey": "A863F514E5C0B434058079BC3281C177",
+      "unicastAddress": "0001",
+      "security": "low",
+      "configComplete": true,
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 2,
+        "relay": 2
+      },
+      "defaultTTL": 5,
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        },
+        {
+          "index": 1,
+          "updated": false
+        },
+        {
+          "index": 2,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0001",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0001",
+              "bind": [],
+              "subscribe": []
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    },
+    {
+      "UUID": "2870A438E535CE42A438A10E1741ACD7",
+      "name": "MBridge V4.0.1",
+      "deviceKey": "7CE1A02FB19E4F35A9F48E0425F7F93C",
+      "unicastAddress": "0002",
+      "security": "low",
+      "configComplete": false,
+      "cid": "026E",
+      "pid": "0004",
+      "vid": "0001",
+      "crpl": "0028",
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 1,
+        "relay": 1
+      },
+      "defaultTTL": 30,
+      "networkTransmit": {
+        "count": 2,
+        "interval": 1
+      },
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0002",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0000",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "0002",
+              "bind": [],
+              "subscribe": []
+            }
+          ]
+        },
+        {
+          "name": "Element: 0x0003",
+          "index": 1,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "1001",
+              "bind": [
+                0
+              ],
+              "subscribe": [],
+              "publish": {
+                "address": "FFFF",
+                "index": 0,
+                "ttl": 255,
+                "period": 0,
+                "retransmit": {
+                  "count": 1,
+                  "interval": 1
+                },
+                "credentials": 0
+              }
+            },
+            {
+              "modelId": "1003",
+              "bind": [
+                0
+              ],
+              "subscribe": [],
+              "publish": {
+                "address": "FFFF",
+                "index": 0,
+                "ttl": 255,
+                "period": 0,
+                "retransmit": {
+                  "count": 1,
+                  "interval": 1
+                },
+                "credentials": 0
+              }
+            },
+            {
+              "modelId": "1305",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "1102",
+              "bind": [
+                0
+              ],
+              "subscribe": [],
+              "publish": {
+                "address": "FFFF",
+                "index": 0,
+                "ttl": 255,
+                "period": 0,
+                "retransmit": {
+                  "count": 1,
+                  "interval": 1
+                },
+                "credentials": 0
+              }
+            },
+            {
+              "modelId": "1202",
+              "bind": [],
+              "subscribe": []
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    },
+    {
+      "UUID": "0D23CDAF3A651543886D2488E3E6907A",
+      "name": "TLD0318A_V4_0",
+      "deviceKey": "B6608E6CB20F478E55A0145F709263BF",
+      "unicastAddress": "0004",
+      "security": "low",
+      "configComplete": false,
+      "cid": "0059",
+      "pid": "0000",
+      "vid": "0000",
+      "crpl": "0028",
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 1,
+        "relay": 1
+      },
+      "defaultTTL": 4,
+      "networkTransmit": {
+        "count": 2,
+        "interval": 1
+      },
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0004",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0000",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "0002",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "1000",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C001"
+              ]
+            },
+            {
+              "modelId": "1002",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C001"
+              ]
+            },
+            {
+              "modelId": "1306",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "1100",
+              "bind": [
+                0
+              ],
+              "subscribe": []
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    },
+    {
+      "UUID": "884B411AF5BE4B4BA5EAD92EB73B6D5A",
+      "name": "TLD0318A_V4_0",
+      "deviceKey": "D28796E941827041775667FA8F0909FB",
+      "unicastAddress": "0005",
+      "security": "low",
+      "configComplete": false,
+      "cid": "0059",
+      "pid": "0000",
+      "vid": "0000",
+      "crpl": "0028",
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 1,
+        "relay": 1
+      },
+      "defaultTTL": 4,
+      "networkTransmit": {
+        "count": 2,
+        "interval": 1
+      },
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0005",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0000",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "0002",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "1000",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C001"
+              ]
+            },
+            {
+              "modelId": "1002",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C001"
+              ]
+            },
+            {
+              "modelId": "1306",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "1100",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C001"
+              ]
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    },
+    {
+      "UUID": "DFDBF5A306A06445B91C57772CB29B5B",
+      "name": "EGG Mesh PIR V0",
+      "deviceKey": "8632680FBBED5A91C8C0CEDBB749F9FB",
+      "unicastAddress": "0006",
+      "security": "low",
+      "configComplete": false,
+      "cid": "0059",
+      "pid": "0000",
+      "vid": "0000",
+      "crpl": "0028",
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 1,
+        "relay": 1
+      },
+      "defaultTTL": 30,
+      "networkTransmit": {
+        "count": 2,
+        "interval": 1
+      },
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0006",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0000",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "0002",
+              "bind": [],
+              "subscribe": []
+            }
+          ]
+        },
+        {
+          "name": "Element: 0x0007",
+          "index": 1,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "1001",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C005"
+              ],
+              "publish": {
+                "address": "C005",
+                "index": 0,
+                "ttl": 1,
+                "period": 0,
+                "retransmit": {
+                  "count": 1,
+                  "interval": 1
+                },
+                "credentials": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Element: 0x0008",
+          "index": 2,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "1001",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C005"
+              ],
+              "publish": {
+                "address": "C005",
+                "index": 0,
+                "ttl": 1,
+                "period": 0,
+                "retransmit": {
+                  "count": 1,
+                  "interval": 1
+                },
+                "credentials": 0
+              }
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    },
+    {
+      "UUID": "EB1B12EA0B8A7043A0AEB2379FBFC879",
+      "name": "nRF5x Mesh Light",
+      "deviceKey": "E1F8687FAAC1A31D5D05722FB40A7013",
+      "unicastAddress": "0085",
+      "security": "low",
+      "configComplete": false,
+      "cid": "0059",
+      "pid": "0000",
+      "vid": "0000",
+      "crpl": "0028",
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 1,
+        "relay": 1
+      },
+      "defaultTTL": 4,
+      "networkTransmit": {
+        "count": 2,
+        "interval": 1
+      },
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0085",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0000",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "0002",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "1000",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C005"
+              ],
+              "publish": {
+                "address": "0000",
+                "index": 0,
+                "ttl": 0,
+                "period": 0,
+                "retransmit": {
+                  "count": 0,
+                  "interval": 0
+                },
+                "credentials": 0
+              }
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    },
+    {
+      "UUID": "744B7F3AC70DC246B602AA9B60943FC8",
+      "name": "EGG Mesh PIR V0",
+      "deviceKey": "FDD7EB1F702B5BB345B8E03F3A184F9D",
+      "unicastAddress": "0086",
+      "security": "low",
+      "configComplete": false,
+      "cid": "0059",
+      "pid": "0000",
+      "vid": "0000",
+      "crpl": "0028",
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 1,
+        "relay": 1
+      },
+      "defaultTTL": 5,
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0086",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0000",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "0002",
+              "bind": [],
+              "subscribe": []
+            }
+          ]
+        },
+        {
+          "name": "Element: 0x0087",
+          "index": 1,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "1001",
+              "bind": [
+                0
+              ],
+              "subscribe": [],
+              "publish": {
+                "address": "C005",
+                "index": 0,
+                "ttl": 1,
+                "period": 0,
+                "retransmit": {
+                  "count": 1,
+                  "interval": 1
+                },
+                "credentials": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Element: 0x0088",
+          "index": 2,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "1001",
+              "bind": [
+                0
+              ],
+              "subscribe": [],
+              "publish": {
+                "address": "C005",
+                "index": 0,
+                "ttl": 1,
+                "period": 0,
+                "retransmit": {
+                  "count": 1,
+                  "interval": 1
+                },
+                "credentials": 0
+              }
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    },
+    {
+      "UUID": "8750C71AD6787543B2F0B72B607F28B8",
+      "name": "nRF5x Mesh Light",
+      "deviceKey": "732858956E96B3459F3DB1AF706B9BE2",
+      "unicastAddress": "0099",
+      "security": "low",
+      "configComplete": false,
+      "cid": "0059",
+      "pid": "0000",
+      "vid": "0000",
+      "crpl": "0028",
+      "features": {
+        "friend": 2,
+        "lowPower": 2,
+        "proxy": 1,
+        "relay": 1
+      },
+      "defaultTTL": 5,
+      "netKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "appKeys": [
+        {
+          "index": 0,
+          "updated": false
+        }
+      ],
+      "elements": [
+        {
+          "name": "Element: 0x0099",
+          "index": 0,
+          "location": "0000",
+          "models": [
+            {
+              "modelId": "0000",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "0002",
+              "bind": [],
+              "subscribe": []
+            },
+            {
+              "modelId": "1000",
+              "bind": [
+                0
+              ],
+              "subscribe": [
+                "C005"
+              ]
+            }
+          ]
+        }
+      ],
+      "blacklisted": false
+    }
+  ],
+  "groups": [
+    {
+      "name": "Living Room",
+      "address": "C001",
+      "parentAddress": "0000"
+    },
+    {
+      "name": "Pit Logger",
+      "address": "C005",
+      "parentAddress": "0000"
+    }
+  ]
+}

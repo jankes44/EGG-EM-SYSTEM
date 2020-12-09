@@ -1,0 +1,38 @@
+{
+  "files": {
+    "main.css": "./static/css/main.e2373394.chunk.css",
+    "main.js": "./static/js/main.5938aa66.chunk.js",
+    "main.js.map": "./static/js/main.5938aa66.chunk.js.map",
+    "runtime-main.js": "./static/js/runtime-main.0d0d2635.js",
+    "runtime-main.js.map": "./static/js/runtime-main.0d0d2635.js.map",
+    "static/css/2.a2e00d3d.chunk.css": "./static/css/2.a2e00d3d.chunk.css",
+    "static/js/2.48643d2b.chunk.js": "./static/js/2.48643d2b.chunk.js",
+    "static/js/2.48643d2b.chunk.js.map": "./static/js/2.48643d2b.chunk.js.map",
+    "static/js/3.b8a8ce0f.chunk.js": "./static/js/3.b8a8ce0f.chunk.js",
+    "static/js/3.b8a8ce0f.chunk.js.map": "./static/js/3.b8a8ce0f.chunk.js.map",
+    "static/js/4.d9d75753.chunk.js": "./static/js/4.d9d75753.chunk.js",
+    "static/js/4.d9d75753.chunk.js.map": "./static/js/4.d9d75753.chunk.js.map",
+    "static/js/5.0b889576.chunk.js": "./static/js/5.0b889576.chunk.js",
+    "static/js/5.0b889576.chunk.js.map": "./static/js/5.0b889576.chunk.js.map",
+    "index.html": "./index.html",
+    "precache-manifest.733ab709fc54729cfbd0b0a66c4bf89e.js": "./precache-manifest.733ab709fc54729cfbd0b0a66c4bf89e.js",
+    "service-worker.js": "./service-worker.js",
+    "static/css/2.a2e00d3d.chunk.css.map": "./static/css/2.a2e00d3d.chunk.css.map",
+    "static/css/main.e2373394.chunk.css.map": "./static/css/main.e2373394.chunk.css.map",
+    "static/js/2.48643d2b.chunk.js.LICENSE.txt": "./static/js/2.48643d2b.chunk.js.LICENSE.txt",
+    "static/js/3.b8a8ce0f.chunk.js.LICENSE.txt": "./static/js/3.b8a8ce0f.chunk.js.LICENSE.txt",
+    "static/js/4.d9d75753.chunk.js.LICENSE.txt": "./static/js/4.d9d75753.chunk.js.LICENSE.txt",
+    "static/js/5.0b889576.chunk.js.LICENSE.txt": "./static/js/5.0b889576.chunk.js.LICENSE.txt",
+    "static/js/main.5938aa66.chunk.js.LICENSE.txt": "./static/js/main.5938aa66.chunk.js.LICENSE.txt",
+    "static/media/egg.png": "./static/media/egg.39e564b5.png",
+    "static/media/index.css": "./static/media/roboto-latin-900italic.ebf6d164.woff2",
+    "static/media/sidebar-2.jpg": "./static/media/sidebar-2.310509c9.jpg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.0d0d2635.js",
+    "static/css/2.a2e00d3d.chunk.css",
+    "static/js/2.48643d2b.chunk.js",
+    "static/css/main.e2373394.chunk.css",
+    "static/js/main.5938aa66.chunk.js"
+  ]
+}

@@ -1,0 +1,24 @@
+.Console {
+  margin-top: 30px;
+  width: 100%;
+  height: 70vh;
+  border-radius: 5px 5px 0px 0px;
+  background-color: black;
+  color: white;
+}
+.Container {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5fcff;
+  border-width: 1;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.ConsoleOutput {
+  width: 100%;
+  height: 70vh;
+}
+.ConsoleInput {
+  width: 100%;
+}

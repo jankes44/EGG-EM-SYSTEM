@@ -1,0 +1,10 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat&display=swap");
+
+.Welcome {
+  font-family: Montserrat;
+  font-size: 3em;
+}
+
+.h1 {
+  color: white;
+}
