@@ -1,19 +1,19 @@
 const members = [
   {
     id: 1,
-    name: "Mary Jane",
-    email: "dope@hotmail.com",
+    name: "Mary",
+    email: "mary@hotmail.com",
     status: "inactive"
   },
   {
     id: 2,
-    name: "James Stoned",
+    name: "James Stone",
     email: "detective@gmail.com",
     status: "active"
   },
   {
     id: 3,
-    name: "Kostas Englesomething",
+    name: "Kostas",
     email: "kostas@kostas.kostas",
     status: "inactive"
   }
